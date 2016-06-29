@@ -8,7 +8,17 @@ public:
 	static Config* getInstance();
 	int load();
 	int resetConfig();
-//private
+	int isDaemonMode();
+	string getMonitorName();
+	int isAutoStart();
+	int getLogLevel();
+	int getConnRetryCount();
+	int getScanInterval();
+	string getInstanceName();
+	string getZkHost();
+	string getZkLogPath();
+
+private:
 	Config();
 	~Config();
 	static Config* _instance;

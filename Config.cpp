@@ -137,3 +137,7 @@ int Config::load(){
 	file.close();
 	return 0;
 }
+
+int Config::getLogLevel(){
+	return _logLevel;
+}
