@@ -7,8 +7,26 @@
 using namespace std;
 
 Config* Config::_instance = NULL;
-int Util::trim(string& str){
-	//todo
+int Util::trim(string& str) {
+	size_t left = 0;
+	while (left < str.size()) {
+		if (str[left] == ' ' || str[left] == '\t' || str[left] == '\n' || str[left] == '\r') {
+			++left;
+		}
+		else {
+			break;
+		}
+	}
+	size_t right = str.size() - 1;
+	while (right >= left) {
+		if (str[right] == ' ' || str[right] == '\t' || str[left] == '\n' || str[left] == '\r') {
+			--right;
+		}
+		else {
+			break;
+		}
+	}
+	str = str.substr(left, right - left + 1);
 	return 0;
 }
 

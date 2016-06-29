@@ -13,7 +13,7 @@ Config::Config(){
 }
 
 Config::~Config(){
-
+	delete _instance;
 }
 
 Config* Config::getInstance(){
