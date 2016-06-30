@@ -128,7 +128,6 @@ int Config::load(){
 			//get the value
 			string value = line.substr(pos + 1);
 			Util::trim(value);
-//			cout << key << " " << value << endl;
 			setValueInt(key, value);
 			setValueStr(key, value);
 		}

@@ -25,7 +25,7 @@ string Log::getLogLevelStr(const int level) {
 
 int Log::checkFile(const int year, const int mon, const int day){
 	char newName[128] = {0};
-	snprintf(newName, sizeof(newName), "%s%s.%4d%2d%2d", logPath.c_str(), 
+	snprintf(newName, sizeof(newName), "%s%s.%4d%02d%02d", logPath.c_str(), 
 		logFileNamePrefix.c_str(), year, mon, day);
 	if (strcmp(curLogFileName, newName) == 0) {
 		return 0;
@@ -53,14 +53,7 @@ int Log::checkFile(const int year, const int mon, const int day){
 }
 
 int Log::printLog(const char* fileName, const int line, const int level, const char* format, ...) {
-	//判断文件是否已经打开,有必要吗？好像没有，init只是为了把loglevel传进来，并不是说换个文件了这个值就不同了，只有在reload了配置文件之后才会不同吧
-	//那么这个操作我觉得在config里面做会更好
-	/*
-	if (!logFile) {
-		init();
-	}
-	*/
-	//如果想要记录的级别数据比配置文件中设置的更高，就不予记录。这相当于配置文件中的记录级别是最高级别，比这个低的都会记录
+	//we only log when the level input is lower than the loglevel in the config file
 	if (level > logLevel) {
 		return 0;
 	}
@@ -71,7 +64,7 @@ int Log::printLog(const char* fileName, const int line, const int level, const c
 	struct tm* realTime = localtime(&curTime);
 
 	char logBuf[1024] = {0};
-	int charCount = snprintf(logBuf, sizeof(logBuf), "%4d/%2d/%2d %2d:%2d:%2d - [%s][%s %d] - ",
+	int charCount = snprintf(logBuf, sizeof(logBuf), "%4d/%02d/%02d %02d:%02d:%02d - [%s][%s %d] - ",
 		realTime->tm_year + 1900, realTime->tm_mon + 1, realTime->tm_mday, realTime->tm_hour, 
 		realTime->tm_min, realTime->tm_sec, logInfo.c_str(), fileName, line);
 

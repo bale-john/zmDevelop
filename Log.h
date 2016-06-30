@@ -16,7 +16,7 @@ using namespace std;
 #define LOG_TRACE       5
 #define LOG_DEBUG       6
 
-#define LOG(level, format, ...) Log::printLog(__FILE__, __LINE__, level, format, ## __VA__ARGS__)
+#define LOG(level, format, ...) Log::printLog(__FILE__, __LINE__, level, format, ## __VA_ARGS__)
 
 
 class Log{
