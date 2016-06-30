@@ -9,10 +9,15 @@
 #include "Config.h"
 #include "ConstDef.h"
 #include "Log.h"
-
+#include "Process.h"
+using namespace std;
 
 int main(int argc, char** argv){
 	Config* conf = Config::getInstance();
 	Util::printConfig();
+	if (Process::isProcessRunning(MONITOR_PROCESS_NAME) == 1) {
+		LOG(LOG_ERROR, "Monitor is already running.");
+		return -1;
+	}
 	return 0;
 }

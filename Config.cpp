@@ -9,6 +9,8 @@
 #include "Log.h"
 using namespace std;
 
+Config* Config::_instance = NULL;
+
 Config::Config(){
 	resetConfig();
 }

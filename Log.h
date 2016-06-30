@@ -25,7 +25,6 @@ public:
 	//load the loglevel from config file
 	static int init(const int ll);
 	static string getLogLevelStr(int n);
-	static int checkFile(const int year, const int mon, const int day);
 private:
 	Log();
 	~Log();
@@ -34,5 +33,6 @@ private:
 	static pthread_mutex_t mutex;
 	static char curLogFileName[128];
 	static string logLevelitos[7];
+	static int checkFile(const int year, const int mon, const int day);
 };
 #endif

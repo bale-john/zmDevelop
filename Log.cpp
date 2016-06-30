@@ -91,3 +91,4 @@ int Log::printLog(const char* fileName, const int line, const int level, const c
 	pthread_mutex_unlock(&mutex);
 	return 0;
 }
+

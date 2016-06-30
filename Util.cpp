@@ -6,7 +6,6 @@
 #include "Config.h"
 using namespace std;
 
-Config* Config::_instance = NULL;
 int Util::trim(string& str) {
 	size_t left = 0;
 	while (left < str.size()) {

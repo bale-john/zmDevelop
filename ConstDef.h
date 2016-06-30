@@ -22,4 +22,5 @@ constexpr int maxLogLevel = 6;
 const string logPath = "log/";
 const string logFileNamePrefix = "qconf-monitor.log";
 
+const string MONITOR_PROCESS_NAME = "qconf-monitor";
 #endif
