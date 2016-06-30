@@ -9,7 +9,6 @@
 #include "Config.h"
 #include "ConstDef.h"
 #include "Log.h"
-#include <stdarg.h>
 
 
 int main(int argc, char** argv){

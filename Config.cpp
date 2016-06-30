@@ -22,7 +22,7 @@ Config* Config::getInstance(){
 		_instance = new Config();
 		_instance->load();
 		//reload the config result in the change of loglevel in Log
-		Log::init(_instance->_logLevel);	
+		Log::init(_instance->getLogLevel());	
 	}
 	return _instance;
 }
@@ -77,11 +77,11 @@ int Config::setValueStr(const string& key, const string& value){
 	else if (key == zkLogPath){
 		_zkLogPath = value;
 	}
+	//find the zk host this monitor should focus on. Their idc should be the same
 	else if (key.substr(0, zkHost.length()) == zkHost){
 		char hostname[512] = {0};
 		if (gethostname(hostname, sizeof(hostname)) != 0) {
-			//how to log
-			//LOG("get host name failed");
+			LOG(LOG_ERROR, "get host name failed");
 			return -1;
 		}
 		string idc = key.substr(zkHost.length());
@@ -95,7 +95,7 @@ int Config::setValueStr(const string& key, const string& value){
 			}
 		}
 		if (i == singleWord.size()){
-			//LOG("idc not found");
+			LOG(LOG_ERROR, "idc not found");
 			return -1;
 		}
 	}
@@ -133,8 +133,7 @@ int Config::load(){
 		}
 	} 
 	else {
-		//todo
-		cout << "config file open wrong" << endl;
+		LOG(LOG_ERROR, "config file open wrong");
 	}
 	file.close();
 	return 0;

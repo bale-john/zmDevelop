@@ -30,21 +30,27 @@ int Log::checkFile(const int year, const int mon, const int day){
 	if (strcmp(curLogFileName, newName) == 0) {
 		return 0;
 	}
+	//we need to touch a new log file
 	else {
 		if (fp) {
 			pthread_mutex_lock(&mutex);
-			fclose(fp);
-			fp = NULL;
+			//because multithread, so we need to compare the name again.
+			if (fp){
+				fclose(fp);
+				fp = NULL;
+			}
 			pthread_mutex_unlock(&mutex);
-		}
+		}		
 		if (strcmp(curLogFileName, newName) != 0) {
 			pthread_mutex_lock(&mutex);
-			strcpy(curLogFileName, newName);
-			fp = fopen(curLogFileName, "a");
-			if (!fp) {
-				fprintf(stderr, "Log file open failed. Path %s.  Error No:%s\n", curLogFileName, strerror(errno));
-				pthread_mutex_unlock(&mutex);
-				return -1;
+			if (strcmp(curLogFileName, newName) != 0) {
+				strcpy(curLogFileName, newName);
+				fp = fopen(curLogFileName, "a");
+				if (!fp) {
+					fprintf(stderr, "Log file open failed. Path %s.  Error No:%s\n", curLogFileName, strerror(errno));
+					pthread_mutex_unlock(&mutex);
+					return -1;
+				}
 			}
 			pthread_mutex_unlock(&mutex);
 		}
@@ -67,7 +73,7 @@ int Log::printLog(const char* fileName, const int line, const int level, const c
 	int charCount = snprintf(logBuf, sizeof(logBuf), "%4d/%02d/%02d %02d:%02d:%02d - [%s][%s %d] - ",
 		realTime->tm_year + 1900, realTime->tm_mon + 1, realTime->tm_mday, realTime->tm_hour, 
 		realTime->tm_min, realTime->tm_sec, logInfo.c_str(), fileName, line);
-
+	//check weather we need change a log file
 	if (checkFile(realTime->tm_year + 1900, realTime->tm_mon + 1, realTime->tm_mday) != 0) {
 		return -1;
 	}
