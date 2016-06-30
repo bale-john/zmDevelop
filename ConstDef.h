@@ -18,4 +18,8 @@ const string logPath = "zk_log";
 constexpr int minLogLevel = 0;
 constexpr int maxLogLevel = 6;
 
+//log file
+const string logPath = "log/";
+const string logFileNamePrefix = "qconf-monitor.log";
+
 #endif

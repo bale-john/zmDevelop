@@ -6,6 +6,7 @@
 #include "Config.h"
 #include <unistd.h>
 #include "Util.h"
+#include "Log.h"
 using namespace std;
 
 Config::Config(){
@@ -19,7 +20,9 @@ Config::~Config(){
 Config* Config::getInstance(){
 	if (_instance == NULL){
 		_instance = new Config();
-		_instance->load();	
+		_instance->load();
+		//reload the config result in the change of loglevel in Log
+		Log::init(_instance->_logLevel);	
 	}
 	return _instance;
 }
