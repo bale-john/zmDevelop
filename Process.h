@@ -8,6 +8,7 @@ using namespace std;
 class Process{
 public:
 	static bool isProcessRunning(const string& processName);
+	static int daemonize();
 private:
 	Process();
 	~Process();

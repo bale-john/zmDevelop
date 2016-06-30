@@ -19,5 +19,8 @@ int main(int argc, char** argv){
 		LOG(LOG_ERROR, "Monitor is already running.");
 		return -1;
 	}
+	if (conf->isDaemonMode()) {
+		Process::daemonize();
+	}
 	return 0;
 }
