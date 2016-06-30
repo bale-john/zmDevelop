@@ -74,9 +74,9 @@ int Process::daemonize() {
     }*/
     //here close all the file description and redirect stang IO
     fd = open("/dev/null", O_RDWR, 0);
-    dup2(fd, STDIN_FILENO)
-    dup2(fd, STDOUT_FILENO)
-    dup2(fd, STDERR_FILENO)
+    dup2(fd, STDIN_FILENO);
+    dup2(fd, STDOUT_FILENO);
+    dup2(fd, STDERR_FILENO);
     dtablesize = getdtablesize();
     for (fd = 3; fd < dtablesize; ++fd) {
     	close(fd);
