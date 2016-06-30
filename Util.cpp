@@ -46,14 +46,14 @@ vector<string> Util::split(const string& str, const char separator){
 }
 
 int Util::printConfig(){
-	cout << "daemonMode: " << (Config::getInstance())->_daemonMode << endl; 
-	cout << "autoStart: " << (Config::getInstance())->_autoStart << endl; 
-	cout << "logLevel: " << (Config::getInstance())->_logLevel << endl; 
-	cout << "connRetryCount: " << (Config::getInstance())->_connRetryCount << endl; 
-	cout << "scanInterval: " << (Config::getInstance())->_scanInterval << endl; 
-	cout << "instanceName: " << (Config::getInstance())->_instanceName << endl; 
-	cout << "zkHost: " << (Config::getInstance())->_zkHost << endl; 
-	cout << "zkLogPath: " << (Config::getInstance())->_zkLogPath << endl; 
-	cout << "instance: " << (Config::getInstance())->_instance << endl; 
+	cout << "daemonMode: " << (Config::getInstance())->isDaemonMode() << endl; 
+	cout << "autoStart: " << (Config::getInstance())->isAutoStart() << endl; 
+	cout << "logLevel: " << (Config::getInstance())->getLogLevel() << endl; 
+	cout << "connRetryCount: " << (Config::getInstance())->getConnRetryCount() << endl; 
+	cout << "scanInterval: " << (Config::getInstance())->getScanInterval() << endl; 
+	cout << "instanceName: " << (Config::getInstance())->getInstanceName() << endl; 
+	cout << "zkHost: " << (Config::getInstance())->getZkHost() << endl; 
+	cout << "zkLogPath: " << (Config::getInstance())->getZkLogPath() << endl; 
+	cout << "instance: " << (Config::getInstance())->getInstance() << endl; 
 	return 0;
 }

@@ -9,7 +9,7 @@ public:
 	int load();
 	int resetConfig();
 	int isDaemonMode();
-	string getMonitorName();
+	string getMonitorHostname();
 	int isAutoStart();
 	int getLogLevel();
 	int getConnRetryCount();

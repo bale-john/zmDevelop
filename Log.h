@@ -1,7 +1,7 @@
 #ifndef LOG_H
 #define LOG_H
 #include <cstdio>
-#include <pthread>
+#include <unistd.h>
 #include <stdarg.h>
 #include <string>
 using namespace std;

@@ -144,3 +144,35 @@ int Config::load(){
 int Config::getLogLevel(){
 	return _logLevel;
 }
+
+int Config::isDaemonMode(){
+	return _daemonMode;
+}
+
+string Config::getMonitorHostname(){
+	return _monitorHostname;
+}
+
+int Config::isAutoStart(){
+	return _autoStart;
+}
+
+int Config::getConnRetryCount(){
+	return _connRetryCount;
+}
+
+int Config::getScanInterval(){
+	return _scanInterval;
+}
+
+string Config::getInstanceName(){
+	return _instanceName;
+}
+
+string Config::getZkHost(){
+	return _zkHost;
+}
+
+string Config::getZkLogPath(){
+	return _zkLogPath;
+}
