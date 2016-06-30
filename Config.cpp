@@ -74,7 +74,7 @@ int Config::setValueStr(const string& key, const string& value){
 	if (key == instanceName){
 		_instanceName = value;
 	}
-	else if (key == logPath){
+	else if (key == zkLogPath){
 		_zkLogPath = value;
 	}
 	else if (key.substr(0, zkHost.length()) == zkHost){

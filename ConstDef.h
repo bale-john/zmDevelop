@@ -13,7 +13,7 @@ const string connRetryCount = "connect_retry_count";
 const string scanInterval = "scan_interval";
 const string instanceName = "instance_name";
 const string zkHost = "zookeeper.";
-const string logPath = "zk_log";
+const string zkLogPath = "zk_log";
 
 constexpr int minLogLevel = 0;
 constexpr int maxLogLevel = 6;
