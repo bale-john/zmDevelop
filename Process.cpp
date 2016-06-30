@@ -72,9 +72,13 @@ int Process::daemonize() {
     if (chdir("/") < 0) {
     	exit(EXIT_FAILURE);
     }*/
-    //here close all the file description incluing stang IO
+    //here close all the file description and redirect stang IO
+    fd = open("/dev/null", O_RDWR, 0);
+    dup2(fd, STDIN_FILENO)
+    dup2(fd, STDOUT_FILENO)
+    dup2(fd, STDERR_FILENO)
     dtablesize = getdtablesize();
-    for (fd = 0; fd < dtablesize; ++fd) {
+    for (fd = 3; fd < dtablesize; ++fd) {
     	close(fd);
     }
     umask(0);
