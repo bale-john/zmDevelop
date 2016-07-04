@@ -2,3 +2,5 @@ tags
 *.out
 *.swp
 log/*
+zk_adaptor.h
+zookeeper.h

@@ -39,6 +39,7 @@ int Config::resetConfig(){
     _connRetryCount = 3;
     _scanInterval = 3;
     _serviceMap.clear();
+    _zkRecvTimeout = 3000;
 	return 0;
 }
 
@@ -179,4 +180,8 @@ string Config::getZkLogPath(){
 
 int Config::clearServiceMap() {
 	_serviceMap.clear();
+}
+
+int Config::getZkRecvTimeout() {
+	return _zkRecvTimeout;
 }

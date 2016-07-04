@@ -43,6 +43,11 @@ int main(int argc, char** argv){
 		LOG(LOG_INFO, " main loop start -> !!!!!!");
 		_stop = false;
 		conf->clearServiceMap();
+		_zk = new Zk();
+		string zkHost = conf->getZkHost();
+		string zklogPath = conf->getZkLogPath();
+		int recvTimeout = conf->getRecvTimeout();
+		
 
 	}
 

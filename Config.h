@@ -20,6 +20,7 @@ public:
 	string getZkHost();
 	string getZkLogPath();
 	int clearServiceMap();
+	int getZkRecvTimeout();
 
 private:
 	Config();
@@ -35,6 +36,7 @@ private:
 	std::string _zkHost;
 	std::string _zkLogPath;
 	map<string, ServiceItem> _serviceMap;
+	int _zkRecvTimeout;
 	int setValueInt(const string& key, const string& value);
 	int setValueStr(const string& key, const string& value);
 
