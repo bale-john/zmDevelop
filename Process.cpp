@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <signal.h>
 #include <fcntl.h>
 
 using namespace std;
@@ -72,7 +73,7 @@ int Process::daemonize() {
     if (chdir("/") < 0) {
     	exit(EXIT_FAILURE);
     }*/
-    //here close all the file description and redirect stang IO
+    //here close all the file description and redirect stand IO
     fd = open("/dev/null", O_RDWR, 0);
     dup2(fd, STDIN_FILENO);
     dup2(fd, STDOUT_FILENO);
@@ -83,4 +84,91 @@ int Process::daemonize() {
     }
     umask(0);
     return 0;
+}
+
+void Process::sigForward(const int sig) {
+    signal(sig, SIG_IGN);
+    kill(0, sig);
+}
+
+int Process::processKeepalive(int& childExitStatus, const string pidFile) {
+
+    int processNum = 0;
+    pid_t childPid = -1;
+
+    while (1) {
+        while (processNum < 1) {
+            childPid = fork();
+            if (childPid < 0) {
+                LOG(LOG_FATAL_ERROR, "fork excute failed");
+                return -1;
+            }
+            //child process
+            else if (childPid == 0) {
+                LOG(LOG_INFO, "child process ID %d", getpid());
+                return 0;
+            }
+            //parent process
+            else {
+                ++processNum;
+                LOG(LOG_INFO, "try to keep PID = %d alive", childPid);
+                //todo
+                //int ret = writeToFile(itoa(childPid), pidFile);
+
+                signal(SIGINT, sigForward);
+                signal(SIGTERM, sigForward);
+                signal(SIGHUP, sigForward);
+                signal(SIGUSR1, sigForward);
+                signal(SIGUSR2, sigForward);
+            }
+        }
+        //parent process 
+        LOG(LOG_INFO, "waiting for PID = %d", childPid);
+        struct rusage resourceUsage;
+        int exitPid = -1;
+        int exitStatus = -1;
+#ifdef HAVE_WAIT4
+        exitPid = wait4(childPid, &exitStatus, 0, resourceUsage);
+#else
+        memset(&resourceUsage, 0, sizeof(resourceUsage));
+        exitPid = waitpid(childPid, &exitStatus, 0);
+#endif
+        LOG(LOG_INFO, "child process %d returned %d", childPid, exitPid);
+
+        if (childPid == exitPid) {
+            //todo delete pid file or clear it?
+
+            //正常退出。但到底怎么定义正常退出？
+            if (WIFEXITED(exitStatus)) {
+                LOG(LOG_INFO, "worker process PID = %d exited normally with exit-code = %d (it used %ld kBytes max",
+                    childPid, WEXITSTATUS(exitStatus), resourceUsage.ru_maxrss / 1024);
+                childExitStatus = WEXITSTATUS(exitStatus);
+                return 1;
+            }
+            //因为收到信号退出，比如用户kill了这个进程，那么父进程应该会自动再启动它
+            else if (WIFSIGNALED(exitStatus)) {
+                LOG(LOG_INFO, "worker process PID = %d died on signal=%d (it used %ld kBytes max) ",
+                    childPid, WTERMSIG(exitStatus), resourceUsage.ru_maxrss / 1024);
+                int timeToWait = 2;
+                while (timeToWait > 0) {
+                    timeToWait = sleep(timeToWait);
+                }
+                --processNum;
+                childPid = -1;
+                signal(SIGINT, SIG_DFL);
+                signal(SIGTERM, SIG_DFL);
+                signal(SIGHUP, SIG_DFL);
+            }
+            else if (WIFSTOPPED(exitStatus)) {
+                LOG(LOG_INFO, "child process is stopped and should restart later");
+            }
+        }
+        else if (exitPid == -1) {
+            if (errno != EINTR) {
+                /* how can this happen ? */
+                LOG(LOG_INFO, "wait4(%d, ...) failed. errno: %d", childPid, errno);
+                return -1; 
+            }
+        }
+    } 
 }

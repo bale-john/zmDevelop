@@ -24,5 +24,8 @@ const string logFileNamePrefix = "qconf-monitor.log";
 
 const string MONITOR_PROCESS_NAME = "qconf-monitor";
 
+//pid file
+const string PIDFILE = "pid";
+
 
 #endif

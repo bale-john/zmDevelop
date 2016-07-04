@@ -34,7 +34,7 @@ int Log::checkFile(const int year, const int mon, const int day){
 	else {
 		if (fp) {
 			pthread_mutex_lock(&mutex);
-			//because multithread, so we need to compare the name again.
+			//because multithread, so we need to compare again.
 			if (fp){
 				fclose(fp);
 				fp = NULL;
