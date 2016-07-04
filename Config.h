@@ -1,6 +1,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 #include <string>
+#include <map>
+#include "ServiceItem.h"
 using namespace std;
 
 class Config {
@@ -17,6 +19,7 @@ public:
 	string getInstanceName();
 	string getZkHost();
 	string getZkLogPath();
+	int clearServiceMap();
 
 private:
 	Config();
@@ -30,7 +33,8 @@ private:
 	int _scanInterval;
 	std::string _instanceName;
 	std::string _zkHost;
-	std::string _zkLogPath;	
+	std::string _zkLogPath;
+	map<string, ServiceItem> _serviceMap;
 	int setValueInt(const string& key, const string& value);
 	int setValueStr(const string& key, const string& value);
 

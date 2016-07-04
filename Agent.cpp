@@ -11,6 +11,7 @@
 #include "Log.h"
 #include "Process.h"
 using namespace std;
+static Zk* _zk = NULL;
 
 int main(int argc, char** argv){
 	Config* conf = Config::getInstance();
@@ -36,6 +37,13 @@ int main(int argc, char** argv){
 		else {
 
 		}
+	}
+
+	while (1) {
+		LOG(LOG_INFO, " main loop start -> !!!!!!");
+		_stop = false;
+		conf->clearServiceMap();
+
 	}
 
 	return 0;

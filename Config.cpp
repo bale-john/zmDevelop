@@ -38,7 +38,7 @@ int Config::resetConfig(){
     _monitorHostname = ""; 
     _connRetryCount = 3;
     _scanInterval = 3;
-//    _serviceMap.clear();
+    _serviceMap.clear();
 	return 0;
 }
 
@@ -175,4 +175,8 @@ string Config::getZkHost(){
 
 string Config::getZkLogPath(){
 	return _zkLogPath;
+}
+
+int Config::clearServiceMap() {
+	_serviceMap.clear();
 }
