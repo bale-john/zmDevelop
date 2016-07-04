@@ -4,6 +4,7 @@
 #include "Process.h"
 #include <cstring>
 #include "Log.h"
+#include "Util.h"
 #include <cstdlib>
 #include <unistd.h>
 #include <sys/types.h>
@@ -112,8 +113,8 @@ int Process::processKeepalive(int& childExitStatus, const string pidFile) {
             else {
                 ++processNum;
                 LOG(LOG_INFO, "try to keep PID = %d alive", childPid);
-                //todo
-                //int ret = writeToFile(itoa(childPid), pidFile);
+                //todo write failes and something like that
+                int ret = Util::writeToFile(to_string(childPid), pidFile);
 
                 signal(SIGINT, sigForward);
                 signal(SIGTERM, sigForward);
