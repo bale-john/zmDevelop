@@ -27,5 +27,8 @@ const string MONITOR_PROCESS_NAME = "qconf-monitor";
 //pid file
 const string PIDFILE = "pid";
 
+//command file
+const string CMDFILE = "tmp/cmd";
+
 
 #endif

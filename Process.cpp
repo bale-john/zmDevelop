@@ -14,6 +14,8 @@
 #include <fcntl.h>
 
 using namespace std;
+//whather process is stopped ?
+static bool _stop = false;
 
 bool Process::isProcessRunning(const string& processName) {
 	FILE* ptr = NULL;
@@ -92,6 +94,37 @@ void Process::sigForward(const int sig) {
     kill(0, sig);
 }
 
+int Process::processFileMsg(const string cmdFile) {
+
+    return 0;
+}
+
+void Process::sigHandler(const int sig) {
+    switch (sig) {
+        case SIGTERM:
+            LOG(LOG_INFO, "Receive signal SIGTERM");
+            _stop = true;
+            break;
+        case SIGKILL:
+            LOG(LOG_INFO, "Receive signal SIGKILL");
+            _stop = true;
+            break;
+        case SIGINT:
+            LOG(LOG_INFO, "Receive signal SIGINT");
+            break;
+        case SIGUSR1:
+            LOG(LOG_INFO, "Receive signal SIGUSR1");
+            processFileMsg(CMDFILE);
+            break;
+        case SIGUSR2:
+            LOG(LOG_INFO, "Receive signal SIGUSR2");
+            _stop = true;
+            break;
+        default:
+            break;
+    }
+}
+
 int Process::processKeepalive(int& childExitStatus, const string pidFile) {
 
     int processNum = 0;
@@ -107,6 +140,10 @@ int Process::processKeepalive(int& childExitStatus, const string pidFile) {
             //child process
             else if (childPid == 0) {
                 LOG(LOG_INFO, "child process ID %d", getpid());
+                signal(SIGTERM, sigHandler);
+                signal(SIGKILL, sigHandler);
+                signal(SIGUSR1, sigHandler);
+                signal(SIGUSR2, sigHandler);
                 return 0;
             }
             //parent process

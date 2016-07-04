@@ -12,6 +12,8 @@ public:
 	static int daemonize();
 	static int processKeepalive(int& childExitStatus, const string pidFile);
 	static void sigForward(const int sig);
+	static void sigHandler(const int sig);
+	static int processFileMsg(const string cmdFile);
 private:
 	Process();
 	~Process();
