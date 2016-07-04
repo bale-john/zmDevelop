@@ -5,6 +5,7 @@
 #include <iostream>
 //support in_addr. It's a ip struct
 #include <netinet/in.h>
+#include "ConstDef.h"
 using namespace std;
 
 ServiceItem::ServiceItem():
@@ -25,16 +26,16 @@ ServiceItem::ServiceItem(std::string host, struct in_addr *addr, int port, int c
 	_connRetry(connRetry),
 	_connTimeout(timeout),
 	_status(status),
-	_addr(addr){
+	_addr(*addr){
 
 	}
 
-ServiceItem::clear() {
+void ServiceItem::clear() {
 	memset(&_addr, 0, sizeof(struct in_addr));
     _host = "";
     _port = -1;
     _connRetry = 0;
-    _zkNodePrefix = "";
+    _serviceFather = "";
     _status = -1;
     _connTimeout = -1;
 }

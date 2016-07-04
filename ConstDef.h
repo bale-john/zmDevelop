@@ -30,5 +30,14 @@ const string PIDFILE = "pid";
 //command file
 const string CMDFILE = "tmp/cmd";
 
+//return status
+constexpr int M_OK = 0;
+constexpr int M_ERR = -1;
+
+// server status define
+#define STATUS_UNKNOWN  -1
+#define STATUS_UP        0
+#define STATUS_OFFLINE   1
+#define STATUS_DOWN      2
 
 #endif

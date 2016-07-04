@@ -10,8 +10,10 @@
 #include "ConstDef.h"
 #include "Log.h"
 #include "Process.h"
+#include "Zk.h"
 using namespace std;
 static Zk* _zk = NULL;
+static bool _stop = false;
 
 int main(int argc, char** argv){
 	Config* conf = Config::getInstance();
@@ -45,10 +47,19 @@ int main(int argc, char** argv){
 		conf->clearServiceMap();
 		_zk = new Zk();
 		string zkHost = conf->getZkHost();
-		string zklogPath = conf->getZkLogPath();
-		int recvTimeout = conf->getRecvTimeout();
-		
-
+		string zkLogPath = conf->getZkLogPath();
+		int recvTimeout = conf->getZkRecvTimeout();
+		if (_zk->initEnv(zkHost, zkLogPath, recvTimeout) == M_OK) {
+			LOG(LOG_INFO, "Zk init env succeeded. host:%s zk log path:%s", zkHost.c_str(), zkLogPath.c_str());
+		}
+		else {
+			LOG(LOG_ERROR, "Zk init env failed, retry");
+			if (_zk) {
+				delete _zk;
+			}
+			sleep(2);
+			continue;
+		}
 	}
 
 	return 0;

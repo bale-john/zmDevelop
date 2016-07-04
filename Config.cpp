@@ -178,7 +178,7 @@ string Config::getZkLogPath(){
 	return _zkLogPath;
 }
 
-int Config::clearServiceMap() {
+void Config::clearServiceMap() {
 	_serviceMap.clear();
 }
 

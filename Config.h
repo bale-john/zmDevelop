@@ -19,7 +19,7 @@ public:
 	string getInstanceName();
 	string getZkHost();
 	string getZkLogPath();
-	int clearServiceMap();
+	void clearServiceMap();
 	int getZkRecvTimeout();
 
 private:
