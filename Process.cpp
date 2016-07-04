@@ -1,5 +1,6 @@
 #include <string>
 #include <iostream>
+#include <fstream>
 #include <cstdio>
 #include "Process.h"
 #include <cstring>
@@ -95,7 +96,27 @@ void Process::sigForward(const int sig) {
 }
 
 int Process::processFileMsg(const string cmdFile) {
-
+    LOG(LOG_TRACE, "processFileMsg...in...");
+    ifstream file;
+    file.open(cmdFile);
+    if (file.good()) {
+        string line;
+        while (!file.eof()) {
+            getline(file, line);
+            Util::trim(line);
+            //根据脚本发现它使用冒号进行分隔的
+            vector<string> cmdExplain = Util::split(line, ':');
+            if (cmdExplain.size() <= 0 || cmdExplain.size() > 2) {
+                continue;
+            }
+            //todo process the cmd
+        }
+    }
+    else {
+        LOG(LOG_ERROR, "processFileMsg open file failed. path:%s errno:%d", cmdFile.c_str(), errno);
+    }
+    file.close();
+    LOG(LOG_TRACE, "processFileMsg...out...");
     return 0;
 }
 
