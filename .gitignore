@@ -4,3 +4,6 @@ tags
 log/*
 zk_adaptor.h
 zookeeper.h
+*.a
+Makefile
+conf/*
