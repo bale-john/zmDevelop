@@ -22,6 +22,7 @@ constexpr int maxLogLevel = 6;
 const string logPath = "log/";
 const string logFileNamePrefix = "qconf-monitor.log";
 
+//process name
 const string MONITOR_PROCESS_NAME = "qconf-monitor";
 
 //pid file
@@ -39,5 +40,14 @@ constexpr int M_ERR = -1;
 #define STATUS_UP        0
 #define STATUS_OFFLINE   1
 #define STATUS_DOWN      2
+
+//znode and path
+const string LOCK_ROOT_DIR = "/qconf_monitor_lock_node";
+const string DEFAULT_INSTANCE_NAME = "default_instance";
+const string MONITOR_LIST = "monitor_list";
+const string SLASH = "/";
+// I think it's better to call it MD5_LIST
+const string NODE_LIST = "md5_list";
+
 
 #endif

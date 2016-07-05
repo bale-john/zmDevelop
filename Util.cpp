@@ -34,11 +34,11 @@ vector<string> Util::split(const string& str, const char separator){
 	vector<string> res;
 	string item;
 	for (size_t i = 0; i < str.size(); ++i) {
-		if (str[i] == separator) {
+		if (str[i] == separator && !item.empty()) {
 			res.push_back(item);
 			item.clear();
 		}
-		else {
+		else if (str[i] != separator){
 			item = item + str[i];
 		}
 	}

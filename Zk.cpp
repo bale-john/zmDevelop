@@ -43,3 +43,68 @@ int Zk::initEnv(const string zkHost, const string zkLogPath, const int recvTimeo
 
 Zk::~Zk(){
 };
+
+bool Zk::znodeExist(const string& path) {
+	if (!_zh) {
+		return false;
+	}
+	struct Stat stat;
+	int ret = zoo_exists(_zh, path.c_str(), 0, stat);
+	if (ret == ZOK) {
+		LOG(LOG_INFO, "node exist. node: %s", path.c_str());
+		return true;
+	}
+	else if (ret == ZNONODE) {
+		LOG(LOG_INFO, "node exist. node: %s", path.c_str());
+		return false;
+	}
+	else {
+		LOG(LOG_ERROR, "zoo_exist failed. error: %s. node: %s", zerror(r), path.c_str());
+		//todo
+		//zErrorHandler(ret);
+		return false;
+	}
+}
+
+int createZnode(string path) {
+	vector<string> nodeList = Util::split(path);
+	string node("/");
+	//根节点在zk中应该是必然存在的吧
+	for (auto it = nodeList.begin(); it != nodeList.end(); ++it) {
+		node += (*it);
+		int ret = zoo_create(_zh, node.c_str(), NULL, 0, &ZOO_OPEN_ACL_UNSAFE, 0, NULL, 0);
+		if (ret == ZOK) {
+			LOG(LOG_INFO, "Create node succeeded. node: %s", node.c_str());
+			return M_OK;
+		}
+		else if (ret == ZNODEEXISTS) {
+			LOG(LOG_INFO, "Create node .Node exists. node: %s", node.c_str());
+			return M_OK;
+		}
+		else {
+			LOG(LOG_ERROR, "create node failed. error: %s. node: %s ", zerror(r), node.c_str());
+            //todo
+            //_errHandle(r);
+            return M_ERR;
+		}
+	}
+}
+
+int Zk::checkAndCreateZnode(string path) {
+	if (path.size() <= 0) {
+		return M_ERR;
+	}
+	if (path[0] != '/') {
+		path = '/' + path;
+	}
+	if (path.back() == '/') {
+		path.pop_back();
+	}
+	// check weather the node exist
+	if (znodeExist(path)) {
+		return M_OK;
+	}
+	else {
+		return createZnode(path);
+	}
+}

@@ -39,6 +39,9 @@ private:
 	int _zkRecvTimeout;
 	int setValueInt(const string& key, const string& value);
 	int setValueStr(const string& key, const string& value);
+	//todo maybe should return const string
+	string getNodeList();
+	string getMonitorList();
 
 };
 #endif

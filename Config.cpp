@@ -185,3 +185,13 @@ void Config::clearServiceMap() {
 int Config::getZkRecvTimeout() {
 	return _zkRecvTimeout;
 }
+
+string Config::getNodeList() {
+	//todo should do something to judge weather instanceName is null
+	return LOCK_ROOT_DIR + SLASH + _instanceName + SLASH + NODE_LIST;
+}
+
+string Config::getMonitorList() {
+	//todo
+	return LOCK_ROOT_DIR + SLASH + _instanceName + SLASH + MONITOR_LIST;
+}

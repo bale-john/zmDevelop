@@ -68,7 +68,30 @@ int main(int argc, char** argv){
 			sleep(2);
 			continue;
 		}
-
+		//check qconf_monitor_lock_node/default_instance/md5_list
+		if(_zk->checkAndCreateZnode(conf->getNodeList()) == M_OK) {
+			LOG(LOG_INFO, "check znode %s done", (conf->getNodeList()).c_str());
+		}
+		else {
+			LOG(LOG_ERROR, "create znode %s failed", (conf->getNodeList()).c_str());
+			if (_zk) {
+				delete _zk;
+			}
+			sleep(2);
+			continue;
+		}
+		//check qconf_monitor_lock_node/default_instance/monitor_list
+		if(_zk->checkAndCreateZnode(conf->getMonitorList()) == M_OK) {
+			LOG(LOG_INFO, "check znode %s done", (conf->getMonitorList()).c_str());
+		}
+		else {
+			LOG(LOG_ERROR, "create znode %s failed", (conf->getMonitorList()).c_str());
+			if (_zk) {
+				delete _zk;
+			}
+			sleep(2);
+			continue;
+		}
 
         //seems it's important !! Remember to close it always
         zookeeper_close(_zk->_zh);
