@@ -55,6 +55,8 @@ int main(int argc, char** argv){
 		string zkHost = conf->getZkHost();
 		string zkLogPath = conf->getZkLogPath();
 		int recvTimeout = conf->getZkRecvTimeout();
+
+		// init zookeeper handler
 		if (_zk->initEnv(zkHost, zkLogPath, recvTimeout) == M_OK) {
             cout << "111" << endl;
 			LOG(LOG_INFO, "Zk init env succeeded. host:%s zk log path:%s", zkHost.c_str(), zkLogPath.c_str());
@@ -68,6 +70,7 @@ int main(int argc, char** argv){
 			sleep(2);
 			continue;
 		}
+
 		//check qconf_monitor_lock_node/default_instance/md5_list
 		if(_zk->checkAndCreateZnode(conf->getNodeList()) == M_OK) {
 			LOG(LOG_INFO, "check znode %s done. node exist", (conf->getNodeList()).c_str());
@@ -80,6 +83,7 @@ int main(int argc, char** argv){
 			sleep(2);
 			continue;
 		}
+
 		//check qconf_monitor_lock_node/default_instance/monitor_list
 		if(_zk->checkAndCreateZnode(conf->getMonitorList()) == M_OK) {
 			LOG(LOG_INFO, "check znode %s done. node exist", (conf->getMonitorList()).c_str());
@@ -92,6 +96,7 @@ int main(int argc, char** argv){
 			sleep(2);
 			continue;
 		}
+
 
         //seems it's important !! Remember to close it always
         zookeeper_close(_zk->_zh);

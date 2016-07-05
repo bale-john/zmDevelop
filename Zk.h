@@ -22,5 +22,6 @@ public:
 	int checkAndCreateZnode(string path);
 	bool znodeExist(const string& path);
     int createZnode(string path);
+    void zErrorHandler(int ret);
 };
 #endif

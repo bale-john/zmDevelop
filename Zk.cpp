@@ -44,6 +44,27 @@ int Zk::initEnv(const string zkHost, const string zkLogPath, const int recvTimeo
 Zk::~Zk(){
 };
 
+void Zk::zErrorHandler(const int& ret) {
+	if (r == ZSESSIONEXPIRED ||  /*!< The session has been expired by the server */
+        r == ZSESSIONMOVED ||    /*!< session moved to another server, so operation is ignored */    
+        r == ZOPERATIONTIMEOUT ||/*!< Operation timeout */
+        r == ZINVALIDSTATE)     /*!< Invliad zhandle state */
+    {   
+        LOG(LOG_ERROR, "API return: %s. Reinitialize zookeeper handle.", zerror(ret));
+        //todo 现在的系统健壮性不强，到时候这边应该加上对应的补救措施
+    	//destoryEnv();
+      	//initEnv(_zkHost, _zkLogPath, _recvTimeout);
+    }
+    else if (r == ZCLOSING ||    /*!< ZooKeeper is closing */
+            r == ZCONNECTIONLOSS)  /*!< Connection to the server has been lost */
+    {   
+        LOG(LOG_FATAL_ERROR, "connect to zookeeper Failed!. API return : %s. Try to initialize zookeeper handle", zerror(ret));
+    	//todo
+    	//destoryEnv();
+    	//initEnv(_zkHost, _zkLogPath, _recvTimeout);
+    }  
+}
+
 bool Zk::znodeExist(const string& path) {
 	if (!_zh) {
 		return false;
@@ -61,7 +82,7 @@ bool Zk::znodeExist(const string& path) {
 	else {
 		LOG(LOG_ERROR, "zoo_exist failed. error: %s. node: %s", zerror(ret), path.c_str());
 		//todo
-		//zErrorHandler(ret);
+		zErrorHandler(ret);
 		return false;
 	}
 }
@@ -83,7 +104,7 @@ int Zk::createZnode(string path) {
 		else {
 			LOG(LOG_ERROR, "create node failed. error: %s. node: %s ", zerror(ret), node.c_str());
             //todo
-            //_errHandle(r);
+            zErrorHandler(ret);
             return M_ERR;
 		}
 	}
