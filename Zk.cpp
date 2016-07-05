@@ -46,18 +46,18 @@ Zk::~Zk(){
 };
 
 void Zk::zErrorHandler(const int& ret) {
-	if (r == ZSESSIONEXPIRED ||  /*!< The session has been expired by the server */
-        r == ZSESSIONMOVED ||    /*!< session moved to another server, so operation is ignored */    
-        r == ZOPERATIONTIMEOUT ||/*!< Operation timeout */
-        r == ZINVALIDSTATE)     /*!< Invliad zhandle state */
+	if (ret == ZSESSIONEXPIRED ||  /*!< The session has been expired by the server */
+        ret == ZSESSIONMOVED ||    /*!< session moved to another server, so operation is ignored */    
+        ret == ZOPERATIONTIMEOUT ||/*!< Operation timeout */
+        ret == ZINVALIDSTATE)     /*!< Invliad zhandle state */
     {   
         LOG(LOG_ERROR, "API return: %s. Reinitialize zookeeper handle.", zerror(ret));
         //todo 现在的系统健壮性不强，到时候这边应该加上对应的补救措施
     	//destoryEnv();
       	//initEnv(_zkHost, _zkLogPath, _recvTimeout);
     }
-    else if (r == ZCLOSING ||    /*!< ZooKeeper is closing */
-            r == ZCONNECTIONLOSS)  /*!< Connection to the server has been lost */
+    else if (ret == ZCLOSING ||    /*!< ZooKeeper is closing */
+            ret == ZCONNECTIONLOSS)  /*!< Connection to the server has been lost */
     {   
         LOG(LOG_FATAL_ERROR, "connect to zookeeper Failed!. API return : %s. Try to initialize zookeeper handle", zerror(ret));
     	//todo
@@ -131,7 +131,7 @@ int Zk::checkAndCreateZnode(string path) {
 	}
 }
 
-int Zk::registerMonitor(string string path) {
+int Zk::registerMonitor(string path) {
 	//1.注册临时的顺序的节点
 	while (_zh) {
 		memset(_zkLockBuf, 0, sizeof(_zkLockBuf));
@@ -145,7 +145,7 @@ int Zk::registerMonitor(string string path) {
 		}
 		else {
 			LOG(LOG_ERROR, "create zookeeper node failed. API return : %d. node: %s ", ret, path.c_str());
-            zErroeHandler(ret);
+            zErrorHandler(ret);
             // wait a second
             sleep(1);
             continue;

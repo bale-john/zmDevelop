@@ -22,7 +22,7 @@ public:
 	int checkAndCreateZnode(string path);
 	bool znodeExist(const string& path);
     int createZnode(string path);
-    void zErrorHandler(int ret);
-    int registerMonitor(string string path);
+    void zErrorHandler(const int& ret);
+    int registerMonitor(string path);
 };
 #endif
