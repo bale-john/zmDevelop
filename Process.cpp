@@ -158,6 +158,7 @@ int Process::processKeepalive(int& childExitStatus, const string pidFile) {
     while (1) {
         while (processNum < 1) {
             childPid = fork();
+            cout << "new child " << childPid << endl;
             if (childPid < 0) {
                 LOG(LOG_FATAL_ERROR, "fork excute failed");
                 return -1;

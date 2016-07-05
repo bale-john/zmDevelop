@@ -70,7 +70,7 @@ int main(int argc, char** argv){
 		}
 
 
-        //seems it's important
+        //seems it's important !! Remember to close it always
         zookeeper_close(_zk->_zh);
 	}
 
