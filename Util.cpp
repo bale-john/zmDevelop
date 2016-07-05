@@ -66,3 +66,4 @@ int Util::printConfig(){
 	cout << "instance: " << (Config::getInstance())->getInstance() << endl; 
 	return 0;
 }
+

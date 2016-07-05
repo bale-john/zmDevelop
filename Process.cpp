@@ -46,7 +46,9 @@ int Process::daemonize() {
     signal(SIGTSTP, SIG_IGN);
     signal(SIGHUP, SIG_IGN);
 
+#ifdef REALSE
     int fd, dtablesize;
+#endif
     pid_t pid;
     //already a daemon
     if (getppid() == 1) {
@@ -78,6 +80,7 @@ int Process::daemonize() {
     	exit(EXIT_FAILURE);
     }*/
     //here close all the file description and redirect stand IO
+#ifdef REALSE
     fd = open("/dev/null", O_RDWR, 0);
     dup2(fd, STDIN_FILENO);
     dup2(fd, STDOUT_FILENO);
@@ -86,6 +89,7 @@ int Process::daemonize() {
     for (fd = 3; fd < dtablesize; ++fd) {
     	close(fd);
     }
+#endif
     umask(0);
     return 0;
 }

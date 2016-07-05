@@ -9,7 +9,7 @@
 #include <zk_adaptor.h>
 using namespace std;
 class Zk{
-private:
+public:
 	zhandle_t* _zh;
 	int _recvTimeout;
 	string _zkLogPath;

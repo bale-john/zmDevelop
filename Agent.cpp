@@ -41,18 +41,26 @@ int main(int argc, char** argv){
 		}
 	}
 
+    cout << "goto mainloop" << endl;
 	while (1) {
+        cout << "mainloop start" << endl;
 		LOG(LOG_INFO, " main loop start -> !!!!!!");
 		_stop = false;
 		conf->clearServiceMap();
+        if (!_zk) {
+            dp();
+            delete _zk;
+        }
 		_zk = new Zk();
 		string zkHost = conf->getZkHost();
 		string zkLogPath = conf->getZkLogPath();
 		int recvTimeout = conf->getZkRecvTimeout();
 		if (_zk->initEnv(zkHost, zkLogPath, recvTimeout) == M_OK) {
+            cout << "111" << endl;
 			LOG(LOG_INFO, "Zk init env succeeded. host:%s zk log path:%s", zkHost.c_str(), zkLogPath.c_str());
 		}
 		else {
+            cout << "222" << endl;
 			LOG(LOG_ERROR, "Zk init env failed, retry");
 			if (_zk) {
 				delete _zk;
@@ -60,6 +68,10 @@ int main(int argc, char** argv){
 			sleep(2);
 			continue;
 		}
+
+
+        //seems it's important
+        zookeeper_close(_zk->_zh);
 	}
 
     cout << "EXIT!!!" << endl;
