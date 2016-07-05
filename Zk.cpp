@@ -11,6 +11,7 @@
 #include <errno.h>
 using namespace std;
 
+static char _zkLockBuf[512] = {0};
 static void watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context);
 void watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context){}
 Zk::Zk():_zh(NULL), _recvTimeout(3000), _zkLogPath(""), _zkHost(""), _zkLogFile(NULL) {}
@@ -128,4 +129,32 @@ int Zk::checkAndCreateZnode(string path) {
 	else {
 		return createZnode(path);
 	}
+}
+
+int Zk::registerMonitor(string string path) {
+	//1.注册临时的顺序的节点
+	while (_zh) {
+		memset(_zkLockBuf, 0, sizeof(_zkLockBuf));
+		int ret = zoo_create(_zh, path.c_str(), NULL, 0, &ZOO_OPEN_ACL_UNSAFE, 
+			ZOO_EPHEMERAL | ZOO_SEQUENCE, _zkLockBuf, sizeof(_zkLockBuf));
+		if (ret == ZOK) {
+			LOG(LOG_INFO, "Create zookeeper node succeeded. node: %s", _zkLockBuf);
+		}
+		else if (ret == ZNODEEXISTS) {
+			LOG(LOG_INFO, "Create zookeeper node .Node exists. node: %s", _zkLockBuf);
+		}
+		else {
+			LOG(LOG_ERROR, "create zookeeper node failed. API return : %d. node: %s ", ret, path.c_str());
+            zErroeHandler(ret);
+            // wait a second
+            sleep(1);
+            continue;
+		}
+		break;
+	}
+	if (!_zh) {
+	    LOG(LOG_TRACE, "zkLock...out...error return...");
+        return  M_ERR;
+    }
+    return M_OK;
 }

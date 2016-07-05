@@ -97,6 +97,23 @@ int main(int argc, char** argv){
 			continue;
 		}
 
+		// monitor register
+		if (_zk->registerMonitor(conf->getMonitorList() == M_OK) {
+			LOG(LOG_INFO, "Monitor register success");
+			//wait other monitor to register
+			sleep(3);
+		}
+		else {
+			LOG(LOG_ERROR, "Monitor register failed");
+			if (_zk) {
+				delete _zk;
+			}
+			sleep(2);
+			continue;
+		}
+		while (1){}
+		//load balance
+
 
         //seems it's important !! Remember to close it always
         zookeeper_close(_zk->_zh);

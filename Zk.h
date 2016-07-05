@@ -23,5 +23,6 @@ public:
 	bool znodeExist(const string& path);
     int createZnode(string path);
     void zErrorHandler(int ret);
+    int registerMonitor(string string path);
 };
 #endif
