@@ -42,6 +42,9 @@ vector<string> Util::split(const string& str, const char separator){
 			item = item + str[i];
 		}
 	}
+    if (!item.empty()) {
+        res.push_back(item);
+    }
 	return res;
 }
 

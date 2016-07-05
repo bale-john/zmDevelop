@@ -97,10 +97,13 @@ int Config::setValueStr(const string& key, const string& value){
 				break;
 			}
 		}
+        //no need to log this or there will be a lot error because config file has other idc
+        /*
 		if (i == singleWord.size()){
 			LOG(LOG_ERROR, "idc not found");
 			return -1;
 		}
+        */
 	}
 	return 0;
 }

@@ -21,5 +21,6 @@ public:
 	int initEnv(const string zkHost, const string zkLogPath, const int recvTimeout);
 	int checkAndCreateZnode(string path);
 	bool znodeExist(const string& path);
+    int createZnode(string path);
 };
 #endif

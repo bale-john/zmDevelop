@@ -21,6 +21,9 @@ public:
 	string getZkLogPath();
 	void clearServiceMap();
 	int getZkRecvTimeout();
+	//todo maybe should return const string
+	string getNodeList();
+	string getMonitorList();
 
 private:
 	Config();
@@ -39,9 +42,6 @@ private:
 	int _zkRecvTimeout;
 	int setValueInt(const string& key, const string& value);
 	int setValueStr(const string& key, const string& value);
-	//todo maybe should return const string
-	string getNodeList();
-	string getMonitorList();
 
 };
 #endif
