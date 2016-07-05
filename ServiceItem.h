@@ -10,7 +10,6 @@ using namespace std;
 
 class ServiceItem{
 private:
-    std::string _serviceFather;
     std::string _host;
     //todo not understand well
     struct in_addr _addr;
@@ -19,6 +18,7 @@ private:
     int _port;
     int _connRetry;
     int _connTimeout;
+    std::string _serviceFather;
     int _status; //online or offline
 public:
 	ServiceItem(std::string host, struct in_addr *addr, int port, int connRetry, int timeout, std::string serviceFather, int status);

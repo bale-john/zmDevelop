@@ -12,12 +12,12 @@ class Zk{
 private:
 	zhandle_t* _zh;
 	int _recvTimeout;
-	string _zkHost;
 	string _zkLogPath;
+	string _zkHost;
 	FILE* _zkLogFile;
 public:
 	Zk();
 	~Zk();
-	initEnv(const string zkHost, const string zkLogPath, const int recvTimeout);
+	int initEnv(const string zkHost, const string zkLogPath, const int recvTimeout);
 };
 #endif

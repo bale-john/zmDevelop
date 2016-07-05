@@ -172,7 +172,8 @@ int Process::processKeepalive(int& childExitStatus, const string pidFile) {
                 ++processNum;
                 LOG(LOG_INFO, "try to keep PID = %d alive", childPid);
                 //todo write failes and something like that
-                int ret = Util::writeToFile(to_string(childPid), pidFile);
+                //int ret = Util::writeToFile(to_string(childPid), pidFile);
+                Util::writeToFile(to_string(childPid), pidFile);
 
                 signal(SIGINT, sigForward);
                 signal(SIGTERM, sigForward);
