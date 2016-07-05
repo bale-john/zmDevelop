@@ -6,3 +6,4 @@ zk_adaptor.h
 zookeeper.h
 *.a
 conf/*
+qconf-monitor

@@ -41,3 +41,5 @@ void ServiceItem::clear() {
     _connTimeout = -1;
 }
 
+ServiceItem::~ServiceItem(){
+};

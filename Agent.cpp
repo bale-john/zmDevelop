@@ -62,5 +62,6 @@ int main(int argc, char** argv){
 		}
 	}
 
+    cout << "EXIT!!!" << endl;
 	return 0;
 }

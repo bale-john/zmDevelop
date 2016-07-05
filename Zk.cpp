@@ -40,3 +40,6 @@ int Zk::initEnv(const string zkHost, const string zkLogPath, const int recvTimeo
 	LOG(LOG_INFO, "zookeeper init success");
 	return M_OK;
 }
+
+Zk::~Zk(){
+};
