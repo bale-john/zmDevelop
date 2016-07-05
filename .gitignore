@@ -7,3 +7,4 @@ zookeeper.h
 *.a
 conf/*
 qconf-monitor
+pid
