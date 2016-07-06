@@ -11,6 +11,7 @@
 #include "Log.h"
 #include "Process.h"
 #include "Zk.h"
+#include "LoadBalance.h"
 using namespace std;
 static Zk* _zk = NULL;
 static bool _stop = false;
@@ -71,6 +72,10 @@ int main(int argc, char** argv){
 			continue;
 		}
 
+		/******************************
+		// haven's consider watcher!!! 
+		******************************/
+
 		//check qconf_monitor_lock_node/default_instance/md5_list
 		if(_zk->checkAndCreateZnode(conf->getNodeList()) == M_OK) {
 			LOG(LOG_INFO, "check znode %s done. node exist", (conf->getNodeList()).c_str());
@@ -111,6 +116,12 @@ int main(int argc, char** argv){
 			sleep(2);
 			continue;
 		}
+
+		//get the service father. Stored in class LB
+		LoadBalance* lb = new LoadBalance();
+
+
+
 		while (1){}
 		//load balance
 
