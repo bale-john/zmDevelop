@@ -18,6 +18,7 @@ public:
 	map<string, string> md5ToServiceFather;
 	unordered_set<string> monitors;
 	unordered_set<string> ipPort;
+	set<string> myServiceFather;
 	zhandle_t* zh;
 	int initEnv();
 	int destroyEnv();
@@ -29,5 +30,6 @@ public:
 	int zkGetChildren(const string path, struct String_vector* children);
 	int zkGetNode(const char* md5Path, char* serviceFather, int* dataLen);
 	int getMonitors();
+	int balance();
 };
 #endif

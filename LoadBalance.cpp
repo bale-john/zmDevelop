@@ -11,6 +11,7 @@
 #include <errno.h>
 #include "LoadBalance.h"
 #include "Config.h"
+#include <algorithm>
 using namespace std;
 
 extern char _zkLockBuf[512];
@@ -138,4 +139,50 @@ int LoadBalance::getMonitors() {
 		cout << (*it) << endl;
 	}
     return M_OK;
+}
+
+int LoadBalance::balance() {
+	vector<string> md5Node;
+	for (auto it = md5ToServiceFather.begin(); it != md5ToServiceFather.end(); ++it) {
+		md5Node.push_back(it->first);
+	}
+	//debug
+	cout << 11111111111 << endl;
+	for (auto it = md5Node.begin(); it != md5Node.end(); ++it) {
+		cout << (*it) << endl;
+	}
+	vector<unsigned int> sequence;
+	for (auto it = monitors.begin(); it != monitors.end(); ++it) {
+		int tmp = stoi((*it).substr((*it).size() - 10));
+		sequence.push_back(tmp);
+	}
+	//debug
+	cout << 222222222222 << endl;
+	for (auto it = sequence.begin(); it != sequence.end(); ++it) {
+		cout << (*it) << endl;
+	}
+	sequence.sort();
+	//debug
+	cout << 33333333333 << endl;
+	for (auto it = sequence.begin(); it != sequence.end(); ++it) {
+		cout << (*it) << endl;
+	}
+	string monitor = string(_zkLockBuf);
+	unsigned int mySeq = stoi(monitor.substr(monitor.sizr() - 10));
+	int rank = 0;
+	for (; rank < sequence.size(); ++rank) {
+		if (sequence[rank] == mySeq) {
+			break;
+		}
+	}
+
+	for (int i = rank; i < md5Node; ++i) {
+		myServiceFather.insert(md5ToServiceFather[md5Node[rank]]);
+	}
+	//debug
+	cout << 44444444444 << endl;
+	for (auto it = myServiceFather.begin(); it != myServiceFather.end(); ++it) {
+		cout << (*it) << endl;
+	}
+	return M_OK;
 }
