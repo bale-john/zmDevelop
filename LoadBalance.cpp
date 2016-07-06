@@ -73,13 +73,17 @@ int LoadBalance::zkGetChildren(const string path, struct String_vector* children
 	return M_ERR;
 }
 
-int LoadBalance::zkGetNode(char* md5Path, char* serviceFather, sizeof(serviceFather)) {
+int LoadBalance::zkGetNode(const char* md5Path, char* serviceFather, int* dataLen) {
 	if (!zh) {
 		LOG(LOG_ERROR, "zhandle is NULL");
 		return M_ERR;
 	}
 	//todo 下面其实就是一个zoo_get，但是原来的设计中有很多错误判断，我这里先都跳过吧.而且原设计中先用了exist，原因是想知道这个节点的数据有多长，需要多大的buf去存放？
-	int ret = zoo_get(zh, md5Path, 1, serviceFather, sizeof(serviceFather), NULL);
+    LOG(LOG_INFO, "md5Path: %s, serviceFather: %s, *dataLen: %d", md5Path, serviceFather, *dataLen);
+	int ret = zoo_get(zh, md5Path, 1, serviceFather, dataLen, NULL);
+    if (ret == ZBADARGUMENTS) {
+        LOG(LOG_ERROR, "shit!!!");
+    }
 	if (ret == ZOK) {
 		LOG(LOG_INFO, "get serviceFather success");
 		return M_OK;
@@ -104,12 +108,16 @@ int LoadBalance::getMd5ToServiceFather(){
 	}
 	for (int i = 0; i < md5Node.count; ++i) {
 		char serviceFather[256] = {0};
-		char md5Path[256] = {0};
-		md5Path = md5Node.data[i];
+		string md5Path = conf->getNodeList() + "/" + string(md5Node.data[i]);
 		//todo 根据ret的值加入异常
-		ret = zkGetNode(md5Path, serviceFather, sizeof(serviceFather));
-		md5ToServiceFather[to_string(md5Path)] = to_string(serviceFather);
-		LOG(LOG_INFO, "md5: %s, serviceFather: %s", to_string(md5Path), to_string(serviceFather));
+        int dataLen = sizeof(serviceFather);
+		ret = zkGetNode(md5Path.c_str(), serviceFather, &dataLen);
+		md5ToServiceFather[md5Path] = string(serviceFather);
+		LOG(LOG_INFO, "md5: %s, serviceFather: %s", md5Path.c_str(), serviceFather);
 	}
+    cout << md5ToServiceFather.size() << endl;
+    for (auto it = md5ToServiceFather.begin(); it != md5ToServiceFather.end(); ++it) {
+        cout << it->first << " " << it->second << endl;
+    }
 	return M_OK;
 }
