@@ -13,6 +13,7 @@
 #include "Config.h"
 using namespace std;
 
+extern char _zkLockBuf[512];
 static void watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context);
 
 void watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context) {
@@ -43,7 +44,7 @@ int LoadBalance::destroyEnv() {
 LoadBalance::LoadBalance() : zh(NULL){
 	conf = Config::getInstance();
 	md5ToServiceFather.clear();
-	monitor.clear();
+	monitors.clear();
 	ipPort.clear();
 	initEnv();	
 }
@@ -123,7 +124,7 @@ int LoadBalance::getMonitors() {
 	string path = conf->getMonitorList();
 	struct String_vector monitorNode = {0};
 	int ret = zkGetChildren(path, &monitorNode);
-	if (ret = M_ERR) {
+	if (ret == M_ERR) {
 		return M_ERR;
 	}
 	for (int i = 0; i < monitorNode.count; ++i) {
@@ -132,7 +133,9 @@ int LoadBalance::getMonitors() {
 	}
 	cout << "***************" << endl;
 	cout << monitors.size() << endl;
+    printf("I am %s\n", _zkLockBuf);
 	for (auto it = monitors.begin(); it != monitors.end(); ++it) {
 		cout << (*it) << endl;
 	}
+    return M_OK;
 }
