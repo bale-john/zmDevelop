@@ -161,23 +161,24 @@ int LoadBalance::balance() {
 	for (auto it = sequence.begin(); it != sequence.end(); ++it) {
 		cout << (*it) << endl;
 	}
-	sequence.sort();
+	sort(sequence.begin(), sequence.end());
 	//debug
 	cout << 33333333333 << endl;
 	for (auto it = sequence.begin(); it != sequence.end(); ++it) {
 		cout << (*it) << endl;
 	}
 	string monitor = string(_zkLockBuf);
-	unsigned int mySeq = stoi(monitor.substr(monitor.sizr() - 10));
-	int rank = 0;
+	unsigned int mySeq = stoi(monitor.substr(monitor.size() - 10));
+	//使用size_t是没问题的，但是也要注意size_t在负数的情况下是会出错的
+    size_t rank = 0;
 	for (; rank < sequence.size(); ++rank) {
 		if (sequence[rank] == mySeq) {
 			break;
 		}
 	}
 
-	for (int i = rank; i < md5Node; ++i) {
-		myServiceFather.insert(md5ToServiceFather[md5Node[rank]]);
+	for (size_t i = rank; i < md5Node.size(); i += monitors.size()) {
+		myServiceFather.insert(md5ToServiceFather[md5Node[i]]);
 	}
 	//debug
 	cout << 44444444444 << endl;
