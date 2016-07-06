@@ -120,7 +120,9 @@ int main(int argc, char** argv){
 		}
 
 		//get the service father. Stored in class LB
-		//LoadBalance* lb = new LoadBalance();
+		//新建一个负载均衡实例，然后需要填充这个实例中一些重要的数据
+		LoadBalance* lb = new LoadBalance();
+		lb->getMd5ToServiceFather();
 
 
 
@@ -129,6 +131,7 @@ int main(int argc, char** argv){
 
 
         //seems it's important !! Remember to close it always
+		delete lb;
         zookeeper_close(_zk->_zh);
 	}
 
