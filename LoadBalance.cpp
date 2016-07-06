@@ -15,11 +15,11 @@ using namespace std;
 
 static void watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context);
 
-void watcher(){
+void watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context) {
 
 }
 
-LoadBalance::initEnv(){
+int LoadBalance::initEnv(){
 	Config* conf = Config::getInstance();
 	string zkHost = conf->getZkHost();
 	int revcTimeout = conf->getZkRecvTimeout();
@@ -32,7 +32,7 @@ LoadBalance::initEnv(){
 	return M_OK;
 }
 
-int destroyEnv() {
+int LoadBalance::destroyEnv() {
 	if (zh) {
 		LOG(LOG_INFO, "zookeeper close. func %s, line %d", __func__, __LINE__);
 		zookeeper_close(zh);

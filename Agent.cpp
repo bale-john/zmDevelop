@@ -19,10 +19,12 @@ static bool _stop = false;
 int main(int argc, char** argv){
 	Config* conf = Config::getInstance();
 	Util::printConfig();
+#ifdef REALSE
 	if (Process::isProcessRunning(MONITOR_PROCESS_NAME) == 1) {
 		LOG(LOG_ERROR, "Monitor is already running.");
 		return -1;
 	}
+#endif
 	if (conf->isDaemonMode()) {
 		Process::daemonize();
 	}
@@ -118,7 +120,7 @@ int main(int argc, char** argv){
 		}
 
 		//get the service father. Stored in class LB
-		LoadBalance* lb = new LoadBalance();
+		//LoadBalance* lb = new LoadBalance();
 
 
 

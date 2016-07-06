@@ -19,7 +19,7 @@ public:
 	int initEnv();
 	int destroyEnv();
 public:
-	LoadBalance()
-	~LoadBalance()
+	LoadBalance();
+	~LoadBalance();
 };
 #endif
