@@ -110,7 +110,7 @@ int LoadBalance::getMd5ToServiceFather() {
 		//todo 根据ret的值加入异常
         int dataLen = sizeof(serviceFather);
 		ret = zkGetNode(md5Path.c_str(), serviceFather, &dataLen);
-		md5ToServiceFather[md5Path] = string(serviceFather);
+		md5ToServiceFather[string(md5Node.data[i])] = string(serviceFather);
 		LOG(LOG_INFO, "md5: %s, serviceFather: %s", md5Path.c_str(), serviceFather);
 	}
     cout << md5ToServiceFather.size() << endl;

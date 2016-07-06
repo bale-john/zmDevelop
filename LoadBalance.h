@@ -13,7 +13,9 @@
 using namespace std;
 class LoadBalance {
 public:
-	unordered_map<string, string> md5ToServiceFather;
+    //use map but not unordered_map so it can be sorted autonatically
+    //存的是md5节点和对应的serviceFather节点
+	map<string, string> md5ToServiceFather;
 	unordered_set<string> monitors;
 	unordered_set<string> ipPort;
 	zhandle_t* zh;
