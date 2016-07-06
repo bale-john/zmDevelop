@@ -14,7 +14,7 @@ using namespace std;
 class LoadBalance {
 public:
 	unordered_map<string, string> md5ToServiceFather;
-	unordered_set<string> monitor;
+	unordered_set<string> monitors;
 	unordered_set<string> ipPort;
 	zhandle_t* zh;
 	int initEnv();
@@ -26,5 +26,6 @@ public:
 	int getMd5ToServiceFather();
 	int zkGetChildren(const string path, struct String_vector* children);
 	int zkGetNode(const char* md5Path, char* serviceFather, int* dataLen);
+	int getMonitors();
 };
 #endif

@@ -81,11 +81,8 @@ int LoadBalance::zkGetNode(const char* md5Path, char* serviceFather, int* dataLe
 	//todo 下面其实就是一个zoo_get，但是原来的设计中有很多错误判断，我这里先都跳过吧.而且原设计中先用了exist，原因是想知道这个节点的数据有多长，需要多大的buf去存放？
     LOG(LOG_INFO, "md5Path: %s, serviceFather: %s, *dataLen: %d", md5Path, serviceFather, *dataLen);
 	int ret = zoo_get(zh, md5Path, 1, serviceFather, dataLen, NULL);
-    if (ret == ZBADARGUMENTS) {
-        LOG(LOG_ERROR, "shit!!!");
-    }
 	if (ret == ZOK) {
-		LOG(LOG_INFO, "get serviceFather success");
+		LOG(LOG_INFO, "get data success");
 		return M_OK;
 	}
 	else if (ret == ZNONODE) {
@@ -99,7 +96,7 @@ int LoadBalance::zkGetNode(const char* md5Path, char* serviceFather, int* dataLe
 	return M_ERR;
 }
 
-int LoadBalance::getMd5ToServiceFather(){
+int LoadBalance::getMd5ToServiceFather() {
 	string path = conf->getNodeList();
 	struct String_vector md5Node = {0};
 	int ret = zkGetChildren(path, &md5Node);
@@ -120,4 +117,22 @@ int LoadBalance::getMd5ToServiceFather(){
         cout << it->first << " " << it->second << endl;
     }
 	return M_OK;
+}
+
+int LoadBalance::getMonitors() {
+	string path = conf->getMonitorList();
+	struct String_vector monitorNode = {0};
+	int ret = zkGetChildren(path, &monitorNode);
+	if (ret = M_ERR) {
+		return M_ERR;
+	}
+	for (int i = 0; i < monitorNode.count; ++i) {
+		string monitor = string(monitorNode.data[i]);
+		monitors.insert(monitor);
+	}
+	cout << "***************" << endl;
+	cout << monitors.size() << endl;
+	for (auto it = monitors.begin(); it != monitors.end(); ++it) {
+		cout << (*it) << endl;
+	}
 }

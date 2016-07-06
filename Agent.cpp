@@ -104,7 +104,7 @@ int main(int argc, char** argv){
 			continue;
 		}
 
-		// monitor register
+		// monitor register, this function should in LoadBalance
 		if (_zk->registerMonitor(conf->getMonitorList() + "/monitor_") == M_OK) {
 			LOG(LOG_INFO, "Monitor register success");
 			//wait other monitor to register
@@ -123,7 +123,7 @@ int main(int argc, char** argv){
 		//新建一个负载均衡实例，然后需要填充这个实例中一些重要的数据
 		LoadBalance* lb = new LoadBalance();
 		lb->getMd5ToServiceFather();
-
+		lb->getMonitors();
 
 
 		while (1){}
