@@ -18,6 +18,7 @@ class ServiceListener {
 //private:
 public:
 	zhandle_t* zh;
+	//其中的ip是单纯的ip，没有包含前缀路径吧
 	unordered_map<string, unordered_set<string>> serviceFatherToIp;
 	//看，这些都是公共的方法，就应该提取出一个父类来的
 	initEnv();

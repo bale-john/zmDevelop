@@ -66,5 +66,5 @@ int ServiceListener::getAllIp(const set<string> serviceFather) {
 }
 
 int ServiceListener::loadService() {
-	
+	return 0;
 }
