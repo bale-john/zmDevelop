@@ -148,7 +148,7 @@ int ServiceListener::loadService(string path, string serviceFather, string ipPor
 	//todo, 这里要判断异常，比如值不是允许的那几个
 	size_t pos = ipPort.find(':');
 	string ip = ipPort.substr(0, pos);
-	int port = stoi(ipPort.substr(pos+1));
+	int port = atoi((ipPort.substr(pos+1)).c_str());
 	struct in_addr addr;
 	getAddrByHost(ip.c_str(), &addr);
 	ServiceItem serviceItem;
