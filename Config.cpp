@@ -207,4 +207,12 @@ int Config::printMap() {
 		cout << (it->second)._serviceFather << endl;
 		cout << (it->second)._status << endl;
 	}
+    return 0;
 }
+
+
+int Config::addService(string ipPath, ServiceItem serviceItem) {
+    _serviceMap[ipPath] = serviceItem;
+    return 0;
+}
+

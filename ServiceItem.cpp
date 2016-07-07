@@ -69,6 +69,3 @@ int ServiceItem::setServiceFather(string serviceFather) {
     return 0;
 }
 
-int ServiceItem::addService(string ipPath, ServiceItem serviceItem) {
-    _serviceMap[ipPath] = serviceItem;
-}

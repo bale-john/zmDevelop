@@ -9,6 +9,8 @@
 #include "LoadBalance.h"
 #include "Log.h"
 #include "ConstDef.h"
+#include "Util.h"
+#include <netdb.h>
 using namespace std;
 
 static void watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context);
@@ -123,7 +125,7 @@ int ServiceListener::zkGetNode(const char* path, char* data, int* dataLen) {
 	return M_ERR;
 }
 
-int ServiceListener::getAddrByHost(char* host, struct in_addr* addr) {
+int ServiceListener::getAddrByHost(const char* host, struct in_addr* addr) {
 	int ret = M_ERR;
 	//todo 关于如何加锁还没想好
     //spinlock_lock(&_getaddr_spinlock);
@@ -138,10 +140,10 @@ int ServiceListener::getAddrByHost(char* host, struct in_addr* addr) {
 
 //todo 这里参数有重复，从path就可以知道其他两个的内容了
 int ServiceListener::loadService(string path, string serviceFather, string ipPort) {
-	int status = STATUS_UNKNOW;
+	int status = STATUS_UNKNOWN;
 	char data[16] = {0};
 	int dataLen = 16;
-	zkGetNode(path.c_str(), data, &dataLen)
+	zkGetNode(path.c_str(), data, &dataLen);
 	status = atoi(data);
 	//todo, 这里要判断异常，比如值不是允许的那几个
 	size_t pos = ipPort.find(':');
@@ -149,7 +151,7 @@ int ServiceListener::loadService(string path, string serviceFather, string ipPor
 	int port = stoi(ipPort.substr(pos+1));
 	struct in_addr addr;
 	getAddrByHost(ip.c_str(), &addr);
-	ServiceItem serviceItem();
+	ServiceItem serviceItem;
 	serviceItem.setStatus(status);
 	serviceItem.setHost(ip);
 	serviceItem.setPort(port);
@@ -161,11 +163,12 @@ int ServiceListener::loadService(string path, string serviceFather, string ipPor
 
 int ServiceListener::loadAllService() {
 	for (auto it1 = serviceFatherToIp.begin(); it1 != serviceFatherToIp.end(); ++it1) {
-		string serviceFather = it->first;
+		string serviceFather = it1->first;
 		for (auto it2 = (it1->second).begin(); it2 != (it1->second).end(); ++it2) {
 			string path = serviceFather + "/" + (*it2);
 			loadService(path, serviceFather, *it2);
 		}
 	}
 	Util::printServiceMap();
+    return 0;
 }

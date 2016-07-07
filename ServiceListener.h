@@ -33,5 +33,7 @@ public:
 	int getAllIp(const set<string> serviceFather);
 	int loadService(string path, string serviceFather, string ipPort);
 	int loadAllService();
+    int zkGetNode(const char* path, char* data, int* dataLen);
+    int getAddrByHost(const char* host, struct in_addr* addr);
 };
 #endif
