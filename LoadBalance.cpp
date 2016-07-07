@@ -146,27 +146,30 @@ int LoadBalance::balance() {
 	for (auto it = md5ToServiceFather.begin(); it != md5ToServiceFather.end(); ++it) {
 		md5Node.push_back(it->first);
 	}
-	//debug
+#ifdef DEBUG
 	cout << 11111111111 << endl;
 	for (auto it = md5Node.begin(); it != md5Node.end(); ++it) {
 		cout << (*it) << endl;
 	}
+#endif
 	vector<unsigned int> sequence;
 	for (auto it = monitors.begin(); it != monitors.end(); ++it) {
 		int tmp = stoi((*it).substr((*it).size() - 10));
 		sequence.push_back(tmp);
 	}
-	//debug
+#ifdef DEBUG
 	cout << 222222222222 << endl;
 	for (auto it = sequence.begin(); it != sequence.end(); ++it) {
 		cout << (*it) << endl;
 	}
+#endif
 	sort(sequence.begin(), sequence.end());
-	//debug
+#ifdef DEBUG
 	cout << 33333333333 << endl;
 	for (auto it = sequence.begin(); it != sequence.end(); ++it) {
 		cout << (*it) << endl;
 	}
+#endif
 	string monitor = string(_zkLockBuf);
 	unsigned int mySeq = stoi(monitor.substr(monitor.size() - 10));
 	//使用size_t是没问题的，但是也要注意size_t在负数的情况下是会出错的
@@ -180,10 +183,11 @@ int LoadBalance::balance() {
 	for (size_t i = rank; i < md5Node.size(); i += monitors.size()) {
 		myServiceFather.insert(md5ToServiceFather[md5Node[i]]);
 	}
-	//debug
+#ifdef DEBUG
 	cout << 44444444444 << endl;
 	for (auto it = myServiceFather.begin(); it != myServiceFather.end(); ++it) {
 		cout << (*it) << endl;
 	}
+#endif
 	return M_OK;
 }
