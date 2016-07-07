@@ -191,3 +191,7 @@ int LoadBalance::balance() {
 #endif
 	return M_OK;
 }
+
+set<string> LoadBalance::getMyServiceFather() {
+	return myServiceFather;
+}

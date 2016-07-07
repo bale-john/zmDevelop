@@ -27,9 +27,10 @@ public:
 	LoadBalance();
 	~LoadBalance();
 	int getMd5ToServiceFather();
-	int zkGetChildren(const string path, struct String_vector* children);
-	int zkGetNode(const char* md5Path, char* serviceFather, int* dataLen);
+	static int zkGetChildren(const string path, struct String_vector* children);
+	static int zkGetNode(const char* md5Path, char* serviceFather, int* dataLen);
 	int getMonitors();
 	int balance();
+	set<string> getMyServiceFather();
 };
 #endif

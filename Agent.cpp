@@ -12,6 +12,7 @@
 #include "Process.h"
 #include "Zk.h"
 #include "LoadBalance.h"
+#include "ServiceListener.h"
 using namespace std;
 static Zk* _zk = NULL;
 static bool _stop = false;
@@ -119,6 +120,7 @@ int main(int argc, char** argv){
 			continue;
 		}
 
+		//load balance
 		//get the service father. Stored in class LB
 		//新建一个负载均衡实例，然后需要填充这个实例中一些重要的数据
 		//todo，对每一步的异常都还没有进行考虑
@@ -127,13 +129,18 @@ int main(int argc, char** argv){
 		lb->getMonitors();
 		lb->balance();
 
+		//after load balance. Each monitor should load the service to Config
+		//此处我是否需要新建一个类来做监视工作呢？好像是要的吧，lb的watcher和这个应该还是不同的，先新建一个吧
+		ServiceListener* serviceListener = new ServiceListener();
+		serviceListener->getAllIp(lb->getMyServiceFather());
+		//这里如何加锁也都还没考虑，因为加了watch之后(?)可能会有不止一个线程在操作的数据结构都需要加锁，目前还没有考虑，最后统一加吧
+		serviceListener->loadService();
+
 
 		while (1){}
-		//load balance
-
-
         //seems it's important !! Remember to close it always
 		delete lb;
+		delete serviceListener;
         zookeeper_close(_zk->_zh);
 	}
 
