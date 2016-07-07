@@ -23,12 +23,13 @@ public:
 	int initEnv();
 	int destroyEnv();
 	Config* conf;
+    
 public:
 	LoadBalance();
 	~LoadBalance();
 	int getMd5ToServiceFather();
-	static int zkGetChildren(const string path, struct String_vector* children);
-	static int zkGetNode(const char* md5Path, char* serviceFather, int* dataLen);
+	int zkGetChildren(const string path, struct String_vector* children);
+	int zkGetNode(const char* md5Path, char* serviceFather, int* dataLen);
 	int getMonitors();
 	int balance();
 	set<string> getMyServiceFather();

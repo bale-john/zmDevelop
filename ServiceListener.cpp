@@ -7,6 +7,8 @@
 #include "ServiceItem.h"
 #include "ServiceListener.h"
 #include "LoadBalance.h"
+#include "Log.h"
+#include "ConstDef.h"
 using namespace std;
 
 static void watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context);
@@ -24,7 +26,7 @@ int ServiceListener::destroyEnv() {
 	return M_OK;
 }
 
-ServiceListener::initEnv() {
+int ServiceListener::initEnv() {
 	string zkHost = conf->getZkHost();
 	int revcTimeout = conf->getZkRecvTimeout();
 	zh = zookeeper_init(zkHost.c_str(), watcher, revcTimeout, NULL, NULL, 0);
@@ -55,13 +57,46 @@ int ServiceListener::addChildren(const string serviceFather, struct String_vecto
 	return 0;
 }
 
+
+int ServiceListener::zkGetChildren(const string path, struct String_vector* children) {
+	if (!zh) {
+		LOG(LOG_ERROR, "zhandle is NULL");
+		return M_ERR;
+	}
+	int ret = zoo_get_children(zh, path.c_str(), 1, children);
+	if (ret == ZOK) {
+		LOG(LOG_INFO, "get children success");
+		return M_OK;
+	}
+	else if (ret == ZNONODE) {
+		LOG(LOG_TRACE, "%s...out...node:%s not exist.", __FUNCTION__, path.c_str());
+        return M_ERR;
+	}
+	else {
+		LOG(LOG_ERROR, "parameter error. zhandle is NULL");
+		return M_ERR;
+	}
+	return M_ERR;
+}
+
 //get all ip belong to my service father
 int ServiceListener::getAllIp(const set<string> serviceFather) {
 	for (auto it = serviceFather.begin(); it != serviceFather.end(); ++it) {
 		struct String_vector children = {0};
-		LoadBalance::zkGetChildren(*it, children);
+		zkGetChildren(*it, &children);
 		addChildren(*it, children);
 	}
+#ifdef DEBUG
+    cout << 55555555555 << endl;
+    cout << serviceFatherToIp.size() << endl;
+    for (auto it1 = serviceFatherToIp.begin(); it1 != serviceFatherToIp.end(); ++it1) {
+        cout << it1->first << endl;
+        for (auto it2 = (it1->second).begin(); it2 != (it1->second).end(); ++it2) {
+            cout << *it2 << " ";
+        }
+        cout << endl;
+    }
+#endif
 	return 0;
 }
 

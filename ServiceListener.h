@@ -21,9 +21,10 @@ public:
 	//其中的ip是单纯的ip，没有包含前缀路径吧
 	unordered_map<string, unordered_set<string>> serviceFatherToIp;
 	//看，这些都是公共的方法，就应该提取出一个父类来的
-	initEnv();
-	destroyEnv();
+	int initEnv();
+	int destroyEnv();
 	Config* conf;
+    int zkGetChildren(const string path, struct String_vector* children);
 
 public:
 	ServiceListener();
