@@ -76,7 +76,7 @@ int main(int argc, char** argv){
 		}
 
 		/******************************
-		// haven's consider watcher!!! 
+		// haven't consider watcher!!! 
 		******************************/
 
 		//check qconf_monitor_lock_node/default_instance/md5_list
@@ -135,6 +135,8 @@ int main(int argc, char** argv){
 		serviceListener->getAllIp(lb->getMyServiceFather());
 		//这里如何加锁也都还没考虑，因为加了watch之后(?)可能会有不止一个线程在操作的数据结构都需要加锁，目前还没有考虑，最后统一加吧
 		serviceListener->loadAllService();
+
+		//load service complete. So can do multithread module?
 
 
 		while (1){}

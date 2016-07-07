@@ -216,3 +216,6 @@ int Config::addService(string ipPath, ServiceItem serviceItem) {
     return 0;
 }
 
+map<string, ServiceItem> Config::getServiceMap() {
+	return _serviceMap;
+}
