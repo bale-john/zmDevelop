@@ -14,5 +14,6 @@ public:
 	static vector<string> split(const string& str, const char separator);
 	static int printConfig();
 	static int writeToFile(const string content, const string file);
+	static int printServiceMap();
 };
 #endif

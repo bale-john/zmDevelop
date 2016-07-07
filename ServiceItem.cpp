@@ -43,3 +43,32 @@ void ServiceItem::clear() {
 
 ServiceItem::~ServiceItem(){
 };
+
+int ServiceItem::setStatus(int status) {
+    _status = status;
+    return 0;
+}
+
+int ServiceItem::setHost(string ip) {
+    _host = ip;
+    return 0;
+}
+
+int ServiceItem::setPort(int port) {
+    _port = port;
+    return 0;
+}
+
+int ServiceItem::setAddr(struct in_addr* addr) {
+    memcpy(addr, &_addr, sizeof(struct in_addr));
+    return 0;
+}
+
+int ServiceItem::setServiceFather(string serviceFather) {
+    _serviceFather = serviceFather;
+    return 0;
+}
+
+int ServiceItem::addService(string ipPath, ServiceItem serviceItem) {
+    _serviceMap[ipPath] = serviceItem;
+}

@@ -70,3 +70,7 @@ int Util::printConfig(){
 	return 0;
 }
 
+int Util::printServiceMap() {
+	Config* conf = Config::getInstance();
+	conf->printMap();
+}

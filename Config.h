@@ -24,6 +24,10 @@ public:
 	//todo maybe should return const string
 	string getNodeList();
 	string getMonitorList();
+	int addService(string ipPath, ServiceItem serviceItem);
+	//todo 这个print在Util类中怎么看都应该更好，现在将就一下
+	int printMap();
+
 
 private:
 	Config();

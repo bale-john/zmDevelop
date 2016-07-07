@@ -31,6 +31,7 @@ public:
 	~ServiceListener();
 	int addChildren(const string serviceFather, struct String_vector children);
 	int getAllIp(const set<string> serviceFather);
-	int loadService();
+	int loadService(string path, string serviceFather, string ipPort);
+	int loadAllService();
 };
 #endif

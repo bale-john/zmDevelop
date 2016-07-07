@@ -198,3 +198,13 @@ string Config::getMonitorList() {
 	//todo
 	return LOCK_ROOT_DIR + SLASH + _instanceName + SLASH + MONITOR_LIST;
 }
+
+int Config::printMap() {
+	for (auto it = _serviceMap.begin(); it != _serviceMap.end(); ++it) {
+		cout << it->first << endl;
+		cout << (it->second)._host << endl;
+		cout << (it->second)._port << endl;
+		cout << (it->second)._serviceFather << endl;
+		cout << (it->second)._status << endl;
+	}
+}
