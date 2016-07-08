@@ -27,7 +27,7 @@ public:
 	pthread_t checkServiceThread[MAX_THREAD_NUM];
 	//vector<pthread_t> checkServiceThread;
     void* updateService(void* args);
-    //void *checkService(void* args);
+    void* checkService(void* args);
 	Config* conf;
 	unordered_map<string, int> updateServiceInfo;
 	list<string> priority;

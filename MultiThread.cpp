@@ -33,6 +33,7 @@ using namespace std;
 
 typedef void* (MultiThread::*us)(void*);
 us myUS = &MultiThread::updateService;
+us myCS = &MultiThread::checkService;
 
 MultiThread::MultiThread(Zk* zk_input) : zk(zk_input) {
 	conf = Config::getInstance();
@@ -43,7 +44,7 @@ MultiThread::~MultiThread() {
 
 }
 
-bool MultiThread::isOnluOneUp(string node, int val) {
+bool MultiThread::isOnlyOneUp(string node, int val) {
 	bool ret = true;
 	size_t pos = node.rfind('/');
 	string serviceFather = node.substr(0, pos);
@@ -70,11 +71,6 @@ int MultiThread::updateZk(string node, int val) {
 int MultiThread::updateConf(string node, int val) {
 	conf->setServiceMap(node, val);
 	return 0;
-}
-
-bool MultiThread::isOnlyOneUp(string key, int val) {
-    int ret = (conf->serviceFatherStatus)[key][STATUS_UP+1];
-    return ret == 1;
 }
 
 //更新线程。原来的设计是随机的更新顺序，我觉得这是不合理的，应该使用先来先服务的类型
@@ -155,7 +151,7 @@ int MultiThread::runMainThread() {
 				schedule = SCHEDULE;
 			}
 			for (; oldThreadNum < newThreadNum; ++oldThreadNum) {
-				pthread_create(&(checkServiceThread[oldThreadNum]), NULL, checkService, &schedule);
+				pthread_create(&(checkServiceThread[oldThreadNum]), NULL, (void* (*)(void*))myCS, &schedule);
 			}
 		}
 		//线程不用开满，也不需要调度
