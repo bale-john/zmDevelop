@@ -139,10 +139,9 @@ int main(int argc, char** argv){
 		serviceListener->loadAllService();
 
 		//load service complete. So can do multithread module?
-		MultiThread* mt = new MultiThread();
+		MultiThread* mt = new MultiThread(_zk);
         mt->runMainThread();
 
-		while (1){}
         //seems it's important !! Remember to close it always
 		delete lb;
 		delete serviceListener;

@@ -26,12 +26,16 @@ public:
 	//todo maybe should return const string
 	string getNodeList();
 	string getMonitorList();
+	//这个名字不应该叫add，叫set
 	int addService(string ipPath, ServiceItem serviceItem);
 	//todo 这个print在Util类中怎么看都应该更好，现在将就一下
 	int printMap();
 	map<string, ServiceItem> getServiceMap();
 	int setServiceFatherToIp(unordered_map<string, unordered_set<string>> sft);
 	unordered_map<string, unordered_set<string>> getServiceFatherToIp();
+	//用来保存每个serviceFather拥有各种不同类型的节点的数目
+	unordered_map<string, vector<int>> serviceFatherStatus;
+	int setServiceMap(strig node, int val);
 
 
 private:

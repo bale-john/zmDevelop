@@ -161,3 +161,10 @@ int Zk::registerMonitor(string path) {
     }
     return M_OK;
 }
+
+int Zk::setZnode(string node, string data) {
+	//todo,现在写的非常简单，几乎没有任何异常判断
+	int ver = -1;
+	zoo_set(_zh, node.c_str(), data.c_str(), data.length(), ver);
+	return 0;
+}

@@ -148,6 +148,7 @@ int ServiceListener::loadService(string path, string serviceFather, string ipPor
 	int dataLen = 16;
 	zkGetNode(path.c_str(), data, &dataLen);
 	status = atoi(data);
+	++(conf->serviceFatherStatus[status + 1]);
 	//todo, 这里要判断异常，比如值不是允许的那几个
 	size_t pos = ipPort.find(':');
 	string ip = ipPort.substr(0, pos);

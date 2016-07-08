@@ -24,5 +24,6 @@ public:
     int createZnode(string path);
     void zErrorHandler(const int& ret);
     int registerMonitor(string path);
+    int setZnode(string node, string data);
 };
 #endif

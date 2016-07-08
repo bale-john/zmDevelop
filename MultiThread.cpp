@@ -14,6 +14,7 @@
 #include <netdb.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <list>
 #include <time.h>
 #include <fstream>
 #include <vector>
@@ -30,16 +31,88 @@
 using namespace std;
 
 
-MultiThread::MultiThread() {
+MultiThread::MultiThread(Zk* zk_input) : zk(zk_input) {
 	conf = Config::getInstance();
+	updateServiceLock = SPINLOCK_INITIALIZER;
 }
 
 MultiThread::~MultiThread() {
 
 }
 
+bool MultiThread::isOnluOneUp(string node, int val) {
+	bool ret = true;
+	size_t pos = node.rfind('/');
+	string serviceFather = node.substr(0, pos);
+	spinlock_lock(&updateServiceLock);
+	if ((conf->serviceFatherStatus)[val+1] > 1) {
+		//在锁内部直接把serviceFatherStatus改变了，up的-1，down的+1；
+		--((conf->serviceFatherStatus)[STATUS_UP+1]);
+		++((conf->serviceFatherStatus)[STATUS_DOWN+1]);
+		spinlock_unlock(&updateServiceLock);
+		ret = false;
+	}
+	else {
+		spinlock_unlock(&updateServiceLock);
+	}
+	return ret;
+}
+
+int MultiThread::updateZk(string node, int val) {
+	string status = to_string(val);
+	zk->setNode(node, status);
+	return 0
+}
+
+int MultiThread::updateConf(string node, int val) {
+	conf->setServiceMap(string node, int val);
+	return 0;
+}
+
+
+//更新线程。原来的设计是随机的更新顺序，我觉得这是不合理的，应该使用先来先服务的类型
+//这里判断是否为空需要加锁吗？感觉应该不需要吧，如果有另一个线程正在写，empty()将会返回什么值？
+//这里用先来先服务会有问题，如果一个节点被重复改变两次，怎么处理？
 void *updateService(void* args) {
-	cout << "update" << endl;
+	while (1) {
+		spinlock_lock(&updateServiceLock);
+		if (updateServiceInfo.empty()) {
+			spinlock_unlock(&updateServiceLock);
+			usleep(1000);
+			continue;
+		}
+		spinlock_unlock(&updateServiceLock);
+		string key = priority.front();
+		//这需要加锁吗？如果一个线程只会操作list的头部，而另一个只会操作尾部，好像不用加锁
+		//spinlock_lock(&updateServiceLock);
+		priority.pop_front();
+		//spinlock_unlock(&updateServiceLock);
+		//是有可能在优先级队列中存在，但是在字典中不存在的
+		spinlock_lock(&updateServiceLock);
+		if (updateServiceInfo.find(key) == updateServiceInfo.end()) {
+			spinlock_unlock(&updateServiceLock);
+			usleep(1000);
+			continue;
+		}
+		int val = updateServiceInfo[key];
+		updateServiceInfo.erase(key);
+		spinlock_unlock(&updateServiceLock);
+		//现在获取了需要更新的key和value了,要把他们的状态更新到config类里和zk上
+		//如果节点死了，而且这个节点是这个serviceFather的唯一一个活着的节点，那么不改变状态，否则都要改变状态
+		//我应该在Config或者loadBalance里维护一个结构，保存每个serviceFather它对应的节点的状态，这样判断是否是唯一存活的节点就方便多了！
+		//我觉得这个数据结构放在LoadBalance里更合理，但是放在Config里更好做，先放在Config里吧
+		//这里应该进行更多判断，原来是什么状态？
+		if (val == STATUS_DOWN && isOnlyOneUp(key, val)) {
+			usleep(1000);
+			continue;
+		}
+		//可以进行更新
+		//1.更新zk，这应该不用设置watch，那最好就用zk类来做咯
+		updateZk(key, val)；
+		//2.更新conf
+		updateConf(key, val);
+		usleep(1000);
+	}
     pthread_exit(0);
 }
 

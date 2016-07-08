@@ -8,6 +8,7 @@
 #include <map>
 #include <string>
 #include <fstream>
+#include <list>
 #include "Util.h"
 #include "Config.h"
 #include "ConstDef.h"
@@ -27,9 +28,15 @@ private:
     //void *updateService(void* args);
     //void *checkService(void* args);
 	Config* conf;
+	unordered_map<string, int> updateServiceInfo;
+	list<string> priority;
+	spinlock_t updateServiceLock;
+	bool isOnluOneUp(string node, int val);
+	int updateZk(string node, int val);
 public:
 	MultiThread();
 	~MultiThread();
 	int runMainThread();
+	Zk* zk;
 };
 #endif
