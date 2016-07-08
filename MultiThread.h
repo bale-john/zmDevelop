@@ -21,11 +21,12 @@
 using namespace std;
 
 class MultiThread {
-private:
+public:
+//private:
 	pthread_t updateServiceThread;
 	pthread_t checkServiceThread[MAX_THREAD_NUM];
 	//vector<pthread_t> checkServiceThread;
-    void* (*updateService)(void* args);
+    void* updateService(void* args);
     //void *checkService(void* args);
 	Config* conf;
 	unordered_map<string, int> updateServiceInfo;
@@ -34,6 +35,7 @@ private:
 	bool isOnluOneUp(string node, int val);
 	int updateZk(string node, int val);
     int updateConf(string node, int val);
+    bool isOnlyOneUp(string key, int val);
 public:
 	MultiThread(Zk* );
 	~MultiThread();

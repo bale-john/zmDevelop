@@ -31,6 +31,9 @@
 using namespace std;
 
 
+typedef void* (MultiThread::*us)(void*);
+us myUS = &MultiThread::updateService;
+
 MultiThread::MultiThread(Zk* zk_input) : zk(zk_input) {
 	conf = Config::getInstance();
 	updateServiceLock = SPINLOCK_INITIALIZER;
@@ -69,11 +72,15 @@ int MultiThread::updateConf(string node, int val) {
 	return 0;
 }
 
+bool MultiThread::isOnlyOneUp(string key, int val) {
+    int ret = (conf->serviceFatherStatus)[key][STATUS_UP+1];
+    return ret == 1;
+}
 
 //更新线程。原来的设计是随机的更新顺序，我觉得这是不合理的，应该使用先来先服务的类型
 //这里判断是否为空需要加锁吗？感觉应该不需要吧，如果有另一个线程正在写，empty()将会返回什么值？
 //这里用先来先服务会有问题，如果一个节点被重复改变两次，怎么处理？
-void* MultiThread::*updateService(void* args) {
+void* MultiThread::updateService(void* args) {
 	while (1) {
 		spinlock_lock(&updateServiceLock);
 		if (updateServiceInfo.empty()) {
@@ -126,7 +133,7 @@ void *checkService(void* args) {
 int MultiThread::runMainThread() {
 	int schedule = NOSCHEDULE;
     //没有考虑异常，如pthread不成功等
-	pthread_create(&updateServiceThread, NULL, updateService, NULL);
+	pthread_create(&updateServiceThread, NULL, (void* (*)(void*))myUS, NULL);
 	unordered_map<string, unordered_set<string>> ServiceFatherToIp = conf->getServiceFatherToIp();
 	//这里要考虑如何分配检查线程了，应该可以做很多文章，比如记录每个father有多少个服务，如果很多就分配两个线程等等。这里先用最简单的，线程足够的情况下，一个serviceFather一个线程
 	int oldThreadNum = 0;
