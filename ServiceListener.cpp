@@ -99,6 +99,9 @@ int ServiceListener::getAllIp(const set<string> serviceFather) {
         cout << endl;
     }
 #endif
+    //todo 这里仅仅是把这个数据结构在config里也保存一份，方面多线程类中对它的访问。因为对Config对象的访问时很简单的.
+    //但是这样也有很大的缺点，就是这个数据结构在多个类里存在。感觉很浪费内存，后期好好考虑一下这个东西放在哪个类里会更好
+    conf->setServiceFatherToIp(serviceFatherToIp);
 	return 0;
 }
 

@@ -49,5 +49,14 @@ const string SLASH = "/";
 // I think it's better to call it MD5_LIST
 const string NODE_LIST = "md5_list";
 
+//multi thread
+#ifdef DEBUG_FLAGS
+constexpr int MAX_THREAD_NUM = 5;
+#else
+constexpr int MAX_THREAD_NUM = 128;
+#endif
+constexpr int SCHEDULE = 1;
+constexpr int NOSCHEDULE = 0;
+
 
 #endif

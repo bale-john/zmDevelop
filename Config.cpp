@@ -219,3 +219,11 @@ int Config::addService(string ipPath, ServiceItem serviceItem) {
 map<string, ServiceItem> Config::getServiceMap() {
 	return _serviceMap;
 }
+
+int Config::setServiceFatherToIp(unordered_map<string, unordered_set<string>> sft) {
+	ServiceFatherToIp = sft;
+}
+
+unordered_map<string, unordered_set<string>> Config::getServiceFatherToIp() {
+	return ServiceFatherToIp;
+}

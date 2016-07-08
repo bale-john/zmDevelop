@@ -13,6 +13,8 @@
 #include "Zk.h"
 #include "LoadBalance.h"
 #include "ServiceListener.h"
+#include "x86_spinlocks.h"
+#include "MultiThread.h"
 using namespace std;
 static Zk* _zk = NULL;
 static bool _stop = false;
@@ -137,12 +139,13 @@ int main(int argc, char** argv){
 		serviceListener->loadAllService();
 
 		//load service complete. So can do multithread module?
-
+		multiThread mt = new multiThread();
 
 		while (1){}
         //seems it's important !! Remember to close it always
 		delete lb;
 		delete serviceListener;
+		delete mt;
         zookeeper_close(_zk->_zh);
 	}
 

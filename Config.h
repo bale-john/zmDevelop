@@ -28,6 +28,8 @@ public:
 	//todo 这个print在Util类中怎么看都应该更好，现在将就一下
 	int printMap();
 	map<string, ServiceItem> getServiceMap();
+	int setServiceFatherToIp(unordered_map<string, unordered_set<string>> sft);
+	unordered_map<string, unordered_set<string>> getServiceFatherToIp();
 
 
 private:
@@ -47,6 +49,7 @@ private:
 	int _zkRecvTimeout;
 	int setValueInt(const string& key, const string& value);
 	int setValueStr(const string& key, const string& value);
+	unordered_map<string, unordered_set<string>> serviceFatherToIp;
 
 };
 #endif
