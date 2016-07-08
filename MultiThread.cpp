@@ -45,10 +45,10 @@ bool MultiThread::isOnluOneUp(string node, int val) {
 	size_t pos = node.rfind('/');
 	string serviceFather = node.substr(0, pos);
 	spinlock_lock(&updateServiceLock);
-	if ((conf->serviceFatherStatus)[val+1] > 1) {
+	if ((conf->serviceFatherStatus)[serviceFather][val+1] > 1) {
 		//在锁内部直接把serviceFatherStatus改变了，up的-1，down的+1；
-		--((conf->serviceFatherStatus)[STATUS_UP+1]);
-		++((conf->serviceFatherStatus)[STATUS_DOWN+1]);
+		--((conf->serviceFatherStatus)[serviceFather][STATUS_UP+1]);
+		++((conf->serviceFatherStatus)[serviceFather][STATUS_DOWN+1]);
 		spinlock_unlock(&updateServiceLock);
 		ret = false;
 	}

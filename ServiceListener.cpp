@@ -142,13 +142,13 @@ int ServiceListener::getAddrByHost(const char* host, struct in_addr* addr) {
 }
 
 //todo 这里参数有重复，从path就可以知道其他两个的内容了
-int ServiceListener::loadService(string path, string serviceFather, string ipPort) {
+int ServiceListener::loadService(string path, string serviceFather, string ipPort, vector<int>& st) {
 	int status = STATUS_UNKNOWN;
 	char data[16] = {0};
 	int dataLen = 16;
 	zkGetNode(path.c_str(), data, &dataLen);
 	status = atoi(data);
-	++(conf->serviceFatherStatus[status + 1]);
+	++(st[status + 1]);
 	//todo, 这里要判断异常，比如值不是允许的那几个
 	size_t pos = ipPort.find(':');
 	string ip = ipPort.substr(0, pos);
@@ -168,10 +168,13 @@ int ServiceListener::loadService(string path, string serviceFather, string ipPor
 int ServiceListener::loadAllService() {
 	for (auto it1 = serviceFatherToIp.begin(); it1 != serviceFatherToIp.end(); ++it1) {
 		string serviceFather = it1->first;
+		vector<int> status(4, 0);
 		for (auto it2 = (it1->second).begin(); it2 != (it1->second).end(); ++it2) {
 			string path = serviceFather + "/" + (*it2);
-			loadService(path, serviceFather, *it2);
+			loadService(path, serviceFather, *it2, status);
 		}
+		//还是没有异常处理
+		conf->serviceFatherStatus[serviceFather] = status;
 	}
 	Util::printServiceMap();
     return 0;

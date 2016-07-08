@@ -45,7 +45,6 @@ int Config::resetConfig(){
     _serviceMap.clear();
     _zkRecvTimeout = 3000;
     serviceFatherStatus.clear();
-    serviceFatherStatus.resize(4, 0);
 	return 0;
 }
 
