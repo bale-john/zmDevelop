@@ -25,17 +25,17 @@ public:
 //private:
 	pthread_t updateServiceThread;
 	pthread_t checkServiceThread[MAX_THREAD_NUM];
-	//vector<pthread_t> checkServiceThread;
     void* updateService(void* args);
     void* checkService(void* args);
 	Config* conf;
 	unordered_map<string, int> updateServiceInfo;
 	list<string> priority;
 	spinlock_t updateServiceLock;
-	bool isOnluOneUp(string node, int val);
+	bool isOnlyOneUp(string node, int val);
 	int updateZk(string node, int val);
     int updateConf(string node, int val);
-    bool isOnlyOneUp(string key, int val);
+    //每个检查线程的pthread_t和该检车线程在线程池中的下标的对应关系
+    map<pthread_t, size_t> threadPos;
 public:
 	MultiThread(Zk* );
 	~MultiThread();

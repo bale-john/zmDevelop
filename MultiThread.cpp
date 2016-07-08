@@ -118,10 +118,9 @@ void* MultiThread::updateService(void* args) {
 	}
     pthread_exit(0);
 }
+//讲道理，这个函数值需要service father和service father和ip的对应，然后去修改updateInfo就好了
+void* MultiThread::checkService(void* args) {
 
-void *checkService(void* args) {
-	cout << "check" << endl;
-	cout << (*(int*)args) << endl;
     pthread_exit(0);
 }
 
@@ -151,6 +150,7 @@ int MultiThread::runMainThread() {
 				schedule = SCHEDULE;
 			}
 			for (; oldThreadNum < newThreadNum; ++oldThreadNum) {
+				threadPos[checkServiceThread[oldThreadNum]] = oldThreadNum;
 				pthread_create(&(checkServiceThread[oldThreadNum]), NULL, (void* (*)(void*))myCS, &schedule);
 			}
 		}
@@ -167,7 +167,8 @@ int MultiThread::runMainThread() {
 			}
 			else {
 				for (; oldThreadNum < newThreadNum; ++oldThreadNum) {
-					pthread_create(&(checkServiceThread[oldThreadNum]), NULL, checkService, &schedule);
+					threadPos[checkServiceThread[oldThreadNum]] = oldThreadNum;
+					pthread_create(&(checkServiceThread[oldThreadNum]), NULL, (void* (*)(void*))myCS, &schedule);
 				}
 			}
 		}
