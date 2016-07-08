@@ -140,6 +140,7 @@ int main(int argc, char** argv){
 
 		//load service complete. So can do multithread module?
 		MultiThread* mt = new MultiThread();
+        mt->runMainThread();
 
 		while (1){}
         //seems it's important !! Remember to close it always
