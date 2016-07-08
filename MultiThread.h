@@ -25,7 +25,7 @@ private:
 	pthread_t updateServiceThread;
 	pthread_t checkServiceThread[MAX_THREAD_NUM];
 	//vector<pthread_t> checkServiceThread;
-    //void *updateService(void* args);
+    void* (*updateService)(void* args);
     //void *checkService(void* args);
 	Config* conf;
 	unordered_map<string, int> updateServiceInfo;
@@ -33,8 +33,9 @@ private:
 	spinlock_t updateServiceLock;
 	bool isOnluOneUp(string node, int val);
 	int updateZk(string node, int val);
+    int updateConf(string node, int val);
 public:
-	MultiThread();
+	MultiThread(Zk* );
 	~MultiThread();
 	int runMainThread();
 	Zk* zk;

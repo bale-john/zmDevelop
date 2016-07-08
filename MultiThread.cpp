@@ -60,12 +60,12 @@ bool MultiThread::isOnluOneUp(string node, int val) {
 
 int MultiThread::updateZk(string node, int val) {
 	string status = to_string(val);
-	zk->setNode(node, status);
-	return 0
+	zk->setZnode(node, status);
+	return 0;
 }
 
 int MultiThread::updateConf(string node, int val) {
-	conf->setServiceMap(string node, int val);
+	conf->setServiceMap(node, val);
 	return 0;
 }
 
@@ -73,7 +73,7 @@ int MultiThread::updateConf(string node, int val) {
 //更新线程。原来的设计是随机的更新顺序，我觉得这是不合理的，应该使用先来先服务的类型
 //这里判断是否为空需要加锁吗？感觉应该不需要吧，如果有另一个线程正在写，empty()将会返回什么值？
 //这里用先来先服务会有问题，如果一个节点被重复改变两次，怎么处理？
-void *updateService(void* args) {
+void* MultiThread::*updateService(void* args) {
 	while (1) {
 		spinlock_lock(&updateServiceLock);
 		if (updateServiceInfo.empty()) {
@@ -108,7 +108,7 @@ void *updateService(void* args) {
 		}
 		//可以进行更新
 		//1.更新zk，这应该不用设置watch，那最好就用zk类来做咯
-		updateZk(key, val)；
+        updateZk(key, val);
 		//2.更新conf
 		updateConf(key, val);
 		usleep(1000);

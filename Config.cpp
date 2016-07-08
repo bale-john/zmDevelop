@@ -236,7 +236,7 @@ unordered_map<string, unordered_set<string>> Config::getServiceFatherToIp() {
 	return serviceFatherToIp;
 }
 
-int Config::setServiceMap(strig node, int val) {
+int Config::setServiceMap(string node, int val) {
 	//todo 同样缺异常判断，比如找不到怎么办啊什么的，还有这里锁怎么加？
 	ServiceItem item = _serviceMap[node];
 	item.setStatus(val);
