@@ -181,7 +181,7 @@ int LoadBalance::balance() {
 	}
 
 	for (size_t i = rank; i < md5Node.size(); i += monitors.size()) {
-		myServiceFather.insert(md5ToServiceFather[md5Node[i]]);
+		myServiceFather.push_back(md5ToServiceFather[md5Node[i]]);
 	}
 #ifdef DEBUG
 	cout << 44444444444 << endl;
@@ -192,6 +192,6 @@ int LoadBalance::balance() {
 	return M_OK;
 }
 
-set<string> LoadBalance::getMyServiceFather() {
+vector<string> LoadBalance::getMyServiceFather() {
 	return myServiceFather;
 }

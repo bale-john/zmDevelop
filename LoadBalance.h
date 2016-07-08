@@ -18,7 +18,7 @@ public:
 	map<string, string> md5ToServiceFather;
 	unordered_set<string> monitors;
 	unordered_set<string> ipPort;
-	set<string> myServiceFather;
+	vector<string> myServiceFather;
 	zhandle_t* zh;
 	int initEnv();
 	int destroyEnv();
