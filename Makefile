@@ -7,7 +7,7 @@ CCFLAGS = -c -Wall -I /usr/local/include/zookeeper
 ZOO_LIB = /usr/local/lib/libzookeeper_mt.a
 OBJS = Config.o Agent.o Util.o \
 				Process.o Log.o \
-				ServiceItem.o Zk.o LoadBalance.o ServiceListener.o
+				ServiceItem.o Zk.o LoadBalance.o ServiceListener.o MultiThread.o
 
 #.PHONY
 .PHONY : all qconf-monitor clean

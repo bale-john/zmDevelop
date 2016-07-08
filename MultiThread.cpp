@@ -1,4 +1,4 @@
-#include "multiThread.h"
+#include "MultiThread.h"
 #include <pthread.h>
 #include <iostream>
 #include <sys/types.h>
@@ -32,26 +32,28 @@ using namespace std;
 
 MultiThread::MultiThread() {
 	conf = Config::getInstance();
-	checkServiceThread.capacity(MAX_THREAD_NUM);
 }
 
 MultiThread::~MultiThread() {
 
 }
 
-void updateService(void* args) {
+void *updateService(void* args) {
 	cout << "update" << endl;
+    pthread_exit(0);
 }
 
-void checkService(void* args) {
+void *checkService(void* args) {
 	cout << "check" << endl;
 	cout << (*(int*)args) << endl;
+    pthread_exit(0);
 }
 
 //TODO 主线程肯定是要考虑配置重载什么的这些事情的
 int MultiThread::runMainThread() {
 	int schedule = NOSCHEDULE;
-	int ret = pthread_create(updateServiceThread, NULL, updateService, NULL);
+    //没有考虑异常，如pthread不成功等
+	pthread_create(&updateServiceThread, NULL, updateService, NULL);
 	unordered_map<string, unordered_set<string>> ServiceFatherToIp = conf->getServiceFatherToIp();
 	//这里要考虑如何分配检查线程了，应该可以做很多文章，比如记录每个father有多少个服务，如果很多就分配两个线程等等。这里先用最简单的，线程足够的情况下，一个serviceFather一个线程
 	int oldThreadNum = 0;
@@ -73,7 +75,7 @@ int MultiThread::runMainThread() {
 				schedule = SCHEDULE;
 			}
 			for (; oldThreadNum < newThreadNum; ++oldThreadNum) {
-				pthread_create(checkServiceThread[oldThreadNum], NULL, checkService, &schedule);
+				pthread_create(&(checkServiceThread[oldThreadNum]), NULL, checkService, &schedule);
 			}
 		}
 		//线程不用开满，也不需要调度
@@ -89,7 +91,7 @@ int MultiThread::runMainThread() {
 			}
 			else {
 				for (; oldThreadNum < newThreadNum; ++oldThreadNum) {
-					pthread_create(checkServiceThread[oldThreadNum], NULL, checkService, &schedule);
+					pthread_create(&(checkServiceThread[oldThreadNum]), NULL, checkService, &schedule);
 				}
 			}
 		}
@@ -97,4 +99,5 @@ int MultiThread::runMainThread() {
 		sleep(2);
 	}
 	//todo 退出标识，退出动作等等都还没写
+    return 0;
 }

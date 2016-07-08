@@ -22,10 +22,10 @@ using namespace std;
 class MultiThread {
 private:
 	pthread_t updateServiceThread;
-	//pthread_t checkServiceThread[MAX_THREAD_NUM];
-	vector<pthread_t> checkServiceThread;
-	void updateService();
-	void checkService();
+	pthread_t checkServiceThread[MAX_THREAD_NUM];
+	//vector<pthread_t> checkServiceThread;
+    //void *updateService(void* args);
+    //void *checkService(void* args);
 	Config* conf;
 public:
 	MultiThread();

@@ -1,6 +1,10 @@
 #include <fstream>
 #include "ConstDef.h"
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <map>
+#include <set>
 #include <vector>
 #include <iostream>
 #include "Config.h"
@@ -221,9 +225,10 @@ map<string, ServiceItem> Config::getServiceMap() {
 }
 
 int Config::setServiceFatherToIp(unordered_map<string, unordered_set<string>> sft) {
-	ServiceFatherToIp = sft;
+	serviceFatherToIp = sft;
+    return 0;
 }
 
 unordered_map<string, unordered_set<string>> Config::getServiceFatherToIp() {
-	return ServiceFatherToIp;
+	return serviceFatherToIp;
 }
