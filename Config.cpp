@@ -242,3 +242,13 @@ int Config::setServiceMap(string node, int val) {
 	item.setStatus(val);
 	return 0;
 }
+
+//对这种和较多类有关系的数据结构，一定要注意是否需要加锁
+int Config::modifyServiceFatherStatus(const string& serviceFather, int status, int op) {
+	serviceFatherStatus[serviceFather][status + 1] += op;
+	return 0;
+}
+
+int Config::getServiceFatherStatus(const string& serviceFather, int status) {
+	return serviceFatherStatus[serviceFather][status + 1];
+}
