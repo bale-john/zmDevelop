@@ -36,8 +36,9 @@ public:
     int updateConf(string node, int val);
     //每个检查线程的pthread_t和该检车线程在线程池中的下标的对应关系
     map<pthread_t, size_t> threadPos;
+    const vector<string>& serviceFather;
 public:
-	MultiThread(Zk* );
+	MultiThread(Zk* , const vector<string>&);
 	~MultiThread();
 	int runMainThread();
 	Zk* zk;

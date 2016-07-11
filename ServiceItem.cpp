@@ -69,3 +69,22 @@ int ServiceItem::setServiceFather(string serviceFather) {
     return 0;
 }
 
+void ServiceItem::getAddr(struct in_addr* addr) {
+    memcpy(addr, &_addr, sizeof(struct in_addr));
+}
+
+string ServiceItem::getHost() {
+    return _host;
+}
+
+int ServiceItem::getPort() {
+    return _port;
+}
+
+int ServiceItem::getConnectTimeout() {
+    return _connTimeout;
+}
+
+int getStatus() {
+    return _status;
+}

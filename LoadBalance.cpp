@@ -192,6 +192,6 @@ int LoadBalance::balance() {
 	return M_OK;
 }
 
-vector<string> LoadBalance::getMyServiceFather() {
+const vector<string>& LoadBalance::getMyServiceFather() {
 	return myServiceFather;
 }

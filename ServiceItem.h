@@ -31,5 +31,10 @@ public:
     int setAddr(struct in_addr* addr);
     int setServiceFather(string serviceFather);
     void clear();
+    void getAddr(struct in_addr* addr);
+    string getHost();
+    int getPort();
+    int getConnectTimeout();
+    int getStatus();
 };
 #endif

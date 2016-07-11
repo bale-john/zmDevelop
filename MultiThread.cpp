@@ -20,6 +20,7 @@
 #include <vector>
 #include <string.h>
 #include "Util.h"
+#include "ServiceItem"
 #include "Config.h"
 #include "ConstDef.h"
 #include "Log.h"
@@ -35,7 +36,7 @@ typedef void* (MultiThread::*us)(void*);
 us myUS = &MultiThread::updateService;
 us myCS = &MultiThread::checkService;
 
-MultiThread::MultiThread(Zk* zk_input) : zk(zk_input) {
+MultiThread::MultiThread(Zk* zk_input, const vector<string>& myServiceFather) : zk(zk_input), serviceFather(myServiceFather) {
 	conf = Config::getInstance();
 	updateServiceLock = SPINLOCK_INITIALIZER;
 }
@@ -118,9 +119,138 @@ void* MultiThread::updateService(void* args) {
 	}
     pthread_exit(0);
 }
-//讲道理，这个函数值需要service father和service father和ip的对应，然后去修改updateInfo就好了
-void* MultiThread::checkService(void* args) {
 
+int MultiThread::isServiceExist(struct in_addr *addr, char* host, int port, int timeout, int curStatus) {
+	bool exist = true;  
+    int sock = -1, val = 1, ret = 0;
+    //struct hostent *host;
+    struct timeval conn_tv;
+    struct timeval recv_tv;
+    struct sockaddr_in serv_addr;
+    fd_set readfds, writefds, errfds;
+                        
+    timeout = timeout <= 0 ? 1 : timeout;
+                            
+    if((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        LOG(LOG_ERROR, "socket failed. error:%s", strerror(errno));
+        return false;// return false is a good idea ?
+    }                           
+
+    memset(&serv_addr, 0, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(port);
+    //serv_addr.sin_addr = *((struct in_addr *)host->h_addr);
+    serv_addr.sin_addr = *addr;
+
+    // set socket non-block
+    ioctl(sock, FIONBIO, &val);
+
+    // set connect timeout
+    conn_tv.tv_sec = timeout;
+    conn_tv.tv_usec = 0;
+
+    // set recv timeout
+    recv_tv.tv_sec = 1;
+    recv_tv.tv_sec = 0;
+    setsockopt( sock, SOL_SOCKET, SO_RCVTIMEO, &recv_tv, sizeof(recv_tv));
+
+    // connect
+    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) != 0) {
+        if (errno != EINPROGRESS) {
+            if (curStatus != STATUS_DOWN) {
+                LOG(LOG_ERROR, "connect failed. host:%s port:%d error:%s",
+                        host, port, strerror(errno));
+            }
+            close(sock);
+            return false;
+        }
+    }
+    FD_ZERO(&readfds);
+    FD_SET(sock, &readfds);
+    FD_ZERO(&writefds);
+    FD_SET(sock, &writefds);
+    FD_ZERO(&errfds);
+    FD_SET(sock, &errfds);
+    ret = select(sock+1, &readfds, &writefds, &errfds, &conn_tv);
+    if ( ret == 0 ){
+        // connect timeout
+        if (curStatus != STATUS_DOWN) {
+            LOG(LOG_ERROR, "connect timeout. host:%s port:%d timeout:%d error:%s",
+                host, port, timeout, strerror(errno));
+        }
+        exist = false;
+    }
+    if (ret < 0) {
+        if (curStatus != STATUS_DOWN) {
+            LOG(LOG_ERROR, "select error. host:%s port:%d timeout:%d error:%s",
+                host, port, timeout, strerror(errno));
+        }
+        exist = false;
+    }
+    else {
+        if (! FD_ISSET(sock, &readfds) && ! FD_ISSET(sock, &writefds)) {
+            if (curStatus != STATUS_DOWN) {
+               LOG(LOG_ERROR, "select not in read fds and write fds.host:%s port:%d error:%s",
+                   host, port, strerror(errno));
+            }
+        }
+        else if (FD_ISSET(sock, &errfds)) {
+            exist = false;
+        }
+        else if (FD_ISSET(sock, &writefds) && FD_ISSET(sock, &readfds)) {
+            exist = false;
+        }
+        else if (FD_ISSET(sock, &readfds) || FD_ISSET(sock, &writefds)) {
+            exist = true;
+        }
+        else {
+            exist = false;
+        }
+    }
+    close(sock);
+    return exist;
+}
+
+
+}
+
+
+//try to ping the ipPort to see weather it's connecteble
+int MultiThread::tryConnect(string curServiceFather) {
+	//这里也好浪费，我只要知道一个serviceFather，结果全都拿过来了。先写着 todo
+	map<string, ServiceItem> serviceMap = conf->getServiceMap();
+	unordered_map<string, unordered_set<string>> serviceFatherToIp = conf->getServiceFatherToIp();
+	unordered_set<string> ip = serviceFatherToIp[curServiceFather];
+	for (auto ip = ip.begin(); it != ip.end(); ++it) {
+		string ipPort = curServiceFather + (*it);
+		ServiceItem item = serviceMap[ipPort];
+		if (item.getStatus() != STATUS_UP) {
+			continue;
+		}
+		struct in_addr addr = item.getAddr(&addr);
+		int timeout = item.getConnectTimeout() > 0 ? item.getConnectTimeout() : 3;
+		int status = isServiceExist(&addr, item.getHost().c_str(), item.getPort(), timeout, item.getStatus());
+		//todo 根据status进行分类。这里先打印出来
+		cout << "sssssssssssssssssssssssssssss" << endl;
+		cout << ipPort << " " << status << endl;
+	}
+
+}
+
+
+//讲道理，这个函数值需要service father和service father和ip的对应，然后去修改updateInfo就好了,目前就最简单的，一个线程负责一个serviceFather
+void* MultiThread::checkService(void* args) {
+	pthread_t pthreadId = pthread_self();
+	while (1) {
+		size_t pos = threadPos[pthreadId];
+		string curServiceFather = serviceFather[pos];
+		//应该先去检查这个节点是什么状态，这里要考虑一下，如果原来就是offline肯定不用管。
+		//如果原来是upline肯定需要管，如果原来是down和unknown呢？这个我觉得可能要
+		//目前只检查上线的
+		tryConnect(curServiceFather);
+		//这里得维护一个数据结构来进行线程的调度，先放着 todo，因为目前是最简单的一个线程负责一个serviceFather
+		//if ()
+	}
     pthread_exit(0);
 }
 
@@ -129,7 +259,7 @@ int MultiThread::runMainThread() {
 	int schedule = NOSCHEDULE;
     //没有考虑异常，如pthread不成功等
 	pthread_create(&updateServiceThread, NULL, (void* (*)(void*))myUS, NULL);
-	unordered_map<string, unordered_set<string>> ServiceFatherToIp = conf->getServiceFatherToIp();
+	unordered_map<string, unordered_set<string>> serviceFatherToIp = conf->getServiceFatherToIp();
 	//这里要考虑如何分配检查线程了，应该可以做很多文章，比如记录每个father有多少个服务，如果很多就分配两个线程等等。这里先用最简单的，线程足够的情况下，一个serviceFather一个线程
 	int oldThreadNum = 0;
 	int newThreadNum = 0;
@@ -140,7 +270,7 @@ int MultiThread::runMainThread() {
 	//构思了一种思路，但这种思路其实最好把serviceFather和ip等数据封装成一个类。
 	//todo
 	while (1) {
-		newThreadNum = ServiceFatherToIp.size();
+		newThreadNum = serviceFatherToIp.size();
 		//线程需要开满，且需要调度.需要调度与否必须通过参数传一个flag进去
 		if (newThreadNum > MAX_THREAD_NUM) {
 			newThreadNum = MAX_THREAD_NUM;

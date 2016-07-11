@@ -33,7 +33,7 @@ public:
 	int printMap();
 	map<string, ServiceItem> getServiceMap();
 	int setServiceFatherToIp(unordered_map<string, unordered_set<string>> sft);
-	unordered_map<string, unordered_set<string>> getServiceFatherToIp();
+	unordered_map<string, unordered_set<string>>& getServiceFatherToIp();
 	//用来保存每个serviceFather拥有各种不同类型的节点的数目
 	unordered_map<string, vector<int>> serviceFatherStatus;
 	int setServiceMap(string node, int val);
