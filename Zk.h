@@ -10,7 +10,7 @@
 using namespace std;
 
 class Zk{
-public:
+private:
 	zhandle_t* _zh;
 	int _recvTimeout;
 	string _zkLogPath;
