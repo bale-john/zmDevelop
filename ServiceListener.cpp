@@ -82,7 +82,7 @@ int ServiceListener::zkGetChildren(const string path, struct String_vector* chil
 }
 
 //get all ip belong to my service father
-int ServiceListener::getAllIp(const set<string> serviceFather) {
+int ServiceListener::getAllIp(const vector<string> serviceFather) {
 	for (auto it = serviceFather.begin(); it != serviceFather.end(); ++it) {
 		struct String_vector children = {0};
 		zkGetChildren(*it, &children);

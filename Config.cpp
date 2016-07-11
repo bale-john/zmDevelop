@@ -232,7 +232,7 @@ int Config::setServiceFatherToIp(unordered_map<string, unordered_set<string>> sf
     return 0;
 }
 
-unordered_map<string, unordered_set<string>> Config::getServiceFatherToIp() {
+unordered_map<string, unordered_set<string>>& Config::getServiceFatherToIp() {
 	return serviceFatherToIp;
 }
 

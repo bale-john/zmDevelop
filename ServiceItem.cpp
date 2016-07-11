@@ -85,6 +85,6 @@ int ServiceItem::getConnectTimeout() {
     return _connTimeout;
 }
 
-int getStatus() {
+int ServiceItem::getStatus() {
     return _status;
 }

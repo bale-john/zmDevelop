@@ -32,6 +32,6 @@ public:
 	int zkGetNode(const char* md5Path, char* serviceFather, int* dataLen);
 	int getMonitors();
 	int balance();
-	const set<string>& getMyServiceFather();
+	const vector<string>& getMyServiceFather();
 };
 #endif

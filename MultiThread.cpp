@@ -20,7 +20,7 @@
 #include <vector>
 #include <string.h>
 #include "Util.h"
-#include "ServiceItem"
+#include "ServiceItem.h"
 #include "Config.h"
 #include "ConstDef.h"
 #include "Log.h"
@@ -212,29 +212,27 @@ int MultiThread::isServiceExist(struct in_addr *addr, char* host, int port, int 
 }
 
 
-}
-
-
 //try to ping the ipPort to see weather it's connecteble
 int MultiThread::tryConnect(string curServiceFather) {
 	//这里也好浪费，我只要知道一个serviceFather，结果全都拿过来了。先写着 todo
 	map<string, ServiceItem> serviceMap = conf->getServiceMap();
 	unordered_map<string, unordered_set<string>> serviceFatherToIp = conf->getServiceFatherToIp();
 	unordered_set<string> ip = serviceFatherToIp[curServiceFather];
-	for (auto ip = ip.begin(); it != ip.end(); ++it) {
+	for (auto it = ip.begin(); it != ip.end(); ++it) {
 		string ipPort = curServiceFather + (*it);
 		ServiceItem item = serviceMap[ipPort];
 		if (item.getStatus() != STATUS_UP) {
 			continue;
 		}
-		struct in_addr addr = item.getAddr(&addr);
+		struct in_addr addr;
+        item.getAddr(&addr);
 		int timeout = item.getConnectTimeout() > 0 ? item.getConnectTimeout() : 3;
-		int status = isServiceExist(&addr, item.getHost().c_str(), item.getPort(), timeout, item.getStatus());
+		int status = isServiceExist(&addr, (char*)item.getHost().c_str(), item.getPort(), timeout, item.getStatus());
 		//todo 根据status进行分类。这里先打印出来
 		cout << "sssssssssssssssssssssssssssss" << endl;
 		cout << ipPort << " " << status << endl;
 	}
-
+    return 0;
 }
 
 

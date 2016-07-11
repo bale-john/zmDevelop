@@ -30,7 +30,7 @@ public:
 	ServiceListener();
 	~ServiceListener();
 	int addChildren(const string serviceFather, struct String_vector children);
-	int getAllIp(const set<string> serviceFather);
+	int getAllIp(const vector<string> serviceFather);
 	int loadService(string path, string serviceFather, string ipPort, vector<int>& );
 	int loadAllService();
     int zkGetNode(const char* path, char* data, int* dataLen);
