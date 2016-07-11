@@ -14,10 +14,11 @@ using namespace std;
 
 //临时解决方案，把_zkLockBuf作为非静态全局变量，使得它对所有文件可见。最后还是应该把注册monitor移到loadbalance类里才是正途
 char _zkLockBuf[512] = {0};
-//static char _zkLockBuf[512] = {0};
 static void watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context);
 void watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context){}
-Zk::Zk():_zh(NULL), _recvTimeout(3000), _zkLogPath(""), _zkHost(""), _zkLogFile(NULL) {}
+
+Zk::Zk():_zh(NULL), _recvTimeout(3000), _zkLogPath(""), _zkHost(""), _zkLogFile(NULL) {
+}
 
 int Zk::initEnv(const string zkHost, const string zkLogPath, const int recvTimeout) {
 	if (zkLogPath.size() <= 0) {
@@ -45,7 +46,14 @@ int Zk::initEnv(const string zkHost, const string zkLogPath, const int recvTimeo
 	return M_OK;
 }
 
+void destroyEnv() {
+	if (_zh) {
+		zookeeper_close(_zh);
+	}
+}
+
 Zk::~Zk(){
+	destroyEnv();
 };
 
 void Zk::zErrorHandler(const int& ret) {

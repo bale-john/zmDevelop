@@ -8,6 +8,7 @@
 #include <zookeeper.h>
 #include <zk_adaptor.h>
 using namespace std;
+
 class Zk{
 public:
 	zhandle_t* _zh;
@@ -25,5 +26,6 @@ public:
     void zErrorHandler(const int& ret);
     int registerMonitor(string path);
     int setZnode(string node, string data);
+    void destroyEnv();
 };
 #endif

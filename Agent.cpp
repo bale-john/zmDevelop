@@ -143,7 +143,7 @@ int main(int argc, char** argv){
         //seems it's important !! Remember to close it always
 		delete lb;
 		delete serviceListener;
-        zookeeper_close(_zk->_zh);
+		delete _zk;
 	}
 
     cout << "EXIT!!!" << endl;
