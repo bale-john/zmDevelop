@@ -9,18 +9,17 @@
 using namespace std;
 
 class ServiceItem{
-public:
-//private:
+private:
+    //_host is IP without port
     std::string _host;
-    //todo not understand well
+    //_addr is for net
     struct in_addr _addr;
-    //todo why no ip ? 好像host就是ip
-    //std::string _ip;
     int _port;
     int _connRetry;
     int _connTimeout;
     std::string _serviceFather;
-    int _status; //online or offline
+    //online or offline
+    int _status;
 public:
 	ServiceItem(std::string host, struct in_addr *addr, int port, int connRetry, int timeout, std::string serviceFather, int status);
 	ServiceItem();
@@ -45,9 +44,5 @@ public:
     const string& getServiceFather();
 
     void clear();
-
-
-
-    
 };
 #endif
