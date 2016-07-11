@@ -78,14 +78,18 @@ int MultiThread::updateConf(string node, int val) {
 //这里判断是否为空需要加锁吗？感觉应该不需要吧，如果有另一个线程正在写，empty()将会返回什么值？
 //这里用先来先服务会有问题，如果一个节点被重复改变两次，怎么处理？
 void* MultiThread::updateService(void* args) {
+    cout << "in update service thread" << endl;
 	while (1) {
+        cout << "aaaaaaaaa" << endl;
 		spinlock_lock(&updateServiceLock);
 		if (updateServiceInfo.empty()) {
+        cout << "bbbbbbbbb" << endl;
 			spinlock_unlock(&updateServiceLock);
 			usleep(1000);
 			continue;
 		}
 		spinlock_unlock(&updateServiceLock);
+        cout << "cccccccccc" << endl;
 		string key = priority.front();
 		//这需要加锁吗？如果一个线程只会操作list的头部，而另一个只会操作尾部，好像不用加锁
 		//spinlock_lock(&updateServiceLock);
@@ -211,6 +215,12 @@ int MultiThread::isServiceExist(struct in_addr *addr, char* host, int port, int 
     return exist;
 }
 
+void* uu (void* args) {
+    while (1) {
+        cout << "in uu" << endl;
+    }
+}
+
 
 //try to ping the ipPort to see weather it's connecteble
 int MultiThread::tryConnect(string curServiceFather) {
@@ -238,6 +248,7 @@ int MultiThread::tryConnect(string curServiceFather) {
 
 //讲道理，这个函数值需要service father和service father和ip的对应，然后去修改updateInfo就好了,目前就最简单的，一个线程负责一个serviceFather
 void* MultiThread::checkService(void* args) {
+    cout << "in check service thread " << endl;
 	pthread_t pthreadId = pthread_self();
 	while (1) {
 		size_t pos = threadPos[pthreadId];
@@ -256,8 +267,9 @@ void* MultiThread::checkService(void* args) {
 int MultiThread::runMainThread() {
 	int schedule = NOSCHEDULE;
     //没有考虑异常，如pthread不成功等
-	pthread_create(&updateServiceThread, NULL, (void* (*)(void*))myUS, NULL);
+	pthread_create(&updateServiceThread, NULL, uu, NULL);
 	unordered_map<string, unordered_set<string>> serviceFatherToIp = conf->getServiceFatherToIp();
+    cout << "finsh create up service" << endl;
 	//这里要考虑如何分配检查线程了，应该可以做很多文章，比如记录每个father有多少个服务，如果很多就分配两个线程等等。这里先用最简单的，线程足够的情况下，一个serviceFather一个线程
 	int oldThreadNum = 0;
 	int newThreadNum = 0;
@@ -268,6 +280,7 @@ int MultiThread::runMainThread() {
 	//构思了一种思路，但这种思路其实最好把serviceFather和ip等数据封装成一个类。
 	//todo
 	while (1) {
+        cout << "xxxxxxxxxxx" << endl;
 		newThreadNum = serviceFatherToIp.size();
 		//线程需要开满，且需要调度.需要调度与否必须通过参数传一个flag进去
 		if (newThreadNum > MAX_THREAD_NUM) {
@@ -279,7 +292,7 @@ int MultiThread::runMainThread() {
 			}
 			for (; oldThreadNum < newThreadNum; ++oldThreadNum) {
 				threadPos[checkServiceThread[oldThreadNum]] = oldThreadNum;
-				pthread_create(&(checkServiceThread[oldThreadNum]), NULL, (void* (*)(void*))myCS, &schedule);
+				//pthread_create(checkServiceThread + oldThreadNum, NULL, (void* (*)(void*))myCS, &schedule);
 			}
 		}
 		//线程不用开满，也不需要调度
@@ -296,13 +309,17 @@ int MultiThread::runMainThread() {
 			else {
 				for (; oldThreadNum < newThreadNum; ++oldThreadNum) {
 					threadPos[checkServiceThread[oldThreadNum]] = oldThreadNum;
-					pthread_create(&(checkServiceThread[oldThreadNum]), NULL, (void* (*)(void*))myCS, &schedule);
+                    cout << "checkServiceThread[" << oldThreadNum << "] " << checkServiceThread[oldThreadNum] << endl; 
+					//pthread_create(checkServiceThread + oldThreadNum, NULL, (void* (*)(void*))myCS, &schedule);
 				}
 			}
 		}
+    cout << "finish one round" << endl;
+    while (1){ }
 		//这里为什么要sleep(2)也不是很清楚
 		sleep(2);
 	}
 	//todo 退出标识，退出动作等等都还没写
+    cout << "fffffffff" << endl;
     return 0;
 }

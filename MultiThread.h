@@ -24,7 +24,7 @@ class MultiThread {
 public:
 //private:
 	pthread_t updateServiceThread;
-	pthread_t checkServiceThread[MAX_THREAD_NUM];
+	pthread_t checkServiceThread[128];
     void* updateService(void* args);
     void* checkService(void* args);
 	Config* conf;

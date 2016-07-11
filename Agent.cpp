@@ -137,10 +137,12 @@ int main(int argc, char** argv){
 		serviceListener->getAllIp(lb->getMyServiceFather());
 		//这里如何加锁也都还没考虑，因为加了watch之后(?)可能会有不止一个线程在操作的数据结构都需要加锁，目前还没有考虑，最后统一加吧
 		serviceListener->loadAllService();
+        cout << "come to multiThread" << endl;
 
 		//load service complete. So can do multithread module?
 		MultiThread* mt = new MultiThread(_zk, lb->getMyServiceFather());
         mt->runMainThread();
+        while (1){}
 
         //seems it's important !! Remember to close it always
 		delete lb;
