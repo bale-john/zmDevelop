@@ -46,7 +46,7 @@ int Zk::initEnv(const string zkHost, const string zkLogPath, const int recvTimeo
 	return M_OK;
 }
 
-void destroyEnv() {
+void Zk::destroyEnv() {
 	if (_zh) {
 		zookeeper_close(_zh);
 	}

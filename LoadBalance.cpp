@@ -140,6 +140,7 @@ int LoadBalance::balance() {
 #ifdef DEBUG
 	cout << 11111111111 << endl;
     //md5节点值
+    cout << "md5 node value:" << endl;
 	for (auto it = md5Node.begin(); it != md5Node.end(); ++it) {
 		cout << (*it) << endl;
 	}
@@ -152,6 +153,7 @@ int LoadBalance::balance() {
 #ifdef DEBUG
 	cout << 222222222222 << endl;
     //monitors的序列号
+    cout << "sequence number of monitors registed:" << endl;
 	for (auto it = sequence.begin(); it != sequence.end(); ++it) {
 		cout << (*it) << endl;
 	}
@@ -160,6 +162,7 @@ int LoadBalance::balance() {
 #ifdef DEBUG
 	cout << 33333333333 << endl;
     //排序之后monitors的序列号
+    cout << "sorted sequence number of monitors registed:" << endl;
 	for (auto it = sequence.begin(); it != sequence.end(); ++it) {
 		cout << (*it) << endl;
 	}
@@ -180,6 +183,7 @@ int LoadBalance::balance() {
 #ifdef DEBUG
 	cout << 44444444444 << endl;
     //进行负载均衡后，分配到这个Monitors的serviceFather节点
+    cout << "my service father:" << endl;
 	for (auto it = myServiceFather.begin(); it != myServiceFather.end(); ++it) {
 		cout << (*it) << endl;
 	}

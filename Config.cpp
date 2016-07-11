@@ -207,10 +207,10 @@ string Config::getMonitorList() {
 int Config::printMap() {
 	for (auto it = _serviceMap.begin(); it != _serviceMap.end(); ++it) {
 		cout << it->first << endl;
-		cout << (it->second)._host << endl;
-		cout << (it->second)._port << endl;
-		cout << (it->second)._serviceFather << endl;
-		cout << (it->second)._status << endl;
+		cout << "host: " << (it->second).getHost() << endl;
+		cout << "port: " << (it->second).getPort() << endl;
+		cout << "service father: " << (it->second).getServiceFather() << endl;
+		cout << "status: " << (it->second).getStatus() << endl;
 	}
     return 0;
 }
