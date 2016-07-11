@@ -32,10 +32,24 @@
 using namespace std;
 
 
+pthread_t updateServiceThread;
+pthread_t checkServiceThread[MAX_THREAD_NUM];
 
-init(Zk* zk_input, const vector<string>& myServiceFather) : zk(zk_input), serviceFather(myServiceFather) {
-	conf = Config::getInstance();
-	updateServiceLock = SPINLOCK_INITIALIZER;
+Config* mconf;
+unordered_map<string, int> mupdateServiceInfo;
+list<string> mpriority;
+spinlock_t mupdateServiceLock;
+//每个检查线程的pthread_t和该检车线程在线程池中的下标的对应关系
+map<pthread_t, size_t> mthreadPos;
+Zk* mzk;
+
+vector<string> mserviceFather;
+
+void init(Zk* zk_input, const vector<string>& myServiceFather){
+    mzk = zk_input;
+    mserviceFather = myServiceFather;
+	mconf = Config::getInstance();
+	mupdateServiceLock = SPINLOCK_INITIALIZER;
 }
 
 
@@ -43,29 +57,29 @@ init(Zk* zk_input, const vector<string>& myServiceFather) : zk(zk_input), servic
 bool isOnlyOneUp(string node, int val) {
 	bool ret = true;
 	size_t pos = node.rfind('/');
-	string serviceFather = node.substr(0, pos);
-	spinlock_lock(&updateServiceLock);
-	if ((conf->serviceFatherStatus)[serviceFather][val+1] > 1) {
+	string mserviceFather = node.substr(0, pos);
+	spinlock_lock(&mupdateServiceLock);
+	if ((mconf->serviceFatherStatus)[mserviceFather][val+1] > 1) {
 		//在锁内部直接把serviceFatherStatus改变了，up的-1，down的+1；
-		--((conf->serviceFatherStatus)[serviceFather][STATUS_UP+1]);
-		++((conf->serviceFatherStatus)[serviceFather][STATUS_DOWN+1]);
-		spinlock_unlock(&updateServiceLock);
+		--((mconf->serviceFatherStatus)[mserviceFather][STATUS_UP+1]);
+		++((mconf->serviceFatherStatus)[mserviceFather][STATUS_DOWN+1]);
+		spinlock_unlock(&mupdateServiceLock);
 		ret = false;
 	}
 	else {
-		spinlock_unlock(&updateServiceLock);
+		spinlock_unlock(&mupdateServiceLock);
 	}
 	return ret;
 }
 
 int updateZk(string node, int val) {
 	string status = to_string(val);
-	zk->setZnode(node, status);
+	mzk->setZnode(node, status);
 	return 0;
 }
 
 int updateConf(string node, int val) {
-	conf->setServiceMap(node, val);
+	mconf->setServiceMap(node, val);
 	return 0;
 }
 
@@ -75,31 +89,28 @@ int updateConf(string node, int val) {
 void* updateService(void* args) {
     cout << "in update service thread" << endl;
 	while (1) {
-        cout << "aaaaaaaaa" << endl;
-		spinlock_lock(&updateServiceLock);
-		if (updateServiceInfo.empty()) {
-        cout << "bbbbbbbbb" << endl;
-			spinlock_unlock(&updateServiceLock);
+		spinlock_lock(&mupdateServiceLock);
+		if (mupdateServiceInfo.empty()) {
+			spinlock_unlock(&mupdateServiceLock);
 			usleep(1000);
 			continue;
 		}
-		spinlock_unlock(&updateServiceLock);
-        cout << "cccccccccc" << endl;
-		string key = priority.front();
+		spinlock_unlock(&mupdateServiceLock);
+		string key = mpriority.front();
 		//这需要加锁吗？如果一个线程只会操作list的头部，而另一个只会操作尾部，好像不用加锁
 		//spinlock_lock(&updateServiceLock);
-		priority.pop_front();
+		mpriority.pop_front();
 		//spinlock_unlock(&updateServiceLock);
 		//是有可能在优先级队列中存在，但是在字典中不存在的
-		spinlock_lock(&updateServiceLock);
-		if (updateServiceInfo.find(key) == updateServiceInfo.end()) {
-			spinlock_unlock(&updateServiceLock);
+		spinlock_lock(&mupdateServiceLock);
+		if (mupdateServiceInfo.find(key) == mupdateServiceInfo.end()) {
+			spinlock_unlock(&mupdateServiceLock);
 			usleep(1000);
 			continue;
 		}
-		int val = updateServiceInfo[key];
-		updateServiceInfo.erase(key);
-		spinlock_unlock(&updateServiceLock);
+		int val = mupdateServiceInfo[key];
+		mupdateServiceInfo.erase(key);
+		spinlock_unlock(&mupdateServiceLock);
 		//现在获取了需要更新的key和value了,要把他们的状态更新到config类里和zk上
 		//如果节点死了，而且这个节点是这个serviceFather的唯一一个活着的节点，那么不改变状态，否则都要改变状态
 		//我应该在Config或者loadBalance里维护一个结构，保存每个serviceFather它对应的节点的状态，这样判断是否是唯一存活的节点就方便多了！
@@ -116,6 +127,7 @@ void* updateService(void* args) {
 		updateConf(key, val);
 		usleep(1000);
 	}
+    cout << "out update service" << endl;
     pthread_exit(0);
 }
 
@@ -210,21 +222,17 @@ int isServiceExist(struct in_addr *addr, char* host, int port, int timeout, int 
     return exist;
 }
 
-void* uu (void* args) {
-    while (1) {
-        cout << "in uu" << endl;
-    }
-}
-
 
 //try to ping the ipPort to see weather it's connecteble
 int tryConnect(string curServiceFather) {
 	//这里也好浪费，我只要知道一个serviceFather，结果全都拿过来了。先写着 todo
-	map<string, ServiceItem> serviceMap = conf->getServiceMap();
-	unordered_map<string, unordered_set<string>> serviceFatherToIp = conf->getServiceFatherToIp();
+	map<string, ServiceItem> serviceMap = mconf->getServiceMap();
+	unordered_map<string, unordered_set<string>> serviceFatherToIp = mconf->getServiceFatherToIp();
 	unordered_set<string> ip = serviceFatherToIp[curServiceFather];
 	for (auto it = ip.begin(); it != ip.end(); ++it) {
-		string ipPort = curServiceFather + (*it);
+        cout << *it << endl;
+		string ipPort = curServiceFather + "/" + (*it);
+        cout << ipPort << endl;
 		ServiceItem item = serviceMap[ipPort];
 		if (item.getStatus() != STATUS_UP) {
 			continue;
@@ -241,17 +249,18 @@ int tryConnect(string curServiceFather) {
 }
 
 
-//讲道理，这个函数值需要service father和service father和ip的对应，然后去修改updateInfo就好了,目前就最简单的，一个线程负责一个serviceFather
+//讲道理，这个函数只需要service father和service father和ip的对应，然后去修改updateInfo就好了,目前就最简单的，一个线程负责一个serviceFather
 void* checkService(void* args) {
     cout << "in check service thread " << endl;
 	pthread_t pthreadId = pthread_self();
 	while (1) {
-		size_t pos = threadPos[pthreadId];
-		string curServiceFather = serviceFather[pos];
+		size_t pos = mthreadPos[pthreadId];
+		string curServiceFather = mserviceFather[pos];
 		//应该先去检查这个节点是什么状态，这里要考虑一下，如果原来就是offline肯定不用管。
 		//如果原来是upline肯定需要管，如果原来是down和unknown呢？这个我觉得可能要
 		//目前只检查上线的
 		tryConnect(curServiceFather);
+        sleep(2);
 		//这里得维护一个数据结构来进行线程的调度，先放着 todo，因为目前是最简单的一个线程负责一个serviceFather
 		//if ()
 	}
@@ -263,8 +272,8 @@ int runMainThread(Zk* zk_input, const vector<string>& myServiceFather) {
 	init(zk_input, myServiceFather);
 	int schedule = NOSCHEDULE;
     //没有考虑异常，如pthread不成功等
-	pthread_create(&updateServiceThread, NULL, uu, NULL);
-	unordered_map<string, unordered_set<string>> serviceFatherToIp = conf->getServiceFatherToIp();
+	pthread_create(&updateServiceThread, NULL, updateService, NULL);
+	unordered_map<string, unordered_set<string>> serviceFatherToIp = mconf->getServiceFatherToIp();
     cout << "finsh create up service" << endl;
 	//这里要考虑如何分配检查线程了，应该可以做很多文章，比如记录每个father有多少个服务，如果很多就分配两个线程等等。这里先用最简单的，线程足够的情况下，一个serviceFather一个线程
 	int oldThreadNum = 0;
@@ -287,8 +296,8 @@ int runMainThread(Zk* zk_input, const vector<string>& myServiceFather) {
 				schedule = SCHEDULE;
 			}
 			for (; oldThreadNum < newThreadNum; ++oldThreadNum) {
-				threadPos[checkServiceThread[oldThreadNum]] = oldThreadNum;
-				//pthread_create(checkServiceThread + oldThreadNum, NULL, (void* (*)(void*))myCS, &schedule);
+				mthreadPos[checkServiceThread[oldThreadNum]] = oldThreadNum;
+				pthread_create(checkServiceThread + oldThreadNum, NULL, checkService, &schedule);
 			}
 		}
 		//线程不用开满，也不需要调度
@@ -304,9 +313,9 @@ int runMainThread(Zk* zk_input, const vector<string>& myServiceFather) {
 			}
 			else {
 				for (; oldThreadNum < newThreadNum; ++oldThreadNum) {
-					threadPos[checkServiceThread[oldThreadNum]] = oldThreadNum;
+					mthreadPos[checkServiceThread[oldThreadNum]] = oldThreadNum;
                     cout << "checkServiceThread[" << oldThreadNum << "] " << checkServiceThread[oldThreadNum] << endl; 
-					//pthread_create(checkServiceThread + oldThreadNum, NULL, (void* (*)(void*))myCS, &schedule);
+					pthread_create(checkServiceThread + oldThreadNum, NULL, checkService, &schedule);
 				}
 			}
 		}
