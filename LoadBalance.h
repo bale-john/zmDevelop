@@ -11,6 +11,7 @@
 #include <zk_adaptor.h>
 #include "Config.h"
 using namespace std;
+
 class LoadBalance {
 public:
     //use map but not unordered_map so it can be sorted autonatically

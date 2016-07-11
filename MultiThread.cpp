@@ -32,20 +32,15 @@
 using namespace std;
 
 
-typedef void* (MultiThread::*us)(void*);
-us myUS = &MultiThread::updateService;
-us myCS = &MultiThread::checkService;
 
-MultiThread::MultiThread(Zk* zk_input, const vector<string>& myServiceFather) : zk(zk_input), serviceFather(myServiceFather) {
+init(Zk* zk_input, const vector<string>& myServiceFather) : zk(zk_input), serviceFather(myServiceFather) {
 	conf = Config::getInstance();
 	updateServiceLock = SPINLOCK_INITIALIZER;
 }
 
-MultiThread::~MultiThread() {
 
-}
 
-bool MultiThread::isOnlyOneUp(string node, int val) {
+bool isOnlyOneUp(string node, int val) {
 	bool ret = true;
 	size_t pos = node.rfind('/');
 	string serviceFather = node.substr(0, pos);
@@ -63,13 +58,13 @@ bool MultiThread::isOnlyOneUp(string node, int val) {
 	return ret;
 }
 
-int MultiThread::updateZk(string node, int val) {
+int updateZk(string node, int val) {
 	string status = to_string(val);
 	zk->setZnode(node, status);
 	return 0;
 }
 
-int MultiThread::updateConf(string node, int val) {
+int updateConf(string node, int val) {
 	conf->setServiceMap(node, val);
 	return 0;
 }
@@ -77,7 +72,7 @@ int MultiThread::updateConf(string node, int val) {
 //更新线程。原来的设计是随机的更新顺序，我觉得这是不合理的，应该使用先来先服务的类型
 //这里判断是否为空需要加锁吗？感觉应该不需要吧，如果有另一个线程正在写，empty()将会返回什么值？
 //这里用先来先服务会有问题，如果一个节点被重复改变两次，怎么处理？
-void* MultiThread::updateService(void* args) {
+void* updateService(void* args) {
     cout << "in update service thread" << endl;
 	while (1) {
         cout << "aaaaaaaaa" << endl;
@@ -124,7 +119,7 @@ void* MultiThread::updateService(void* args) {
     pthread_exit(0);
 }
 
-int MultiThread::isServiceExist(struct in_addr *addr, char* host, int port, int timeout, int curStatus) {
+int isServiceExist(struct in_addr *addr, char* host, int port, int timeout, int curStatus) {
 	bool exist = true;  
     int sock = -1, val = 1, ret = 0;
     //struct hostent *host;
@@ -223,7 +218,7 @@ void* uu (void* args) {
 
 
 //try to ping the ipPort to see weather it's connecteble
-int MultiThread::tryConnect(string curServiceFather) {
+int tryConnect(string curServiceFather) {
 	//这里也好浪费，我只要知道一个serviceFather，结果全都拿过来了。先写着 todo
 	map<string, ServiceItem> serviceMap = conf->getServiceMap();
 	unordered_map<string, unordered_set<string>> serviceFatherToIp = conf->getServiceFatherToIp();
@@ -247,7 +242,7 @@ int MultiThread::tryConnect(string curServiceFather) {
 
 
 //讲道理，这个函数值需要service father和service father和ip的对应，然后去修改updateInfo就好了,目前就最简单的，一个线程负责一个serviceFather
-void* MultiThread::checkService(void* args) {
+void* checkService(void* args) {
     cout << "in check service thread " << endl;
 	pthread_t pthreadId = pthread_self();
 	while (1) {
@@ -264,7 +259,8 @@ void* MultiThread::checkService(void* args) {
 }
 
 //TODO 主线程肯定是要考虑配置重载什么的这些事情的
-int MultiThread::runMainThread() {
+int runMainThread(Zk* zk_input, const vector<string>& myServiceFather) {
+	init(zk_input, myServiceFather);
 	int schedule = NOSCHEDULE;
     //没有考虑异常，如pthread不成功等
 	pthread_create(&updateServiceThread, NULL, uu, NULL);

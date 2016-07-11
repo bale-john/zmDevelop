@@ -140,8 +140,7 @@ int main(int argc, char** argv){
         cout << "come to multiThread" << endl;
 
 		//load service complete. So can do multithread module?
-		MultiThread* mt = new MultiThread(_zk, lb->getMyServiceFather());
-        mt->runMainThread();
+        runMainThread(_zk, lb->getMyServiceFather());
         while (1){}
 
         //seems it's important !! Remember to close it always
