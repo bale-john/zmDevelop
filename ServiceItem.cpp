@@ -88,3 +88,12 @@ int ServiceItem::getConnectTimeout() {
 int ServiceItem::getStatus() {
     return _status;
 }
+
+int setConnectTimeout(int timeout) {
+    _connTimeout = timeout;
+    return 0;
+}
+
+const string& getServiceFather() {
+    return _serviceFather;
+}

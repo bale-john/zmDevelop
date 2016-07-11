@@ -25,16 +25,29 @@ public:
 	ServiceItem(std::string host, struct in_addr *addr, int port, int connRetry, int timeout, std::string serviceFather, int status);
 	ServiceItem();
 	~ServiceItem();
+
     int setStatus(int status);
-    int setHost(string ip);
-    int setPort(int port);
-    int setAddr(struct in_addr* addr);
-    int setServiceFather(string serviceFather);
-    void clear();
-    void getAddr(struct in_addr* addr);
-    string getHost();
-    int getPort();
-    int getConnectTimeout();
     int getStatus();
+
+    int setHost(string ip);
+    string getHost();
+
+    int setPort(int port);
+    int getPort();
+
+    int setAddr(struct in_addr* addr);
+    void getAddr(struct in_addr* addr);
+
+    int setConnectTimeout(int timeout);
+    int getConnectTimeout();
+
+    int setServiceFather(string serviceFather);
+    const string& getServiceFather();
+
+    void clear();
+
+
+
+    
 };
 #endif
