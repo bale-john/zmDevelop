@@ -114,10 +114,6 @@ int LoadBalance::getMd5ToServiceFather() {
 		md5ToServiceFather[string(md5Node.data[i])] = string(serviceFather);
 		LOG(LOG_INFO, "md5: %s, serviceFather: %s", md5Path.c_str(), serviceFather);
 	}
-    cout << md5ToServiceFather.size() << endl;
-    for (auto it = md5ToServiceFather.begin(); it != md5ToServiceFather.end(); ++it) {
-        cout << it->first << " " << it->second << endl;
-    }
 	return M_OK;
 }
 
@@ -132,12 +128,7 @@ int LoadBalance::getMonitors() {
 		string monitor = string(monitorNode.data[i]);
 		monitors.insert(monitor);
 	}
-	cout << "***************" << endl;
-	cout << monitors.size() << endl;
-    printf("I am %s\n", _zkLockBuf);
-	for (auto it = monitors.begin(); it != monitors.end(); ++it) {
-		cout << (*it) << endl;
-	}
+    LOG(LOG_INFO, "There are %d monitors, I am %s", monitors.size(), _zkLockBuf);
     return M_OK;
 }
 
@@ -148,6 +139,7 @@ int LoadBalance::balance() {
 	}
 #ifdef DEBUG
 	cout << 11111111111 << endl;
+    //md5节点值
 	for (auto it = md5Node.begin(); it != md5Node.end(); ++it) {
 		cout << (*it) << endl;
 	}
@@ -159,6 +151,7 @@ int LoadBalance::balance() {
 	}
 #ifdef DEBUG
 	cout << 222222222222 << endl;
+    //monitors的序列号
 	for (auto it = sequence.begin(); it != sequence.end(); ++it) {
 		cout << (*it) << endl;
 	}
@@ -166,13 +159,14 @@ int LoadBalance::balance() {
 	sort(sequence.begin(), sequence.end());
 #ifdef DEBUG
 	cout << 33333333333 << endl;
+    //排序之后monitors的序列号
 	for (auto it = sequence.begin(); it != sequence.end(); ++it) {
 		cout << (*it) << endl;
 	}
 #endif
 	string monitor = string(_zkLockBuf);
 	unsigned int mySeq = stoi(monitor.substr(monitor.size() - 10));
-	//使用size_t是没问题的，但是也要注意size_t在负数的情况下是会出错的
+    //It's ok to use size_t. But it may have error when it's negative
     size_t rank = 0;
 	for (; rank < sequence.size(); ++rank) {
 		if (sequence[rank] == mySeq) {
@@ -185,6 +179,7 @@ int LoadBalance::balance() {
 	}
 #ifdef DEBUG
 	cout << 44444444444 << endl;
+    //进行负载均衡后，分配到这个Monitors的serviceFather节点
 	for (auto it = myServiceFather.begin(); it != myServiceFather.end(); ++it) {
 		cout << (*it) << endl;
 	}

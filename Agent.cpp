@@ -47,7 +47,6 @@ int main(int argc, char** argv){
 		}
 	}
 
-    cout << "goto mainloop" << endl;
 	while (1) {
         cout << "mainloop start" << endl;
 		LOG(LOG_INFO, " main loop start -> !!!!!!");
@@ -64,11 +63,9 @@ int main(int argc, char** argv){
 
 		// init zookeeper handler
 		if (_zk->initEnv(zkHost, zkLogPath, recvTimeout) == M_OK) {
-            cout << "111" << endl;
 			LOG(LOG_INFO, "Zk init env succeeded. host:%s zk log path:%s", zkHost.c_str(), zkLogPath.c_str());
 		}
 		else {
-            cout << "222" << endl;
 			LOG(LOG_ERROR, "Zk init env failed, retry");
 			if (_zk) {
 				delete _zk;
@@ -137,7 +134,7 @@ int main(int argc, char** argv){
 		serviceListener->getAllIp(lb->getMyServiceFather());
 		//这里如何加锁也都还没考虑，因为加了watch之后(?)可能会有不止一个线程在操作的数据结构都需要加锁，目前还没有考虑，最后统一加吧
 		serviceListener->loadAllService();
-        cout << "come to multiThread" << endl;
+        cout << "runMainThread" << endl;
 
 		//load service complete. So can do multithread module?
         runMainThread(_zk, lb->getMyServiceFather());
