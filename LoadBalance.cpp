@@ -15,10 +15,37 @@
 using namespace std;
 
 extern char _zkLockBuf[512];
-static void watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context);
 
-void watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context) {
 
+void LoadBalance::watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context) {
+	switch (type) {
+		case SESSION_EVENT_DEF:
+			if (state == ZOO_EXPIRED_SESSION_STATE) {
+				LOG(LOG_INFO, "[ session event ] state: ZOO_EXPIRED_SESSION_STATE");
+				LOG(LOG_INFO, "restart the main loop!");
+				kill(getpid(), SIGUSR2);
+			}
+			else {
+				//todo
+				LOG(LOG_INFO, "[session event] state: %d", state);
+			}
+			break;
+		//this two events should be processed by class _zk
+		case CREATED_EVENT_DEF:
+            LOG(LOG_INFO, "zookeeper watcher [ create event ] path:%s", path);
+            break;
+        case DELETED_EVENT_DEF:
+            LOG(LOG_INFO, "zookeeper watcher [ delete event ] path:%s", path);
+            break;
+        case CHILD_EVENT_DEF:
+            LOG(LOG_INFO, "zookeeper watcher [ child event ] path:%s", path);
+            //todo redo loadBalance
+            break;
+        case CHANGED_EVENT_DEF:
+            LOG(LOG_INFO, "zookeeper watcher [ change event ] path:%s", path);
+            //todo 意味着md5对应的serviceFather改变了。这也太奇怪了，但还是应该设置一个处理函数
+            break;
+	}
 }
 
 int LoadBalance::initEnv(){
