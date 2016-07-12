@@ -23,9 +23,37 @@ ServiceListener* ServiceListener::getInstance() {
 }
 
 
-
-void ServiceListener::watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context) {
-
+void ServiceListener::watcher(zhandle_t* zhandle, int type, int state, const char* path, void* context) {
+	switch (type) {
+		case SESSION_EVENT_DEF:
+			if (state == ZOO_EXPIRED_SESSION_STATE) {
+				LOG(LOG_INFO, "[ session event ] state: ZOO_EXPIRED_SESSION_STATE");
+				LOG(LOG_INFO, "restart the main loop!");
+				kill(getpid(), SIGUSR2);
+			}
+			else {
+				//todo
+				LOG(LOG_INFO, "[session event] state: %d", state);
+			}
+			break;
+		case CREATED_EVENT_DEF:
+			//nothing todo
+            LOG(LOG_INFO, "zookeeper watcher [ create event ] path:%s", path);
+            break;
+        case DELETED_EVENT_DEF:
+            LOG(LOG_INFO, "zookeeper watcher [ delete event ] path:%s", path);
+            //service is deleted
+            break;
+        case CHILD_EVENT_DEF:
+            LOG(LOG_INFO, "zookeeper watcher [ child event ] path:%s", path);
+            //the number of service changed
+            processChildEvent(zhandle, string(path));
+            break;
+        case CHANGED_EVENT_DEF:
+            LOG(LOG_INFO, "zookeeper watcher [ change event ] path:%s", path);
+            //the status of service changed
+            break;
+	}
 }
 
 int ServiceListener::destroyEnv() {
