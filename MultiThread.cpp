@@ -48,7 +48,7 @@ static vector<string> serviceFather;
 void init(Zk* zk_input, const vector<string>& myServiceFather){
     zk = zk_input;
     serviceFather = myServiceFather;
-#ifdef DEBUG
+#ifdef DEBUGM
     cout << "rrrrrrrrrrrr" << endl;
     for (auto it = myServiceFather.begin(); it != myServiceFather.end(); ++it) {
         cout << *it << endl;
@@ -97,7 +97,9 @@ int updateConf(string node, int val) {
 //这里判断是否为空需要加锁吗？感觉应该不需要吧，如果有另一个线程正在写，empty()将会返回什么值？
 //这里用先来先服务会有问题，如果一个节点被重复改变两次，怎么处理？
 void* updateService(void* args) {
+#ifdef DEBUGM
     cout << "in update service thread" << endl;
+#endif
 	while (1) {
 		spinlock_lock(&updateServiceLock);
 		if (updateServiceInfo.empty()) {
@@ -137,7 +139,9 @@ void* updateService(void* args) {
 		updateConf(key, val);
 		usleep(1000);
 	}
+#ifdef DEBUGM
     cout << "out update service" << endl;
+#endif
     pthread_exit(0);
 }
 
@@ -239,6 +243,7 @@ int tryConnect(string curServiceFather) {
 	map<string, ServiceItem> serviceMap = conf->getServiceMap();
 	unordered_map<string, unordered_set<string>> serviceFatherToIp = conf->getServiceFatherToIp();
 	unordered_set<string> ip = serviceFatherToIp[curServiceFather];
+#ifdef DEBUGM
 	for (auto it = ip.begin(); it != ip.end(); ++it) {
         cout << *it << endl;
 		string ipPort = curServiceFather + "/" + (*it);
@@ -255,6 +260,7 @@ int tryConnect(string curServiceFather) {
 		cout << "sssssssssssssssssssssssssssss" << endl;
 		cout << ipPort << " " << status << endl;
 	}
+#endif
     return 0;
 }
 
@@ -285,7 +291,7 @@ int runMainThread(Zk* zk_input, const vector<string>& myServiceFather) {
     //没有考虑异常，如pthread不成功等
 	pthread_create(&updateServiceThread, NULL, updateService, NULL);
 	unordered_map<string, unordered_set<string>> serviceFatherToIp = conf->getServiceFatherToIp();
-#ifdef DEBUG
+#ifdef DEBUGM
     for (auto it1 = serviceFatherToIp.begin(); it1 != serviceFatherToIp.end(); ++it1) {
         cout << it1->first << endl;
         for (auto it2 = (it1->second).begin(); it2 != (it1->second).end(); ++it2) {
@@ -293,8 +299,8 @@ int runMainThread(Zk* zk_input, const vector<string>& myServiceFather) {
         }
         cout << endl;
     }
-#endif
     cout << "finsh create up service" << endl;
+#endif
 	//这里要考虑如何分配检查线程了，应该可以做很多文章，比如记录每个father有多少个服务，如果很多就分配两个线程等等。这里先用最简单的，线程足够的情况下，一个serviceFather一个线程
 	int oldThreadNum = 0;
 	int newThreadNum = 0;
@@ -305,7 +311,9 @@ int runMainThread(Zk* zk_input, const vector<string>& myServiceFather) {
 	//构思了一种思路，但这种思路其实最好把serviceFather和ip等数据封装成一个类。
 	//todo
 	while (1) {
+#ifdef DEBUGM
         cout << "xxxxxxxxxxx" << endl;
+#endif
 		newThreadNum = serviceFatherToIp.size();
 		//线程需要开满，且需要调度.需要调度与否必须通过参数传一个flag进去
 		if (newThreadNum > MAX_THREAD_NUM) {
@@ -335,11 +343,15 @@ int runMainThread(Zk* zk_input, const vector<string>& myServiceFather) {
 				for (; oldThreadNum < newThreadNum; ++oldThreadNum) {
 					pthread_create(checkServiceThread + oldThreadNum, NULL, checkService, &schedule);
 					threadPos[checkServiceThread[oldThreadNum]] = oldThreadNum;
-                    cout << "checkServiceThread[" << oldThreadNum << "] " << checkServiceThread[oldThreadNum] << endl; 
+#ifdef DEBUGM
+                    cout << "checkServiceThread[" << oldThreadNum << "] " << checkServiceThread[oldThreadNum] << endl;
+#endif
 				}
 			}
 		}
+#ifdef DEBUGM
     cout << "finish one round" << endl;
+#endif
     while (1){ }
 		//这里为什么要sleep(2)也不是很清楚
 		sleep(2);

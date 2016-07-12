@@ -14,6 +14,7 @@ using namespace std;
 
 class LoadBalance {
 public:
+	LoadBalance();
     //use map but not unordered_map so it can be sorted autonatically
     //存的是md5节点和对应的serviceFather节点
 	map<string, string> md5ToServiceFather;
@@ -27,7 +28,6 @@ public:
 	static LoadBalance* lbInstance;
     
 public:
-	LoadBalance();
 	~LoadBalance();
 	static LoadBalance* getInstance();
 	int getMd5ToServiceFather();

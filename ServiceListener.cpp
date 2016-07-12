@@ -176,6 +176,8 @@ int ServiceListener::loadAllService() {
 		//还是没有异常处理
 		conf->modifyServiceFatherStatus(serviceFather, status);
 	}
+#ifdef DEBUGS
 	Util::printServiceMap();
+#endif
     return 0;
 }

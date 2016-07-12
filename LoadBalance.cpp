@@ -17,6 +17,7 @@ using namespace std;
 
 extern char _zkLockBuf[512];
 
+LoadBalance* LoadBalance::lbInstance = NULL;
 void LoadBalance::processChildEvent(zhandle_t* zhandle, const string path) {
 	LoadBalance* lb = LoadBalance::getInstance();
 	string monitorsPath = Config::getInstance()->getMonitorList();
@@ -88,7 +89,7 @@ LoadBalance* LoadBalance::getInstance() {
 	return lbInstance;
 }
 
-LoadBalance::LoadBalance() : zh(NULL), lbInstance(NULL){
+LoadBalance::LoadBalance() : zh(NULL){
 	conf = Config::getInstance();
 	md5ToServiceFather.clear();
 	monitors.clear();
@@ -170,6 +171,7 @@ int LoadBalance::getMonitors() {
 	if (ret == M_ERR) {
 		return M_ERR;
 	}
+	monitors.clear();
 	for (int i = 0; i < monitorNode.count; ++i) {
 		string monitor = string(monitorNode.data[i]);
 		monitors.insert(monitor);
@@ -222,7 +224,7 @@ int LoadBalance::balance() {
 			break;
 		}
 	}
-
+	myServiceFather.clear();
 	for (size_t i = rank; i < md5Node.size(); i += monitors.size()) {
 		myServiceFather.push_back(md5ToServiceFather[md5Node[i]]);
 	}
