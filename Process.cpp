@@ -15,8 +15,8 @@
 #include <fcntl.h>
 
 using namespace std;
-//whather process is stopped ?
-static bool _stop = false;
+//weather process is stopped
+bool _stop = false;
 
 bool Process::isProcessRunning(const string& processName) {
 	FILE* ptr = NULL;

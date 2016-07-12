@@ -18,7 +18,7 @@
 using namespace std;
 static Zk* _zk = NULL;
 //if _zk disconnect with server. _stop will be true and main loop will be reiterate
-static bool _stop = false;
+extern bool _stop;
 
 int main(int argc, char** argv){
 	Config* conf = Config::getInstance();
