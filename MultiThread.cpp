@@ -267,11 +267,15 @@ int tryConnect(string curServiceFather) {
 
 //讲道理，这个函数只需要service father和service father和ip的对应，然后去修改updateInfo就好了,目前就最简单的，一个线程负责一个serviceFather
 void* checkService(void* args) {
+#ifdef DEBUGM
     cout << "in check service thread " << endl;
+#endif
 	pthread_t pthreadId = pthread_self();
 	size_t pos = threadPos[pthreadId];
 	string curServiceFather = serviceFather[pos];
+#ifdef DEBUGM
     cout << pthreadId << " " << pos << " " << serviceFather[pos] << " " << curServiceFather << endl;
+#endif
 	while (1) {
 		//应该先去检查这个节点是什么状态，这里要考虑一下，如果原来就是offline肯定不用管。
 		//如果原来是upline肯定需要管，如果原来是down和unknown呢？这个我觉得可能要

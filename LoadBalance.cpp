@@ -17,15 +17,23 @@ using namespace std;
 
 extern char _zkLockBuf[512];
 
+spinlock_t monitorLock = SPINLOCK_INITIALIZER;
+spinlock_t myServiceFatherLock = SPINLOCK_INITIALIZER;
 LoadBalance* LoadBalance::lbInstance = NULL;
 void LoadBalance::processChildEvent(zhandle_t* zhandle, const string path) {
 	LoadBalance* lb = LoadBalance::getInstance();
 	string monitorsPath = Config::getInstance()->getMonitorList();
-	//the number of registed monitors has changed
+	string md5Path = Config::getInstance()->getNodeList();
+	//the number of registed monitors has changed. So we need rebalance
 	if (path == monitorsPath) {
-		//给其他monitors重连的机会,好像不应该给重连的机会，因为重连之后序号就变了，需要负责的serviceFather也不同了
-		lb->getMonitors();
-		lb->balance();
+		LOG(LOG_DEBUG, "rebalance...");
+		lb->setReBalance();
+		lb->getMonitors(true);
+		lb->balance(true);
+		lb->clearReBalance();
+	}
+	else if (path == md5Path) {
+
 	}
 }
 
@@ -51,7 +59,7 @@ void LoadBalance::watcher(zhandle_t* zhandle, int type, int state, const char* p
             break;
         case CHILD_EVENT_DEF:
             LOG(LOG_INFO, "zookeeper watcher [ child event ] path:%s", path);
-            //todo redo loadBalance
+            //redo loadBalance
             processChildEvent(zhandle, string(path));
             break;
         case CHANGED_EVENT_DEF:
@@ -89,7 +97,7 @@ LoadBalance* LoadBalance::getInstance() {
 	return lbInstance;
 }
 
-LoadBalance::LoadBalance() : zh(NULL){
+LoadBalance::LoadBalance() : zh(NULL), reBalance(false) {
 	conf = Config::getInstance();
 	md5ToServiceFather.clear();
 	monitors.clear();
@@ -164,23 +172,32 @@ int LoadBalance::getMd5ToServiceFather() {
 	return M_OK;
 }
 
-int LoadBalance::getMonitors() {
+int LoadBalance::getMonitors(bool flag = false) {
 	string path = conf->getMonitorList();
 	struct String_vector monitorNode = {0};
 	int ret = zkGetChildren(path, &monitorNode);
 	if (ret == M_ERR) {
 		return M_ERR;
 	}
-	monitors.clear();
+	unordered_set<string> tempMonitors;
 	for (int i = 0; i < monitorNode.count; ++i) {
 		string monitor = string(monitorNode.data[i]);
-		monitors.insert(monitor);
+		tempMonitors.insert(monitor);
 	}
-    LOG(LOG_INFO, "There are %d monitors, I am %s", monitors.size(), _zkLockBuf);
+	spinlock_lock(&monitorLock);
+	if (reBalance && !flag) {
+		spinlock_unlock(&monitorLock);
+		LOG(LOG_INFO, "It's rebalancing and I am not the rebalancer");
+	}
+	else {
+		monitors = tempMonitors;
+		spinlock_unlock(&monitorLock);
+		LOG(LOG_INFO, "There are %d monitors, I am %s", monitors.size(), _zkLockBuf);
+	}
     return M_OK;
 }
 
-int LoadBalance::balance() {
+int LoadBalance::balance(bool flag = false) {
 	vector<string> md5Node;
 	for (auto it = md5ToServiceFather.begin(); it != md5ToServiceFather.end(); ++it) {
 		md5Node.push_back(it->first);
@@ -194,6 +211,7 @@ int LoadBalance::balance() {
 	}
 #endif
 	vector<unsigned int> sequence;
+	//actually we need a lock here
 	for (auto it = monitors.begin(); it != monitors.end(); ++it) {
 		int tmp = stoi((*it).substr((*it).size() - 10));
 		sequence.push_back(tmp);
@@ -224,9 +242,19 @@ int LoadBalance::balance() {
 			break;
 		}
 	}
-	myServiceFather.clear();
+	vector<string> tempMyServiceFather;
 	for (size_t i = rank; i < md5Node.size(); i += monitors.size()) {
-		myServiceFather.push_back(md5ToServiceFather[md5Node[i]]);
+		tempMyServiceFather.push_back(md5ToServiceFather[md5Node[i]]);
+	}
+	spinlock_lock(&myServiceFatherLock);
+	if (reBalance && !flag) {
+		spinlock_unlock(&myServiceFatherLock);
+		LOG(LOG_INFO, "It's rebalancing and I am not the rebalancer");
+	}
+	else {
+		myServiceFather = tempMyServiceFather;
+		spinlock_unlock(&myServiceFatherLock);
+		LOG(LOG_INFO, "There are %d monitors, I am %s", monitors.size(), _zkLockBuf);
 	}
 #ifdef DEBUG
 	cout << 44444444444 << endl;
@@ -241,4 +269,12 @@ int LoadBalance::balance() {
 
 const vector<string>& LoadBalance::getMyServiceFather() {
 	return myServiceFather;
+}
+
+void LoadBalance::setReBalance() {
+	reBalance = true;
+}
+
+void LoadBalance::clearReBalance() {
+	reBalance = false;
 }

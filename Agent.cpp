@@ -124,11 +124,8 @@ int main(int argc, char** argv){
 		//get the service father. Stored in class LB
 		//新建一个负载均衡实例，然后需要填充这个实例中一些重要的数据
 		//todo，对每一步的异常都还没有进行考虑
-		//初始化与zk交互句柄
 		LoadBalance* lb = LoadBalance::getInstance();
-		//获取所有的md5并且得到所有的serviceFather
 		lb->getMd5ToServiceFather();
-		//获取所有的注册的monitor，这是必然涉及负载均衡的
 		lb->getMonitors();
 		lb->balance();
 

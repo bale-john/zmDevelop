@@ -26,17 +26,24 @@ public:
 	int destroyEnv();
 	Config* conf;
 	static LoadBalance* lbInstance;
+	bool reBalance;
     
 public:
 	~LoadBalance();
 	static LoadBalance* getInstance();
-	int getMd5ToServiceFather();
+
 	int zkGetChildren(const string path, struct String_vector* children);
 	int zkGetNode(const char* md5Path, char* serviceFather, int* dataLen);
+	
+	int getMd5ToServiceFather();
 	int getMonitors();
 	int balance();
 	const vector<string>& getMyServiceFather();
+
 	static void watcher(zhandle_t* zhandle, int type, int state, const char* path, void* context);
 	static void processChildEvent(zhandle_t* zhandle, const string path);
+
+	void setReBalance();
+	void clearReBalance();
 };
 #endif
