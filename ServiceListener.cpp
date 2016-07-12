@@ -174,7 +174,7 @@ int ServiceListener::loadAllService() {
 			loadService(path, serviceFather, *it2, status);
 		}
 		//还是没有异常处理
-		conf->serviceFatherStatus[serviceFather] = status;
+		conf->modifyServiceFatherStatus(serviceFather, status);
 	}
 	Util::printServiceMap();
     return 0;

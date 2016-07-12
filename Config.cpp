@@ -252,3 +252,8 @@ int Config::modifyServiceFatherStatus(const string& serviceFather, int status, i
 int Config::getServiceFatherStatus(const string& serviceFather, int status) {
 	return serviceFatherStatus[serviceFather][status + 1];
 }
+
+int Config::modifyServiceFatherStatus(const string& serviceFather, vector<int>& statusv) {
+	serviceFatherStatus[serviceFather] = statusv;
+	return 0;
+}

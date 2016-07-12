@@ -61,6 +61,7 @@ public:
 	int printMap();
 	
 	int modifyServiceFatherStatus(const string& serviceFather, int status, int op);
+	int modifyServiceFatherStatus(const string& serviceFather, vector<int>& statusv);
 	int getServiceFatherStatus(const string& serviceFather, int status);
 	void clearServiceMap();
 };
