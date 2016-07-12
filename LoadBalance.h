@@ -36,8 +36,8 @@ public:
 	int zkGetNode(const char* md5Path, char* serviceFather, int* dataLen);
 	
 	int getMd5ToServiceFather();
-	int getMonitors();
-	int balance();
+	int getMonitors(bool flag = false);
+	int balance(bool flag = false);
 	const vector<string>& getMyServiceFather();
 
 	static void watcher(zhandle_t* zhandle, int type, int state, const char* path, void* context);

@@ -1,6 +1,7 @@
 #include "Zk.h"
 #include <cstring>
 #include <map>
+#include "x86_spinlocks.h"
 #include <cstdio>
 #include <string>
 #include <signal.h>
@@ -172,7 +173,7 @@ int LoadBalance::getMd5ToServiceFather() {
 	return M_OK;
 }
 
-int LoadBalance::getMonitors(bool flag = false) {
+int LoadBalance::getMonitors(bool flag /*=false*/) {
 	string path = conf->getMonitorList();
 	struct String_vector monitorNode = {0};
 	int ret = zkGetChildren(path, &monitorNode);
@@ -197,7 +198,7 @@ int LoadBalance::getMonitors(bool flag = false) {
     return M_OK;
 }
 
-int LoadBalance::balance(bool flag = false) {
+int LoadBalance::balance(bool flag /*=false*/) {
 	vector<string> md5Node;
 	for (auto it = md5ToServiceFather.begin(); it != md5ToServiceFather.end(); ++it) {
 		md5Node.push_back(it->first);
