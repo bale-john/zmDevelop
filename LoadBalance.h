@@ -24,10 +24,12 @@ public:
 	int initEnv();
 	int destroyEnv();
 	Config* conf;
+	static LoadBalance* lbInstance;
     
 public:
 	LoadBalance();
 	~LoadBalance();
+	static LoadBalance* getInstance();
 	int getMd5ToServiceFather();
 	int zkGetChildren(const string path, struct String_vector* children);
 	int zkGetNode(const char* md5Path, char* serviceFather, int* dataLen);
@@ -35,5 +37,6 @@ public:
 	int balance();
 	const vector<string>& getMyServiceFather();
 	static void watcher(zhandle_t* zhandle, int type, int state, const char* path, void* context);
+	static void processChildEvent(zhandle_t* zhandle, const string path);
 };
 #endif

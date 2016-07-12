@@ -17,6 +17,16 @@ using namespace std;
 
 extern char _zkLockBuf[512];
 
+void LoadBalance::processChildEvent(zhandle_t* zhandle, const string path) {
+	LoadBalance* lb = LoadBalance::getInstance();
+	string monitorsPath = Config::getInstance()->getMonitorList();
+	//the number of registed monitors has changed
+	if (path == monitorsPath) {
+		//给其他monitors重连的机会,好像不应该给重连的机会，因为重连之后序号就变了，需要负责的serviceFather也不同了
+		lb->getMonitors();
+		lb->balance();
+	}
+}
 
 void LoadBalance::watcher(zhandle_t* zhandle, int type, int state, const char* path, void* context) {
 	switch (type) {
@@ -41,6 +51,7 @@ void LoadBalance::watcher(zhandle_t* zhandle, int type, int state, const char* p
         case CHILD_EVENT_DEF:
             LOG(LOG_INFO, "zookeeper watcher [ child event ] path:%s", path);
             //todo redo loadBalance
+            processChildEvent(zhandle, string(path));
             break;
         case CHANGED_EVENT_DEF:
             LOG(LOG_INFO, "zookeeper watcher [ change event ] path:%s", path);
@@ -70,7 +81,14 @@ int LoadBalance::destroyEnv() {
 	return M_OK;
 }
 
-LoadBalance::LoadBalance() : zh(NULL){
+LoadBalance* LoadBalance::getInstance() {
+	if (!lbInstance) {
+		lbInstance = new LoadBalance();
+	}
+	return lbInstance;
+}
+
+LoadBalance::LoadBalance() : zh(NULL), lbInstance(NULL){
 	conf = Config::getInstance();
 	md5ToServiceFather.clear();
 	monitors.clear();
