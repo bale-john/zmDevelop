@@ -130,8 +130,7 @@ int main(int argc, char** argv){
 		lb->balance();
 
 		//after load balance. Each monitor should load the service to Config
-		//此处我是否需要新建一个类来做监视工作呢？好像是要的吧，lb的watcher和这个应该还是不同的，先新建一个吧
-		ServiceListener* serviceListener = new ServiceListener();
+		ServiceListener* serviceListener = ServiceListener::getInstance();
 		serviceListener->getAllIp(lb->getMyServiceFather());
 		//这里如何加锁也都还没考虑，因为加了watch之后(?)可能会有不止一个线程在操作的数据结构都需要加锁，目前还没有考虑，最后统一加吧
 		serviceListener->loadAllService();

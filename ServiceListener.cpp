@@ -13,9 +13,18 @@
 #include <netdb.h>
 using namespace std;
 
-static void watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context);
+ServiceListener* ServiceListener::slInstance = NULL;
 
-void watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context) {
+ServiceListener* ServiceListener::getInstance() {
+	if (!slInstance) {
+		slInstance = new ServiceListener();
+	}
+	return slInstance;
+}
+
+
+
+void ServiceListener::watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context) {
 
 }
 
