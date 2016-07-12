@@ -3,10 +3,11 @@
 #include <map>
 #include <cstdio>
 #include <string>
+#include <signal.h>
+#include <sys/types.h>
 #include <iostream>
 #include "ConstDef.h"
 #include "Util.h"
-#include <errno.h>
 #include "Log.h"
 #include <errno.h>
 #include "LoadBalance.h"
@@ -17,7 +18,7 @@ using namespace std;
 extern char _zkLockBuf[512];
 
 
-void LoadBalance::watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context) {
+void LoadBalance::watcher(zhandle_t* zhandle, int type, int state, const char* path, void* context) {
 	switch (type) {
 		case SESSION_EVENT_DEF:
 			if (state == ZOO_EXPIRED_SESSION_STATE) {

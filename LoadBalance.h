@@ -34,6 +34,6 @@ public:
 	int getMonitors();
 	int balance();
 	const vector<string>& getMyServiceFather();
-	void watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context);
+	static void watcher(zhandle_t* zhandle, int type, int state, const char* path, void* context);
 };
 #endif

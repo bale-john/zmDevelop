@@ -2,11 +2,12 @@
 #include <cstring>
 #include <map>
 #include <cstdio>
+#include <signal.h>
+#include <sys/types.h>
 #include <string>
 #include <iostream>
 #include "ConstDef.h"
 #include "Util.h"
-#include <errno.h>
 #include "Log.h"
 #include <errno.h>
 using namespace std;
@@ -16,9 +17,9 @@ using namespace std;
 char _zkLockBuf[512] = {0};
 
 //Zk中的watcher只负责处理与zk的会话断开怎么办，因为monitor注册是有zk完成的，这里断开相当于丢失了一个monitor，肯定要重新启动main loop
-void Zk:watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context){
+void Zk::watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context){
 	dp();
-	wtitch (type) {
+	switch (type) {
 		case SESSION_EVENT_DEF:
 			if (state == ZOO_EXPIRED_SESSION_STATE) {
 				LOG(LOG_DEBUG, "[session state: ZOO_EXPIRED_STATA: -112]");
@@ -42,7 +43,7 @@ void Zk:watcher(zhandle_t* zhandle, int type, int state, const char* node, void*
         case CHANGED_EVENT_DEF:
             LOG(LOG_DEBUG, "[ changed event ] ...");
             break;
-        case default:
+        default:
 			break;
     }
 }
