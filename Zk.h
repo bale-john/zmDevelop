@@ -27,5 +27,6 @@ public:
     int registerMonitor(string path);
     int setZnode(string node, string data);
     void destroyEnv();
+    static void watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context);
 };
 #endif

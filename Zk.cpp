@@ -14,8 +14,38 @@ using namespace std;
 
 //临时解决方案，把_zkLockBuf作为非静态全局变量，使得它对所有文件可见。最后还是应该把注册monitor移到loadbalance类里才是正途
 char _zkLockBuf[512] = {0};
-static void watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context);
-void watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context){}
+
+//Zk中的watcher只负责处理与zk的会话断开怎么办，因为monitor注册是有zk完成的，这里断开相当于丢失了一个monitor，肯定要重新启动main loop
+void Zk:watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context){
+	dp();
+	wtitch (type) {
+		case SESSION_EVENT_DEF:
+			if (state == ZOO_EXPIRED_SESSION_STATE) {
+				LOG(LOG_DEBUG, "[session state: ZOO_EXPIRED_STATA: -112]");
+				//todo 是否需要watchSession？
+				LOG(LOG_INFO, "restart the main loop!");
+				kill(getpid(), SIGUSR2);
+			}
+			else {
+				LOG(LOG_DEBUG, "[ session state: %d ]", state);
+			}
+			break;
+		case CHILD_EVENT_DEF:
+            LOG(LOG_DEBUG, "[ child event ] ...");
+            break;
+        case CREATED_EVENT_DEF:
+            LOG(LOG_DEBUG, "[ created event ]...");
+            break;
+        case DELETED_EVENT_DEF:
+            LOG(LOG_DEBUG, "[ deleted event ] ...");
+            break;
+        case CHANGED_EVENT_DEF:
+            LOG(LOG_DEBUG, "[ changed event ] ...");
+            break;
+        case default:
+			break;
+    }
+}
 
 Zk::Zk():_zh(NULL), _recvTimeout(3000), _zkLogPath(""), _zkHost(""), _zkLogFile(NULL) {
 }
