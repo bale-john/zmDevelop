@@ -121,29 +121,31 @@ int main(int argc, char** argv){
 			continue;
 		}
 
-		//load balance
-		//get the service father. Stored in class LB
-		//新建一个负载均衡实例，然后需要填充这个实例中一些重要的数据
-		//todo，对每一步的异常都还没有进行考虑
-		LoadBalance* lb = LoadBalance::getInstance();
-		lb->getMd5ToServiceFather();
-		lb->getMonitors();
-		lb->balance();
+		while (1) {
+			LoadBalance::clearReBalance();
+			//load balance
+			//get the service father. Stored in class LB
+			//新建一个负载均衡实例，然后需要填充这个实例中一些重要的数据
+			//todo，对每一步的异常都还没有进行考虑
+			LoadBalance* lb = LoadBalance::getInstance();
+			lb->getMd5ToServiceFather();
+			lb->getMonitors();
+			lb->balance();
 
-		//after load balance. Each monitor should load the service to Config
-		ServiceListener* serviceListener = ServiceListener::getInstance();
-		serviceListener->getAllIp();
-		//这里如何加锁也都还没考虑，因为加了watch之后(?)可能会有不止一个线程在操作的数据结构都需要加锁，目前还没有考虑，最后统一加吧
-		serviceListener->loadAllService();
-        cout << "runMainThread" << endl;
-        _stop = true;
+			//after load balance. Each monitor should load the service to Config
+			ServiceListener* serviceListener = ServiceListener::getInstance();
+			serviceListener->getAllIp();
+			//这里如何加锁也都还没考虑，因为加了watch之后(?)可能会有不止一个线程在操作的数据结构都需要加锁，目前还没有考虑，最后统一加吧
+			serviceListener->loadAllService();
+	        cout << "runMainThread" << endl;
 
-		//load service complete. So can do multithread module?
-        runMainThread(_zk, lb->getMyServiceFather());
+			//load service complete. So can do multithread module?
+	        runMainThread(_zk, lb->getMyServiceFather());
 
-        //seems it's important !! Remember to close it always
-		delete lb;
-		delete serviceListener;
+	        //seems it's important !! Remember to close it always
+			delete lb;
+			delete serviceListener;
+		}
 		delete _zk;
 	}
 

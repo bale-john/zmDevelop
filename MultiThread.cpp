@@ -101,7 +101,7 @@ void* updateService(void* args) {
     cout << "in update service thread" << endl;
 #endif
 	while (1) {
-        if (_stop) {
+        if (_stop || LoadBalance::getReBalance()) {
             break;
         }
 		spinlock_lock(&updateServiceLock);
@@ -278,7 +278,7 @@ void* checkService(void* args) {
     cout << pthreadId << " " << pos << " " << serviceFather[pos] << " " << curServiceFather << endl;
 #endif
 	while (1) {
-        if (_stop) {
+        if (_stop || LoadBalance::getReBalance()) {
             break;
         }
 		//应该先去检查这个节点是什么状态，这里要考虑一下，如果原来就是offline肯定不用管。
@@ -322,7 +322,7 @@ int runMainThread(Zk* zk_input, const vector<string>& myServiceFather) {
 #ifdef DEBUGM
         cout << "xxxxxxxxxxx" << endl;
 #endif
-        if (_stop) {
+        if (_stop || LoadBalance::getReBalance()) {
             break;
         }
 		newThreadNum = serviceFatherToIp.size();

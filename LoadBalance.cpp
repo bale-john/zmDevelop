@@ -18,6 +18,7 @@ using namespace std;
 
 extern char _zkLockBuf[512];
 
+bool LoadBalance::reBalance = false;
 spinlock_t monitorLock = SPINLOCK_INITIALIZER;
 spinlock_t myServiceFatherLock = SPINLOCK_INITIALIZER;
 LoadBalance* LoadBalance::lbInstance = NULL;
@@ -27,11 +28,14 @@ void LoadBalance::processChildEvent(zhandle_t* zhandle, const string path) {
 	string md5Path = Config::getInstance()->getNodeList();
 	//the number of registed monitors has changed. So we need rebalance
 	if (path == monitorsPath) {
+		setReBalance();
+		/*
 		LOG(LOG_DEBUG, "rebalance...");
 		lb->setReBalance();
 		lb->getMonitors(true);
 		lb->balance(true);
 		lb->clearReBalance();
+		*/
 	}
 	//serviceFather节点减少了，需要进行负载的重新均衡吗？还是只要把对应的服务接口删除就好了。
 	//或许在serviceListener里监听这个更好？可以知道哪个服务被删除了
@@ -283,4 +287,8 @@ void LoadBalance::setReBalance() {
 
 void LoadBalance::clearReBalance() {
 	reBalance = false;
+}
+
+bool LoadBalance::getReBalance() {
+	return reBalance;
 }

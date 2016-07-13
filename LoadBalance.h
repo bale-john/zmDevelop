@@ -26,7 +26,7 @@ public:
 	int destroyEnv();
 	Config* conf;
 	static LoadBalance* lbInstance;
-	bool reBalance;
+	static bool reBalance;
     
 public:
 	~LoadBalance();
@@ -43,7 +43,8 @@ public:
 	static void watcher(zhandle_t* zhandle, int type, int state, const char* path, void* context);
 	static void processChildEvent(zhandle_t* zhandle, const string path);
 
-	void setReBalance();
-	void clearReBalance();
+	static void setReBalance();
+	static void clearReBalance();
+	static bool getReBalance();
 };
 #endif
