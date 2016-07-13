@@ -50,7 +50,7 @@ public:
 	string getNodeList();
 	string getMonitorList();
 
-	map<string, ServiceItem> getServiceMap();
+	map<string, ServiceItem>& getServiceMap();
 	int setServiceMap(string node, int val);
 
 	unordered_map<string, unordered_set<string>>& getServiceFatherToIp();

@@ -40,6 +40,13 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
 		else {
 			serviceFatherToIp[serviceFather].insert(ipPort);
 		}
+		//modify the serviceFatherStatus.随着服务的增加和减少，serviceFatherStatus也要随着改变
+		int status = STATUS_UNKNOWN;
+		char data[16] = {0};
+		int dataLen = 16;
+		int ret = zoo_get(zh, path, 1, data, dataLen, NULL);
+		status = atoi(data);
+		modifyServiceFatherStatus(serviceFather, status, 1)
 	}
 	if (op == DELETE) {
 		if (serviceFatherToIp.find(serviceFather) == serviceFatherToIp.end()) {
@@ -52,6 +59,8 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
 			LOG(LOG_DEBUG, "delete service father %s, ip port %s", serviceFather.c_str(), ipPort.c_str());
 			serviceFatherToIp[serviceFather].erase(ipPort);
 		}
+		status = ((conf->getServiceMap)[serviceFather]).getStatus();
+		modifyServiceFatherStatus(serviceFather, status, -1);
 	}
 #ifdef DEBUGS
 	cout << op << 666666666 << path << endl;
