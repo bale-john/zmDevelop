@@ -138,13 +138,15 @@ int main(int argc, char** argv){
 			//这里如何加锁也都还没考虑，因为加了watch之后(?)可能会有不止一个线程在操作的数据结构都需要加锁，目前还没有考虑，最后统一加吧
 			serviceListener->loadAllService();
 	        cout << "runMainThread" << endl;
-
 			//load service complete. So can do multithread module?
 	        runMainThread(_zk, lb->getMyServiceFather());
 
 	        //seems it's important !! Remember to close it always
 			delete lb;
 			delete serviceListener;
+            if (_stop) {
+                break;
+            }
 		}
 		delete _zk;
 	}

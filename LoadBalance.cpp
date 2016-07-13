@@ -107,7 +107,7 @@ LoadBalance* LoadBalance::getInstance() {
 	return lbInstance;
 }
 
-LoadBalance::LoadBalance() : zh(NULL), reBalance(false) {
+LoadBalance::LoadBalance() : zh(NULL) {
 	conf = Config::getInstance();
 	md5ToServiceFather.clear();
 	monitors.clear();
