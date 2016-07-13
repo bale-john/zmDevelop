@@ -22,19 +22,20 @@ bool LoadBalance::reBalance = false;
 
 LoadBalance* LoadBalance::lbInstance = NULL;
 void LoadBalance::processChildEvent(zhandle_t* zhandle, const string path) {
-	LoadBalance* lb = LoadBalance::getInstance();
 	string monitorsPath = Config::getInstance()->getMonitorList();
 	string md5Path = Config::getInstance()->getNodeList();
 	//the number of registed monitors has changed. So we need rebalance
 	if (path == monitorsPath) {
+		LOG(LOG_INFO, "the number of monitors has changed. Rebalance...");
 		setReBalance();
 	}
 	//serviceFather节点减少了，需要进行负载的重新均衡吗？还是只要把对应的服务接口删除就好了。
 	//或许在serviceListener里监听这个更好？可以知道哪个服务被删除了
 	//但是如果大量serviceFather被删除，会导致负载不均衡，又有必要进行rebalance
-	//目前打算放在后面做
+	//目前先直接rebalance
 	else if (path == md5Path) {
-		LOG(LOG_DEBUG, "the number of serviceFather has changed");
+		LOG(LOG_DEBUG, "the number of serviceFather has changed. Rebalance...");
+		setReBalance();
 	}
 }
 
@@ -65,7 +66,7 @@ void LoadBalance::watcher(zhandle_t* zhandle, int type, int state, const char* p
             break;
         case CHANGED_EVENT_DEF:
             LOG(LOG_INFO, "zookeeper watcher [ change event ] path:%s", path);
-            //todo 意味着md5对应的serviceFather改变了。这也太奇怪了，但还是应该设置一个处理函数
+            //todo 意味着md5对应的serviceFather改变了。这也太奇怪了，难道是serviceFather的名字改变了？
             break;
 	}
 }
