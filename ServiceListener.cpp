@@ -53,6 +53,7 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
 			serviceFatherToIp[serviceFather].erase(ipPort);
 		}
 	}
+
 }
 
 void ServiceListener::processDeleteEvent(zhandle_t* zhandle, const string& path) {
@@ -60,6 +61,50 @@ void ServiceListener::processDeleteEvent(zhandle_t* zhandle, const string& path)
 	//update serviceFatherToIp
 	ServiceListener* sl = ServiceListener::getInstance();
 	sl->modifyServiceFatherToIp(DELETE, path);
+}
+
+void ServiceListener::processChildEvent(zhandle_t* zhandle, const string& path) {
+	//只可能是某个serviceFather子节点变化，因为我只get_child过这个节点
+	//这里这个path是serviceFather
+	ServiceListener* sl = ServiceListener::getInstance();
+	struct String_vector children = {0};
+	int ret = zoo_get_children(zh, path.c_str(), 1, &children);
+	if (ret == ZOK) {
+		LOG(LOG_INFO, "get children success");
+		if (children.count < lb->getServiceFatherNum()) {
+			LOG(LOG_INFO, "actually It's a delete event");
+		}
+		else {
+			//感觉很低效，可是新建了一个节点，好像只能把所有子节点都获取来，重新加一遍啊
+			LOG(LOG_INFO, "add new service");
+			for (int i = 0; i < children.count; ++i) {
+				string ipPort = string(children.data[i]);
+				lb->modifyServiceFatherToIp(ADD, path + "/" + ipPort);
+			}
+		}
+		return;
+	}
+	else if (ret == ZNONODE) {
+		LOG(LOG_TRACE, "%s...out...node:%s not exist.", __FUNCTION__, path.c_str());
+		//这个serviceFather不存在了，可能是删除了 todo serviceFatherToIp这个数据结构里还是要加更多动作，比如删除serviceFather
+		//serviceFatherToIp.erase(path);
+        return;
+	}
+	else {
+		LOG(LOG_ERROR, "parameter error. zhandle is NULL");
+		return;
+	}
+#ifdef DEBUGS
+	cout << 666666666 << path << endl;
+    cout << serviceFatherToIp.size() << endl;
+    for (auto it1 = serviceFatherToIp.begin(); it1 != serviceFatherToIp.end(); ++it1) {
+        cout << it1->first << endl;
+        for (auto it2 = (it1->second).begin(); it2 != (it1->second).end(); ++it2) {
+            cout << *it2 << " ";
+        }
+        cout << endl;
+    }
+#endif
 }
 
 void ServiceListener::watcher(zhandle_t* zhandle, int type, int state, const char* path, void* context) {
@@ -86,7 +131,7 @@ void ServiceListener::watcher(zhandle_t* zhandle, int type, int state, const cha
         case CHILD_EVENT_DEF:
             LOG(LOG_INFO, "zookeeper watcher [ child event ] path:%s", path);
             //the number of service changed
-            //processChildEvent(zhandle, string(path));
+            processChildEvent(zhandle, string(path));
             break;
         case CHANGED_EVENT_DEF:
             LOG(LOG_INFO, "zookeeper watcher [ change event ] path:%s", path);
@@ -169,7 +214,7 @@ int ServiceListener::getAllIp() {
 		//add the serviceFather and ipPort to the map serviceFatherToIp
 		addChildren(*it, children);
 	}
-//#ifdef DEBUG
+#ifdef DEBUGS
     cout << 55555555555 << endl;
     cout << serviceFatherToIp.size() << endl;
     for (auto it1 = serviceFatherToIp.begin(); it1 != serviceFatherToIp.end(); ++it1) {
@@ -179,7 +224,7 @@ int ServiceListener::getAllIp() {
         }
         cout << endl;
     }
-//#endif
+#endif
     //todo 这里仅仅是把这个数据结构在config里也保存一份，方面多线程类中对它的访问。因为对Config对象的访问时很简单的.
     //但是这样也有很大的缺点，就是这个数据结构在多个类里存在。感觉很浪费内存，后期好好考虑一下这个东西放在哪个类里会更好
     conf->setServiceFatherToIp(serviceFatherToIp);
@@ -261,4 +306,8 @@ int ServiceListener::loadAllService() {
 	Util::printServiceMap();
 #endif
     return 0;
+}
+
+size_t ServiceListener:getServiceFatherNum() {
+	return serviceFatherToIp.size();
 }

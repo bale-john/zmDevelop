@@ -42,5 +42,7 @@ public:
     void modifyServiceFatherToIp(const string op, const string& path);
     static void watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context);
     static void processDeleteEvent(zhandle_t* zhandle, const string& path);
+    static void processChildEvent(zhandle_t* zhandle, const string& path);
+    size_t getServiceFatherNum();
 };
 #endif
