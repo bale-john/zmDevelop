@@ -13,7 +13,7 @@
 #include "ConstDef.h"
 #include "Util.h"
 #include <netdb.h>
-#include "x86_spinlock.h"
+#include "x86_spinlocks.h"
 using namespace std;
 
 ServiceListener* ServiceListener::slInstance = NULL;
@@ -34,7 +34,8 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
 	string ipPort = path.substr(pos + 1);
 	if (op == ADD) {
 		if (serviceFatherToIp.find(serviceFather) == serviceFatherToIp.end()) {
-			serviceFatherToIp.insert(make_pair(serviceFather, unordered_set(ipPort)));
+			serviceFatherToIp.insert(make_pair(serviceFather, unordered_set<string> ()));
+            serviceFatherToIp[serviceFather].insert(ipPort);
 		}
 		else {
 			serviceFatherToIp[serviceFather].insert(ipPort);
@@ -42,13 +43,13 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
 	}
 	if (op == DELETE) {
 		if (serviceFatherToIp.find(serviceFather) == serviceFatherToIp.end()) {
-			LOG(LOG_DEBUG, "service father: %s doesn't exist", serviceFather);
+			LOG(LOG_DEBUG, "service father: %s doesn't exist", serviceFather.c_str());
 		}
-		else if (serviceFatherToIp[serviceFather].find(ipPort) == serviceFatherToIp[serviceFather],end()){
-			LOG(LOG_DEBUG, "service father: %s doesn't have ipPort %s", serviceFather, ipPort);
+		else if (serviceFatherToIp[serviceFather].find(ipPort) == serviceFatherToIp[serviceFather].end()){
+			LOG(LOG_DEBUG, "service father: %s doesn't have ipPort %s", serviceFather.c_str(), ipPort.c_str());
 		}
 		else {
-			LOG(LOG_DEBUG, "delete service father %s, ip port %s", serviceFather, ipPort)
+			LOG(LOG_DEBUG, "delete service father %s, ip port %s", serviceFather.c_str(), ipPort.c_str());
 			serviceFatherToIp[serviceFather].erase(ipPort);
 		}
 	}
@@ -168,7 +169,7 @@ int ServiceListener::getAllIp() {
 		//add the serviceFather and ipPort to the map serviceFatherToIp
 		addChildren(*it, children);
 	}
-#ifdef DEBUG
+//#ifdef DEBUG
     cout << 55555555555 << endl;
     cout << serviceFatherToIp.size() << endl;
     for (auto it1 = serviceFatherToIp.begin(); it1 != serviceFatherToIp.end(); ++it1) {
@@ -178,7 +179,7 @@ int ServiceListener::getAllIp() {
         }
         cout << endl;
     }
-#endif
+//#endif
     //todo 这里仅仅是把这个数据结构在config里也保存一份，方面多线程类中对它的访问。因为对Config对象的访问时很简单的.
     //但是这样也有很大的缺点，就是这个数据结构在多个类里存在。感觉很浪费内存，后期好好考虑一下这个东西放在哪个类里会更好
     conf->setServiceFatherToIp(serviceFatherToIp);

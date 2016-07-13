@@ -61,6 +61,6 @@ constexpr int NOSCHEDULE = 0;
 //op of mpdify serviceFatherToIp
 const string DELETE = "delete";
 const string ADD = "add";
-const string CLEAR = "clear"
+const string CLEAR = "clear";
 
 #endif
