@@ -310,7 +310,7 @@ int ServiceListener::loadAllService() {
 			loadService(path, serviceFather, *it2, status);
 		}
 		//还是没有异常处理
-		conf->modifyServiceFatherStatus(serviceFather, status);
+		modifyServiceFatherStatus(serviceFather, status);
 	}
 #ifdef DEBUGS
 	Util::printServiceMap();
@@ -323,16 +323,16 @@ size_t ServiceListener::getServiceFatherNum() {
 }
 
 //对这种和较多类有关系的数据结构，一定要注意是否需要加锁
-int Config::modifyServiceFatherStatus(const string& serviceFather, int status, int op) {
+int ServiceListener::modifyServiceFatherStatus(const string& serviceFather, int status, int op) {
 	serviceFatherStatus[serviceFather][status + 1] += op;
 	return 0;
 }
 
-int Config::getServiceFatherStatus(const string& serviceFather, int status) {
+int ServiceListener::getServiceFatherStatus(const string& serviceFather, int status) {
 	return serviceFatherStatus[serviceFather][status + 1];
 }
 
-int Config::modifyServiceFatherStatus(const string& serviceFather, vector<int>& statusv) {
+int ServiceListener::modifyServiceFatherStatus(const string& serviceFather, vector<int>& statusv) {
 	serviceFatherStatus[serviceFather] = statusv;
 	return 0;
 }
