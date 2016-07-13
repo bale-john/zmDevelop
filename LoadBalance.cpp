@@ -19,8 +19,7 @@ using namespace std;
 extern char _zkLockBuf[512];
 
 bool LoadBalance::reBalance = false;
-spinlock_t monitorLock = SPINLOCK_INITIALIZER;
-spinlock_t myServiceFatherLock = SPINLOCK_INITIALIZER;
+
 LoadBalance* LoadBalance::lbInstance = NULL;
 void LoadBalance::processChildEvent(zhandle_t* zhandle, const string path) {
 	LoadBalance* lb = LoadBalance::getInstance();
@@ -29,13 +28,6 @@ void LoadBalance::processChildEvent(zhandle_t* zhandle, const string path) {
 	//the number of registed monitors has changed. So we need rebalance
 	if (path == monitorsPath) {
 		setReBalance();
-		/*
-		LOG(LOG_DEBUG, "rebalance...");
-		lb->setReBalance();
-		lb->getMonitors(true);
-		lb->balance(true);
-		lb->clearReBalance();
-		*/
 	}
 	//serviceFather节点减少了，需要进行负载的重新均衡吗？还是只要把对应的服务接口删除就好了。
 	//或许在serviceListener里监听这个更好？可以知道哪个服务被删除了
@@ -189,21 +181,11 @@ int LoadBalance::getMonitors(bool flag /*=false*/) {
 	if (ret == M_ERR) {
 		return M_ERR;
 	}
-	unordered_set<string> tempMonitors;
 	for (int i = 0; i < monitorNode.count; ++i) {
 		string monitor = string(monitorNode.data[i]);
-		tempMonitors.insert(monitor);
+		monitors.insert(monitor);
 	}
-	spinlock_lock(&monitorLock);
-	if (reBalance && !flag) {
-		spinlock_unlock(&monitorLock);
-		LOG(LOG_INFO, "It's rebalancing and I am not the rebalancer");
-	}
-	else {
-		monitors = tempMonitors;
-		spinlock_unlock(&monitorLock);
-		LOG(LOG_INFO, "There are %d monitors, I am %s", monitors.size(), _zkLockBuf);
-	}
+	LOG(LOG_INFO, "There are %d monitors, I am %s", monitors.size(), _zkLockBuf);
     return M_OK;
 }
 
@@ -252,20 +234,10 @@ int LoadBalance::balance(bool flag /*=false*/) {
 			break;
 		}
 	}
-	vector<string> tempMyServiceFather;
 	for (size_t i = rank; i < md5Node.size(); i += monitors.size()) {
-		tempMyServiceFather.push_back(md5ToServiceFather[md5Node[i]]);
+		myServiceFather.push_back(md5ToServiceFather[md5Node[i]]);
 	}
-	spinlock_lock(&myServiceFatherLock);
-	if (reBalance && !flag) {
-		spinlock_unlock(&myServiceFatherLock);
-		LOG(LOG_INFO, "It's rebalancing and I am not the rebalancer");
-	}
-	else {
-		myServiceFather = tempMyServiceFather;
-		spinlock_unlock(&myServiceFatherLock);
-		LOG(LOG_INFO, "There are %d monitors, I am %s", monitors.size(), _zkLockBuf);
-	}
+	LOG(LOG_INFO, "There are %d monitors, I am %s", monitors.size(), _zkLockBuf);
 #ifdef DEBUG
 	cout << 44444444444 << endl;
     //进行负载均衡后，分配到这个Monitors的serviceFather节点
