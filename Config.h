@@ -22,8 +22,10 @@ private:
 	std::string _instanceName;
 	std::string _zkHost;
 	std::string _zkLogPath;
+	//重要。记录了每一个服务的全路径与serviceItem的对应关系
 	map<string, ServiceItem> _serviceMap;
 	int _zkRecvTimeout;
+	//感觉不应该有这个成员变量
 	unordered_map<string, unordered_set<string>> serviceFatherToIp;
 	//用来保存每个serviceFather拥有各种不同类型的节点的数目
 	unordered_map<string, vector<int>> serviceFatherStatus;

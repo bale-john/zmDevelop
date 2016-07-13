@@ -363,7 +363,7 @@ int runMainThread(Zk* zk_input, const vector<string>& myServiceFather) {
 #ifdef DEBUGM
     cout << "finish one round" << endl;
 #endif
-		//这里为什么要sleep(2)也不是很清楚
+		//why sleep?
 		sleep(2);
 	}
 	//todo 退出标识，退出动作等等都还没写

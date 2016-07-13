@@ -13,6 +13,7 @@
 #include "ConstDef.h"
 #include "Util.h"
 #include <netdb.h>
+#include "x86_spinlock.h"
 using namespace std;
 
 ServiceListener* ServiceListener::slInstance = NULL;
@@ -24,6 +25,41 @@ ServiceListener* ServiceListener::getInstance() {
 	return slInstance;
 }
 
+void ServiceListener::modifyServiceFatherToIp(const string op, const string& path) {
+	if (op == CLEAR) {
+		serviceFatherToIp.clear();
+	}
+	size_t pos = path.rfind('/');
+	string serviceFather = path.substr(0, pos);
+	string ipPort = path.substr(pos + 1);
+	if (op == ADD) {
+		if (serviceFatherToIp.find(serviceFather) == serviceFatherToIp.end()) {
+			serviceFatherToIp.insert(make_pair(serviceFather, unordered_set(ipPort)));
+		}
+		else {
+			serviceFatherToIp[serviceFather].insert(ipPort);
+		}
+	}
+	if (op == DELETE) {
+		if (serviceFatherToIp.find(serviceFather) == serviceFatherToIp.end()) {
+			LOG(LOG_DEBUG, "service father: %s doesn't exist", serviceFather);
+		}
+		else if (serviceFatherToIp[serviceFather].find(ipPort) == serviceFatherToIp[serviceFather],end()){
+			LOG(LOG_DEBUG, "service father: %s doesn't have ipPort %s", serviceFather, ipPort);
+		}
+		else {
+			LOG(LOG_DEBUG, "delete service father %s, ip port %s", serviceFather, ipPort)
+			serviceFatherToIp[serviceFather].erase(ipPort);
+		}
+	}
+}
+
+void ServiceListener::processDeleteEvent(zhandle_t* zhandle, const string& path) {
+	//只可能是某个服务被删除了，因为我只去get过这个节点，后续可以加异常处理
+	//update serviceFatherToIp
+	ServiceListener* sl = ServiceListener::getInstance();
+	sl->modifyServiceFatherToIp(DELETE, path);
+}
 
 void ServiceListener::watcher(zhandle_t* zhandle, int type, int state, const char* path, void* context) {
 	switch (type) {
@@ -44,7 +80,7 @@ void ServiceListener::watcher(zhandle_t* zhandle, int type, int state, const cha
             break;
         case DELETED_EVENT_DEF:
             LOG(LOG_INFO, "zookeeper watcher [ delete event ] path:%s", path);
-            //service is deleted
+            processDeleteEvent(zhandle, string(path));
             break;
         case CHILD_EVENT_DEF:
             LOG(LOG_INFO, "zookeeper watcher [ child event ] path:%s", path);
@@ -84,7 +120,7 @@ int ServiceListener::initEnv() {
 ServiceListener::ServiceListener() : zh(NULL) {
 	conf = Config::getInstance();
 	lb = LoadBalance::getInstance();
-	serviceFatherToIp.clear();
+	modifyServiceFatherToIp(CLEAR, "");
 	initEnv();
 }
 
@@ -127,7 +163,9 @@ int ServiceListener::getAllIp() {
 	vector<string> serviceFather = lb->getMyServiceFather();
 	for (auto it = serviceFather.begin(); it != serviceFather.end(); ++it) {
 		struct String_vector children = {0};
+		//get all ipPort belong to this serviceFather
 		zkGetChildren(*it, &children);
+		//add the serviceFather and ipPort to the map serviceFatherToIp
 		addChildren(*it, children);
 	}
 #ifdef DEBUG

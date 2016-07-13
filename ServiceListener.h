@@ -12,6 +12,7 @@
 #include "Config.h"
 #include "ServiceItem.h"
 #include "LoadBalance.h"
+#include "x86_spinlock.h"
 using namespace std;
 
 class ServiceListener {
@@ -19,9 +20,9 @@ class ServiceListener {
 public:
 	ServiceListener();
 	zhandle_t* zh;
-	//其中的ip是单纯的ip，没有包含前缀路径吧
+	//其中的ip是单纯的ip，没有包含前缀路径，这个结构体可以认为是这个类的核心，不应该放一份拷贝到Config里面
 	unordered_map<string, unordered_set<string>> serviceFatherToIp;
-	//看，这些都是公共的方法，就应该提取出一个父类来的
+	//there exist some common method. I should make a base class maybe
 	int initEnv();
 	int destroyEnv();
 	Config* conf;
@@ -38,6 +39,8 @@ public:
 	int loadAllService();
     int zkGetNode(const char* path, char* data, int* dataLen);
     int getAddrByHost(const char* host, struct in_addr* addr);
+    void modifyServiceFatherToIp(const string op, const string& path);
     static void watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context);
+    static void processDeleteEvent(zhandle_t* zhandle, const string& path);
 };
 #endif
