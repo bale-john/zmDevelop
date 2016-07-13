@@ -53,6 +53,16 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
 			serviceFatherToIp[serviceFather].erase(ipPort);
 		}
 	}
+#ifdef DEBUGS
+	cout << op << 666666666 << path << endl;
+    for (auto it1 = serviceFatherToIp.begin(); it1 != serviceFatherToIp.end(); ++it1) {
+        cout << it1->first << endl;
+        for (auto it2 = (it1->second).begin(); it2 != (it1->second).end(); ++it2) {
+            cout << *it2 << " ";
+        }
+        cout << endl;
+    }
+#endif
 
 }
 
@@ -63,15 +73,24 @@ void ServiceListener::processDeleteEvent(zhandle_t* zhandle, const string& path)
 	sl->modifyServiceFatherToIp(DELETE, path);
 }
 
+size_t ServiceListener::getIpNum(const string& serviceFather) {
+    if (serviceFatherToIp.find(serviceFather) == serviceFatherToIp.end()) {
+        return 0;
+    }
+    else {
+        return serviceFatherToIp[serviceFather].size();
+    }
+}
+
 void ServiceListener::processChildEvent(zhandle_t* zhandle, const string& path) {
 	//只可能是某个serviceFather子节点变化，因为我只get_child过这个节点
 	//这里这个path是serviceFather
 	ServiceListener* sl = ServiceListener::getInstance();
 	struct String_vector children = {0};
-	int ret = zoo_get_children(zh, path.c_str(), 1, &children);
+	int ret = zoo_get_children(zhandle, path.c_str(), 1, &children);
 	if (ret == ZOK) {
 		LOG(LOG_INFO, "get children success");
-		if (children.count < lb->getServiceFatherNum()) {
+		if (children.count <= (int)sl->getIpNum(path)) {
 			LOG(LOG_INFO, "actually It's a delete event");
 		}
 		else {
@@ -79,7 +98,7 @@ void ServiceListener::processChildEvent(zhandle_t* zhandle, const string& path) 
 			LOG(LOG_INFO, "add new service");
 			for (int i = 0; i < children.count; ++i) {
 				string ipPort = string(children.data[i]);
-				lb->modifyServiceFatherToIp(ADD, path + "/" + ipPort);
+				sl->modifyServiceFatherToIp(ADD, path + "/" + ipPort);
 			}
 		}
 		return;
@@ -94,17 +113,6 @@ void ServiceListener::processChildEvent(zhandle_t* zhandle, const string& path) 
 		LOG(LOG_ERROR, "parameter error. zhandle is NULL");
 		return;
 	}
-#ifdef DEBUGS
-	cout << 666666666 << path << endl;
-    cout << serviceFatherToIp.size() << endl;
-    for (auto it1 = serviceFatherToIp.begin(); it1 != serviceFatherToIp.end(); ++it1) {
-        cout << it1->first << endl;
-        for (auto it2 = (it1->second).begin(); it2 != (it1->second).end(); ++it2) {
-            cout << *it2 << " ";
-        }
-        cout << endl;
-    }
-#endif
 }
 
 void ServiceListener::watcher(zhandle_t* zhandle, int type, int state, const char* path, void* context) {
@@ -308,6 +316,6 @@ int ServiceListener::loadAllService() {
     return 0;
 }
 
-size_t ServiceListener:getServiceFatherNum() {
+size_t ServiceListener::getServiceFatherNum() {
 	return serviceFatherToIp.size();
 }

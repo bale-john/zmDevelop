@@ -29,6 +29,7 @@ public:
     int zkGetChildren(const string path, struct String_vector* children);
     static ServiceListener* slInstance;
     LoadBalance* lb;
+    size_t getIpNum(const string& serviceFather);
 
 public:
 	static ServiceListener* getInstance();
