@@ -174,7 +174,9 @@ int ServiceListener::initEnv() {
 ServiceListener::ServiceListener() : zh(NULL) {
 	conf = Config::getInstance();
 	lb = LoadBalance::getInstance();
+	//这是有道理的，因为后续还要加锁。把所有加锁的行为都放在modifyServiceFatherToIp里很好
 	modifyServiceFatherToIp(CLEAR, "");
+	serviceFatherStatus.clear();
 	initEnv();
 }
 
@@ -318,4 +320,19 @@ int ServiceListener::loadAllService() {
 
 size_t ServiceListener::getServiceFatherNum() {
 	return serviceFatherToIp.size();
+}
+
+//对这种和较多类有关系的数据结构，一定要注意是否需要加锁
+int Config::modifyServiceFatherStatus(const string& serviceFather, int status, int op) {
+	serviceFatherStatus[serviceFather][status + 1] += op;
+	return 0;
+}
+
+int Config::getServiceFatherStatus(const string& serviceFather, int status) {
+	return serviceFatherStatus[serviceFather][status + 1];
+}
+
+int Config::modifyServiceFatherStatus(const string& serviceFather, vector<int>& statusv) {
+	serviceFatherStatus[serviceFather] = statusv;
+	return 0;
 }

@@ -30,6 +30,8 @@ public:
     static ServiceListener* slInstance;
     LoadBalance* lb;
     size_t getIpNum(const string& serviceFather);
+    //用来保存每个serviceFather拥有各种不同类型的节点的数目
+	unordered_map<string, vector<int>> serviceFatherStatus;
 
 public:
 	static ServiceListener* getInstance();
@@ -45,5 +47,8 @@ public:
     static void processDeleteEvent(zhandle_t* zhandle, const string& path);
     static void processChildEvent(zhandle_t* zhandle, const string& path);
     size_t getServiceFatherNum();
+    int modifyServiceFatherStatus(const string& serviceFather, int status, int op);
+	int modifyServiceFatherStatus(const string& serviceFather, vector<int>& statusv);
+	int getServiceFatherStatus(const string& serviceFather, int status);
 };
 #endif

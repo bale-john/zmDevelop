@@ -61,14 +61,15 @@ void init(Zk* zk_input, const vector<string>& myServiceFather){
 
 
 bool isOnlyOneUp(string node, int val) {
+	ServiceListener* sl = ServiceListener::getInstance();
 	bool ret = true;
 	size_t pos = node.rfind('/');
 	string serviceFather = node.substr(0, pos);
 	spinlock_lock(&updateServiceLock);
-	if (conf->getServiceFatherStatus(serviceFather, val) > 1) {
+	if (sl->getServiceFatherStatus(serviceFather, val) > 1) {
 		//在锁内部直接把serviceFatherStatus改变了，up的-1，down的+1；
-		conf->modifyServiceFatherStatus(serviceFather, STATUS_UP, 1);
-		conf->modifyServiceFatherStatus(serviceFather, STATUS_DOWN, -1);
+		sl->modifyServiceFatherStatus(serviceFather, STATUS_UP, 1);
+		sl->modifyServiceFatherStatus(serviceFather, STATUS_DOWN, -1);
 		/*
 		--((conf->serviceFatherStatus)[serviceFather][STATUS_UP+1]);
 		++((conf->serviceFatherStatus)[serviceFather][STATUS_DOWN+1]);

@@ -27,8 +27,7 @@ private:
 	int _zkRecvTimeout;
 	//感觉不应该有这个成员变量
 	unordered_map<string, unordered_set<string>> serviceFatherToIp;
-	//用来保存每个serviceFather拥有各种不同类型的节点的数目
-	unordered_map<string, vector<int>> serviceFatherStatus;
+
 	int setValueInt(const string& key, const string& value);
 	int setValueStr(const string& key, const string& value);
 
@@ -61,10 +60,7 @@ public:
 	int addService(string ipPath, ServiceItem serviceItem);
 	//put this method to class Util may be better
 	int printMap();
-	
-	int modifyServiceFatherStatus(const string& serviceFather, int status, int op);
-	int modifyServiceFatherStatus(const string& serviceFather, vector<int>& statusv);
-	int getServiceFatherStatus(const string& serviceFather, int status);
+
 	void clearServiceMap();
 };
 #endif
