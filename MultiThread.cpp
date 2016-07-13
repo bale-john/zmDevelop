@@ -31,7 +31,7 @@
 #include "x86_spinlocks.h"
 using namespace std;
 
-
+extern bool _stop;
 static pthread_t updateServiceThread;
 static pthread_t checkServiceThread[MAX_THREAD_NUM];
 
@@ -101,6 +101,9 @@ void* updateService(void* args) {
     cout << "in update service thread" << endl;
 #endif
 	while (1) {
+        if (_stop) {
+            break;
+        }
 		spinlock_lock(&updateServiceLock);
 		if (updateServiceInfo.empty()) {
 			spinlock_unlock(&updateServiceLock);
@@ -267,9 +270,7 @@ int tryConnect(string curServiceFather) {
 
 //讲道理，这个函数只需要service father和service father和ip的对应，然后去修改updateInfo就好了,目前就最简单的，一个线程负责一个serviceFather
 void* checkService(void* args) {
-#ifdef DEBUGM
     cout << "in check service thread " << endl;
-#endif
 	pthread_t pthreadId = pthread_self();
 	size_t pos = threadPos[pthreadId];
 	string curServiceFather = serviceFather[pos];
@@ -277,6 +278,9 @@ void* checkService(void* args) {
     cout << pthreadId << " " << pos << " " << serviceFather[pos] << " " << curServiceFather << endl;
 #endif
 	while (1) {
+        if (_stop) {
+            break;
+        }
 		//应该先去检查这个节点是什么状态，这里要考虑一下，如果原来就是offline肯定不用管。
 		//如果原来是upline肯定需要管，如果原来是down和unknown呢？这个我觉得可能要
 		//目前只检查上线的
@@ -318,6 +322,9 @@ int runMainThread(Zk* zk_input, const vector<string>& myServiceFather) {
 #ifdef DEBUGM
         cout << "xxxxxxxxxxx" << endl;
 #endif
+        if (_stop) {
+            break;
+        }
 		newThreadNum = serviceFatherToIp.size();
 		//线程需要开满，且需要调度.需要调度与否必须通过参数传一个flag进去
 		if (newThreadNum > MAX_THREAD_NUM) {
@@ -356,11 +363,17 @@ int runMainThread(Zk* zk_input, const vector<string>& myServiceFather) {
 #ifdef DEBUGM
     cout << "finish one round" << endl;
 #endif
-    while (1){ }
 		//这里为什么要sleep(2)也不是很清楚
 		sleep(2);
 	}
 	//todo 退出标识，退出动作等等都还没写
+    void* exitStatus;
+    for (int i = 0; i < oldThreadNum; ++i) {
+        pthread_join(checkServiceThread[i], &exitStatus);
+        cout << "exit check " << i << endl;
+    }
+    pthread_join(updateServiceThread, &exitStatus);
+    cout << "exit update " << endl;
     cout << "fffffffff" << endl;
     return 0;
 }

@@ -47,7 +47,8 @@ int main(int argc, char** argv){
 
 		}
 	}
-
+    //maybe we need it to make the child process wait a while
+    //sleep(2);
 	while (1) {
         cout << "mainloop start" << endl;
 		LOG(LOG_INFO, " main loop start -> !!!!!!");
@@ -135,10 +136,10 @@ int main(int argc, char** argv){
 		//这里如何加锁也都还没考虑，因为加了watch之后(?)可能会有不止一个线程在操作的数据结构都需要加锁，目前还没有考虑，最后统一加吧
 		serviceListener->loadAllService();
         cout << "runMainThread" << endl;
+        _stop = true;
 
 		//load service complete. So can do multithread module?
         runMainThread(_zk, lb->getMyServiceFather());
-        while (1){}
 
         //seems it's important !! Remember to close it always
 		delete lb;

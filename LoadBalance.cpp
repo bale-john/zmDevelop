@@ -92,6 +92,7 @@ int LoadBalance::destroyEnv() {
 		zookeeper_close(zh);
 		zh = NULL;
 	}
+    lbInstance = NULL;
 	return M_OK;
 }
 

@@ -26,14 +26,14 @@ public:
 	int destroyEnv();
 	Config* conf;
     int zkGetChildren(const string path, struct String_vector* children);
-    ServiceListener* slInstance;
+    static ServiceListener* slInstance;
     LoadBalance* lb;
 
 public:
 	static ServiceListener* getInstance();
 	~ServiceListener();
 	int addChildren(const string serviceFather, struct String_vector children);
-	int getAllIp(const vector<string> serviceFather);
+	int getAllIp();
 	int loadService(string path, string serviceFather, string ipPort, vector<int>& );
 	int loadAllService();
     int zkGetNode(const char* path, char* data, int* dataLen);

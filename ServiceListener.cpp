@@ -2,6 +2,8 @@
 #include <vector>
 #include <iostream>
 #include <zookeeper.h>
+#include <signal.h>
+#include <sys/types.h>
 #include <zk_adaptor.h>
 #include "Config.h"
 #include "ServiceItem.h"
@@ -47,7 +49,7 @@ void ServiceListener::watcher(zhandle_t* zhandle, int type, int state, const cha
         case CHILD_EVENT_DEF:
             LOG(LOG_INFO, "zookeeper watcher [ child event ] path:%s", path);
             //the number of service changed
-            processChildEvent(zhandle, string(path));
+            //processChildEvent(zhandle, string(path));
             break;
         case CHANGED_EVENT_DEF:
             LOG(LOG_INFO, "zookeeper watcher [ change event ] path:%s", path);
@@ -62,6 +64,7 @@ int ServiceListener::destroyEnv() {
 		zookeeper_close(zh);
 		zh = NULL;
 	}
+    slInstance = NULL;
 	return M_OK;
 }
 
