@@ -124,6 +124,20 @@ void ServiceListener::processChildEvent(zhandle_t* zhandle, const string& path) 
 	}
 }
 
+void ServiceListener::processChangedEvent(zhandle_t* zhandle, const string& path) {
+	ServiceListener* sl = ServiceListener::getInstance();
+	Config* conf = Config::getInstance();
+	int oldStatus = ((conf->getServiceMap)[serviceFather]).getStatus();
+
+	int newStatus = STATUS_UNKNOWN;
+	char data[16] = {0};
+	int dataLen = 16;
+	int ret = zoo_get(zh, path, 1, data, dataLen, NULL);
+	newStatus = atoi(data);
+	sl->modifyServiceFatherStatus(serviceFather, oldStatus, -1);
+	sl->modifyServiceFatherStatus(serviceFather, newStatus, 1);
+}
+
 void ServiceListener::watcher(zhandle_t* zhandle, int type, int state, const char* path, void* context) {
 	switch (type) {
 		case SESSION_EVENT_DEF:
@@ -152,7 +166,7 @@ void ServiceListener::watcher(zhandle_t* zhandle, int type, int state, const cha
             break;
         case CHANGED_EVENT_DEF:
             LOG(LOG_INFO, "zookeeper watcher [ change event ] path:%s", path);
-            //the status of service changed
+            processChangedEvent(zhandle, string(path));
             break;
 	}
 }
