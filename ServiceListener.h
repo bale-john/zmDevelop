@@ -27,6 +27,7 @@ public:
 	Config* conf;
     int zkGetChildren(const string path, struct String_vector* children);
     ServiceListener* slInstance;
+    LoadBalance* lb;
 
 public:
 	static ServiceListener* getInstance();

@@ -131,7 +131,7 @@ int main(int argc, char** argv){
 
 		//after load balance. Each monitor should load the service to Config
 		ServiceListener* serviceListener = ServiceListener::getInstance();
-		serviceListener->getAllIp(lb->getMyServiceFather());
+		serviceListener->getAllIp();
 		//这里如何加锁也都还没考虑，因为加了watch之后(?)可能会有不止一个线程在操作的数据结构都需要加锁，目前还没有考虑，最后统一加吧
 		serviceListener->loadAllService();
         cout << "runMainThread" << endl;

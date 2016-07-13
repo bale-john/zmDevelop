@@ -80,6 +80,7 @@ int ServiceListener::initEnv() {
 
 ServiceListener::ServiceListener() : zh(NULL) {
 	conf = Config::getInstance();
+	lb = LoadBalance::getInstance();
 	serviceFatherToIp.clear();
 	initEnv();
 }
@@ -119,7 +120,8 @@ int ServiceListener::zkGetChildren(const string path, struct String_vector* chil
 }
 
 //get all ip belong to my service father
-int ServiceListener::getAllIp(const vector<string> serviceFather) {
+int ServiceListener::getAllIp() {
+	vector<string> serviceFather = lb->getMyServiceFather();
 	for (auto it = serviceFather.begin(); it != serviceFather.end(); ++it) {
 		struct String_vector children = {0};
 		zkGetChildren(*it, &children);
