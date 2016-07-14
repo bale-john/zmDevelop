@@ -58,7 +58,7 @@ int main(int argc, char** argv){
             dp();
             delete _zk;
         }
-		_zk = new Zk();
+		_zk = Zk::getInstance();
 		string zkHost = conf->getZkHost();
 		string zkLogPath = conf->getZkLogPath();
 		int recvTimeout = conf->getZkRecvTimeout();
@@ -77,7 +77,7 @@ int main(int argc, char** argv){
 		}
 
 		/******************************
-		// haven't consider watcher!!! 
+		// haven't consider locks!!! 
 		******************************/
 
 		//check qconf_monitor_lock_node/default_instance/md5_list

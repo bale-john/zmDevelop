@@ -137,7 +137,7 @@ void MultiThread::updateService() {
 			continue;
 		}
 		//可以进行更新
-		//1.更新zk，这应该不用设置watch，那最好就用zk类来做咯
+		//1.更新zk，这应该不用设置watch，那最好就用zk类来做
         updateZk(key, val);
 		//2.更新conf
 		updateConf(key, val);

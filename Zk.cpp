@@ -16,6 +16,19 @@ using namespace std;
 //临时解决方案，把_zkLockBuf作为非静态全局变量，使得它对所有文件可见。最后还是应该把注册monitor移到loadbalance类里才是正途
 char _zkLockBuf[512] = {0};
 
+Zk* Zk::zk = NULL;
+
+Zk* Zk::getInstance() {
+	if (!zk) {
+		zk = new Zk();
+	}
+	return zk;
+}
+
+void Zk::processDeleteEvent(zhandle_t* zhandle, const string& path) {
+	//if (path == )
+}
+
 //Zk中的watcher只负责处理与zk的会话断开怎么办，因为monitor注册是有zk完成的，这里断开相当于丢失了一个monitor，肯定要重新启动main loop
 void Zk::watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context){
 	dp();
@@ -39,6 +52,7 @@ void Zk::watcher(zhandle_t* zhandle, int type, int state, const char* node, void
             break;
         case DELETED_EVENT_DEF:
             LOG(LOG_DEBUG, "[ deleted event ] ...");
+            processDeleteEvent(zhandle, string(node));
             break;
         case CHANGED_EVENT_DEF:
             LOG(LOG_DEBUG, "[ changed event ] ...");
@@ -49,6 +63,7 @@ void Zk::watcher(zhandle_t* zhandle, int type, int state, const char* node, void
 }
 
 Zk::Zk():_zh(NULL), _recvTimeout(3000), _zkLogPath(""), _zkHost(""), _zkLogFile(NULL) {
+	conf = Config::getInstance();
 }
 
 int Zk::initEnv(const string zkHost, const string zkLogPath, const int recvTimeout) {
@@ -81,6 +96,7 @@ void Zk::destroyEnv() {
 	if (_zh) {
 		zookeeper_close(_zh);
 	}
+	zk = NULL;
 }
 
 Zk::~Zk(){
@@ -113,7 +129,7 @@ bool Zk::znodeExist(const string& path) {
 		return false;
 	}
 	struct Stat stat;
-	int ret = zoo_exists(_zh, path.c_str(), 0, &stat);
+	int ret = zoo_exists(_zh, path.c_str(), 1, &stat);
 	if (ret == ZOK) {
 		LOG(LOG_INFO, "node exist. node: %s", path.c_str());
 		return true;
