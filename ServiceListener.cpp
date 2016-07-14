@@ -72,7 +72,15 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
         cout << endl;
     }
 #endif
-
+#ifdef DEBUGSS
+	for (auto it = serviceFatherStatus.begin(); it != serviceFatherStatus.end(); ++it) {
+		cout << it->first << endl;
+		for (auto it1 = (it->second).begin(); it1 != (it->second).end(); ++it1) {
+			cout << *it1 << " ";
+		}
+		cout << endl;
+	}
+#endif
 }
 
 void ServiceListener::processDeleteEvent(zhandle_t* zhandle, const string& path) {
@@ -337,6 +345,15 @@ int ServiceListener::loadAllService() {
 		//还是没有异常处理
 		modifyServiceFatherStatus(serviceFather, status);
 	}
+#ifdef DEBUGSS
+	for (auto it = serviceFatherStatus.begin(); it != serviceFatherStatus.end(); ++it) {
+		cout << it->first << endl;
+		for (auto it1 = (it->second).begin(); it1 != (it->second).end(); ++it1) {
+			cout << *it1 << " ";
+		}
+		cout << endl;
+	}
+#endif
 #ifdef DEBUGS
 	Util::printServiceMap();
 #endif
