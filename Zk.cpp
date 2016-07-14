@@ -7,6 +7,7 @@
 #include <string>
 #include <iostream>
 #include "ConstDef.h"
+#include "Config.h"
 #include "Util.h"
 #include "Log.h"
 #include <errno.h>

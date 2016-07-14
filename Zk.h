@@ -7,6 +7,7 @@
 #include <iostream>
 #include <zookeeper.h>
 #include <zk_adaptor.h>
+#include "Config.h"
 using namespace std;
 
 class Zk{
