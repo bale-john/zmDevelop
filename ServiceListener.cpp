@@ -24,7 +24,7 @@ ServiceListener* ServiceListener::getInstance() {
 	}
 	return slInstance;
 }
-
+//path is the path of ipPort
 void ServiceListener::modifyServiceFatherToIp(const string op, const string& path) {
 	if (op == CLEAR) {
 		serviceFatherToIp.clear();
@@ -32,21 +32,38 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
 	size_t pos = path.rfind('/');
 	string serviceFather = path.substr(0, pos);
 	string ipPort = path.substr(pos + 1);
+    //一个很诡异的错误，如果我把下面的代码放在这里，就会导致子进程不断死亡
+    /*
+    int status = STATUS_UNKNOWN;
+    char data[16] = {0};
+    int dataLen = 16;
+    int ret = zoo_get(zh, path.c_str(), 1, data, &dataLen, NULL);
+    status = atoi(data);
+    */
 	if (op == ADD) {
 		if (serviceFatherToIp.find(serviceFather) == serviceFatherToIp.end()) {
 			serviceFatherToIp.insert(make_pair(serviceFather, unordered_set<string> ()));
             serviceFatherToIp[serviceFather].insert(ipPort);
+            int status = STATUS_UNKNOWN;
+            char data[16] = {0};
+            int dataLen = 16;
+            int ret = zoo_get(zh, path.c_str(), 1, data, &dataLen, NULL);
+            status = atoi(data);
+            modifyServiceFatherStatus(serviceFather, status, 1);
 		}
 		else {
-			serviceFatherToIp[serviceFather].insert(ipPort);
+            auto it = serviceFatherToIp.find(serviceFather);
+            if ((it->second).find(ipPort) == (it->second).end()) {
+                serviceFatherToIp[serviceFather].insert(ipPort);
+                //modify the serviceFatherStatus.serviceFatherStatus changed too
+                int status = STATUS_UNKNOWN;
+                char data[16] = {0};
+                int dataLen = 16;
+                int ret = zoo_get(zh, path.c_str(), 1, data, &dataLen, NULL);
+                status = atoi(data);
+                modifyServiceFatherStatus(serviceFather, status, 1);
+            }
 		}
-		//modify the serviceFatherStatus.随着服务的增加和减少，serviceFatherStatus也要随着改变
-		int status = STATUS_UNKNOWN;
-		char data[16] = {0};
-		int dataLen = 16;
-		int ret = zoo_get(zh, path.c_str(), 1, data, &dataLen, NULL);
-		status = atoi(data);
-		modifyServiceFatherStatus(serviceFather, status, 1);
 	}
 	if (op == DELETE) {
 		if (serviceFatherToIp.find(serviceFather) == serviceFatherToIp.end()) {
@@ -58,9 +75,9 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
 		else {
 			LOG(LOG_DEBUG, "delete service father %s, ip port %s", serviceFather.c_str(), ipPort.c_str());
 			serviceFatherToIp[serviceFather].erase(ipPort);
+            int status = (conf->getServiceItem(path)).getStatus();
+            modifyServiceFatherStatus(serviceFather, status, -1);
 		}
-		int status = (conf->getServiceItem(path)).getStatus();
-		modifyServiceFatherStatus(serviceFather, status, -1);
 	}
 #ifdef DEBUGS
 	cout << op << 666666666 << path << endl;
@@ -74,6 +91,9 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
 #endif
 #ifdef DEBUGSS
 	for (auto it = serviceFatherStatus.begin(); it != serviceFatherStatus.end(); ++it) {
+        if (it->first != "/qconf/demo/test/hosts") {
+            continue;
+        }
 		cout << it->first << endl;
 		for (auto it1 = (it->second).begin(); it1 != (it->second).end(); ++it1) {
 			cout << *it1 << " ";
@@ -347,6 +367,9 @@ int ServiceListener::loadAllService() {
 	}
 #ifdef DEBUGSS
 	for (auto it = serviceFatherStatus.begin(); it != serviceFatherStatus.end(); ++it) {
+        if (it->first != "/qconf/demo/test/hosts") {
+            continue;
+        }
 		cout << it->first << endl;
 		for (auto it1 = (it->second).begin(); it1 != (it->second).end(); ++it1) {
 			cout << *it1 << " ";
