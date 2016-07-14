@@ -124,6 +124,9 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
 		cout << endl;
 	}
 #endif
+#ifdef DEBUGSSS
+	Util::printServiceMap();
+#endif
 }
 
 void ServiceListener::processDeleteEvent(zhandle_t* zhandle, const string& path) {
@@ -399,7 +402,7 @@ int ServiceListener::loadAllService() {
 		cout << endl;
 	}
 #endif
-#ifdef DEBUGS
+#ifdef DEBUGSSS
 	Util::printServiceMap();
 #endif
     return 0;

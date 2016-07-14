@@ -205,6 +205,11 @@ string Config::getMonitorList() {
 
 int Config::printMap() {
 	for (auto it = _serviceMap.begin(); it != _serviceMap.end(); ++it) {
+#ifdef DEBUGSSS
+		if ((it->second).getServiceFather() != "/qconf/demo/test/hosts") {
+			continue;
+		}
+#endif
 		cout << it->first << endl;
 		cout << "host: " << (it->second).getHost() << endl;
 		cout << "port: " << (it->second).getPort() << endl;
