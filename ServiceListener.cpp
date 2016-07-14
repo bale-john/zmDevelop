@@ -105,6 +105,9 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
 #ifdef DEBUGS
 	cout << op << 666666666 << path << endl;
     for (auto it1 = serviceFatherToIp.begin(); it1 != serviceFatherToIp.end(); ++it1) {
+        if (it->first != "/qconf/demo/test/hosts") {
+            continue;
+        }
         cout << it1->first << endl;
         for (auto it2 = (it1->second).begin(); it2 != (it1->second).end(); ++it2) {
             cout << *it2 << " ";
@@ -113,6 +116,7 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
     }
 #endif
 #ifdef DEBUGSS
+	cout << op << 77777777 << path << endl;
 	for (auto it = serviceFatherStatus.begin(); it != serviceFatherStatus.end(); ++it) {
         if (it->first != "/qconf/demo/test/hosts") {
             continue;
@@ -125,6 +129,7 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
 	}
 #endif
 #ifdef DEBUGSSS
+	cout << op << 888888 << path << endl;
 	Util::printServiceMap();
 #endif
 }
@@ -307,8 +312,10 @@ int ServiceListener::getAllIp() {
 	}
 #ifdef DEBUGS
     cout << 55555555555 << endl;
-    cout << serviceFatherToIp.size() << endl;
     for (auto it1 = serviceFatherToIp.begin(); it1 != serviceFatherToIp.end(); ++it1) {
+        if (it->first != "/qconf/demo/test/hosts") {
+            continue;
+        }
         cout << it1->first << endl;
         for (auto it2 = (it1->second).begin(); it2 != (it1->second).end(); ++it2) {
             cout << *it2 << " ";
@@ -391,6 +398,7 @@ int ServiceListener::loadAllService() {
 		modifyServiceFatherStatus(serviceFather, status);
 	}
 #ifdef DEBUGSS
+	cout << 444444444 << endl;
 	for (auto it = serviceFatherStatus.begin(); it != serviceFatherStatus.end(); ++it) {
         if (it->first != "/qconf/demo/test/hosts") {
             continue;
@@ -403,6 +411,7 @@ int ServiceListener::loadAllService() {
 	}
 #endif
 #ifdef DEBUGSSS
+	cout << 3333333333 << endl;
 	Util::printServiceMap();
 #endif
     return 0;
