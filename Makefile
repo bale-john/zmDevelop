@@ -2,7 +2,7 @@
 
 # PARAMS
 #CC 		= g++ -std=c++11 -D DEBUG
-CC 		= g++ -std=c++11 -D DEBUGSS
+CC 		= g++ -std=c++11 -D DEBUGSSS -D DEBUGSS -D DEBUGS
 CCFLAGS = -c -Wall -I /usr/local/include/zookeeper 
 ZOO_LIB = /usr/local/lib/libzookeeper_mt.a
 OBJS = Config.o Agent.o Util.o \

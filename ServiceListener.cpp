@@ -87,8 +87,6 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
 		}
 	}
 	if (op == DELETE) {
-		//uodate serviceMap
-		conf->deleteService(path);
 		if (serviceFatherToIp.find(serviceFather) == serviceFatherToIp.end()) {
 			LOG(LOG_DEBUG, "service father: %s doesn't exist", serviceFather.c_str());
 		}
@@ -101,11 +99,13 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
             int status = (conf->getServiceItem(path)).getStatus();
             modifyServiceFatherStatus(serviceFather, status, -1);
 		}
+		//uodate serviceMap
+		conf->deleteService(path);
 	}
 #ifdef DEBUGS
 	cout << op << 666666666 << path << endl;
     for (auto it1 = serviceFatherToIp.begin(); it1 != serviceFatherToIp.end(); ++it1) {
-        if (it->first != "/qconf/demo/test/hosts") {
+        if (it1->first != "/qconf/demo/test/hosts") {
             continue;
         }
         cout << it1->first << endl;
@@ -313,7 +313,7 @@ int ServiceListener::getAllIp() {
 #ifdef DEBUGS
     cout << 55555555555 << endl;
     for (auto it1 = serviceFatherToIp.begin(); it1 != serviceFatherToIp.end(); ++it1) {
-        if (it->first != "/qconf/demo/test/hosts") {
+        if (it1->first != "/qconf/demo/test/hosts") {
             continue;
         }
         cout << it1->first << endl;
