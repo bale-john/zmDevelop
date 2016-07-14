@@ -49,6 +49,17 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
         char data[16] = {0};
         int dataLen = 16;
         int ret = zoo_get(zh, path.c_str(), 1, data, &dataLen, NULL);
+        if (ret == ZOK) {
+            LOG(LOG_INFO, "get node:%s success", __FUNCTION__, path.c_str());
+        }
+        else if (ret == ZNONODE) {
+            LOG(LOG_TRACE, "%s...out...node:%s not exist.", __FUNCTION__, path.c_str());
+            return;
+        }
+        else {
+            LOG(LOG_ERROR, "parameter error. zhandle is NULL");
+            return;
+        }
         status = atoi(data);
 		//这里好像还少几个成员没有设置 connRetry和connTimeout
         ServiceItem item;
@@ -81,6 +92,17 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
                 char data[16] = {0};
                 int dataLen = 16;
                 int ret = zoo_get(zh, path.c_str(), 1, data, &dataLen, NULL);
+                if (ret == ZOK) {
+                    LOG(LOG_INFO, "get node:%s success", __FUNCTION__, path.c_str());
+                }
+                else if (ret == ZNONODE) {
+                    LOG(LOG_TRACE, "%s...out...node:%s not exist.", __FUNCTION__, path.c_str());
+                    return;
+                }
+                else {
+                    LOG(LOG_ERROR, "parameter error. zhandle is NULL");
+                    return;
+                }
                 status = atoi(data);
                 modifyServiceFatherStatus(serviceFather, status, 1);
             }
@@ -183,6 +205,17 @@ void ServiceListener::processChangedEvent(zhandle_t* zhandle, const string& path
 	char data[16] = {0};
 	int dataLen = 16;
 	int ret = zoo_get(zhandle, path.c_str(), 1, data, &dataLen, NULL);
+    if (ret == ZOK) {
+        LOG(LOG_INFO, "get node:%s success", __FUNCTION__, path.c_str());
+    }
+    else if (ret == ZNONODE) {
+        LOG(LOG_TRACE, "%s...out...node:%s not exist.", __FUNCTION__, path.c_str());
+        return;
+    }
+    else {
+        LOG(LOG_ERROR, "parameter error. zhandle is NULL");
+        return;
+    }
 	newStatus = atoi(data);
     size_t pos = path.rfind('/');
     string serviceFather = path.substr(0, pos);
