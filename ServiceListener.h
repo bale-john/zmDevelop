@@ -46,6 +46,7 @@ public:
     static void watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context);
     static void processDeleteEvent(zhandle_t* zhandle, const string& path);
     static void processChildEvent(zhandle_t* zhandle, const string& path);
+    static void processChangedEvent(zhandle_t* zhandle, const string& path);
     size_t getServiceFatherNum();
     int modifyServiceFatherStatus(const string& serviceFather, int status, int op);
 	int modifyServiceFatherStatus(const string& serviceFather, vector<int>& statusv);

@@ -222,7 +222,7 @@ int Config::addService(string ipPath, ServiceItem serviceItem) {
     return 0;
 }
 
-map<string, ServiceItem> Config::getServiceMap() {
+map<string, ServiceItem>& Config::getServiceMap() {
 	return _serviceMap;
 }
 
@@ -242,3 +242,6 @@ int Config::setServiceMap(string node, int val) {
 	return 0;
 }
 
+ServiceItem& Config::getServiceItem(const string& ipPath) {
+    return _serviceMap[ipPath];
+}

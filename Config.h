@@ -58,6 +58,7 @@ public:
 
 	//这个名字不应该叫add，叫set，方便其他对象调用
 	int addService(string ipPath, ServiceItem serviceItem);
+    ServiceItem& getServiceItem(const string& ipPath);
 	//put this method to class Util may be better
 	int printMap();
 

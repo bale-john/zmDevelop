@@ -44,9 +44,9 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
 		int status = STATUS_UNKNOWN;
 		char data[16] = {0};
 		int dataLen = 16;
-		int ret = zoo_get(zh, path, 1, data, dataLen, NULL);
+		int ret = zoo_get(zh, path.c_str(), 1, data, &dataLen, NULL);
 		status = atoi(data);
-		modifyServiceFatherStatus(serviceFather, status, 1)
+		modifyServiceFatherStatus(serviceFather, status, 1);
 	}
 	if (op == DELETE) {
 		if (serviceFatherToIp.find(serviceFather) == serviceFatherToIp.end()) {
@@ -59,7 +59,7 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
 			LOG(LOG_DEBUG, "delete service father %s, ip port %s", serviceFather.c_str(), ipPort.c_str());
 			serviceFatherToIp[serviceFather].erase(ipPort);
 		}
-		status = ((conf->getServiceMap)[serviceFather]).getStatus();
+		int status = (conf->getServiceItem(path)).getStatus();
 		modifyServiceFatherStatus(serviceFather, status, -1);
 	}
 #ifdef DEBUGS
@@ -127,13 +127,15 @@ void ServiceListener::processChildEvent(zhandle_t* zhandle, const string& path) 
 void ServiceListener::processChangedEvent(zhandle_t* zhandle, const string& path) {
 	ServiceListener* sl = ServiceListener::getInstance();
 	Config* conf = Config::getInstance();
-	int oldStatus = ((conf->getServiceMap)[serviceFather]).getStatus();
+	int oldStatus = (conf->getServiceItem(path)).getStatus();
 
 	int newStatus = STATUS_UNKNOWN;
 	char data[16] = {0};
 	int dataLen = 16;
-	int ret = zoo_get(zh, path, 1, data, dataLen, NULL);
+	int ret = zoo_get(zhandle, path.c_str(), 1, data, &dataLen, NULL);
 	newStatus = atoi(data);
+    size_t pos = path.rfind('/');
+    string serviceFather = path.substr(0, pos);
 	sl->modifyServiceFatherStatus(serviceFather, oldStatus, -1);
 	sl->modifyServiceFatherStatus(serviceFather, newStatus, 1);
 }
