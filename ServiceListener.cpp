@@ -401,3 +401,7 @@ int ServiceListener::modifyServiceFatherStatus(const string& serviceFather, vect
 	serviceFatherStatus[serviceFather] = statusv;
 	return 0;
 }
+
+unordered_map<string, unordered_set<string>>& Config::getServiceFatherToIp() {
+	return serviceFatherToIp;
+}

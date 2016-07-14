@@ -226,15 +226,6 @@ map<string, ServiceItem>& Config::getServiceMap() {
 	return _serviceMap;
 }
 
-int Config::setServiceFatherToIp(unordered_map<string, unordered_set<string>> sft) {
-	serviceFatherToIp = sft;
-    return 0;
-}
-
-unordered_map<string, unordered_set<string>>& Config::getServiceFatherToIp() {
-	return serviceFatherToIp;
-}
-
 int Config::setServiceMap(string node, int val) {
 	//todo 同样缺异常判断，比如找不到怎么办啊什么的，还有这里锁怎么加？
 	ServiceItem item = _serviceMap[node];

@@ -36,6 +36,7 @@ static pthread_t updateServiceThread;
 static pthread_t checkServiceThread[MAX_THREAD_NUM];
 
 static Config* conf;
+static ServiceListener* sl;
 static unordered_map<string, int> updateServiceInfo;
 static list<string> priority;
 static spinlock_t updateServiceLock;
@@ -55,6 +56,7 @@ void init(Zk* zk_input, const vector<string>& myServiceFather){
     }
 #endif
 	conf = Config::getInstance();
+	sl = ServiceListener::getInstance();
 	updateServiceLock = SPINLOCK_INITIALIZER;
 }
 
@@ -245,7 +247,7 @@ int isServiceExist(struct in_addr *addr, char* host, int port, int timeout, int 
 int tryConnect(string curServiceFather) {
 	//这里也好浪费，我只要知道一个serviceFather，结果全都拿过来了。先写着 todo
 	map<string, ServiceItem> serviceMap = conf->getServiceMap();
-	unordered_map<string, unordered_set<string>> serviceFatherToIp = conf->getServiceFatherToIp();
+	unordered_map<string, unordered_set<string>> serviceFatherToIp = sl->getServiceFatherToIp();
 	unordered_set<string> ip = serviceFatherToIp[curServiceFather];
 #ifdef DEBUGM
 	for (auto it = ip.begin(); it != ip.end(); ++it) {
@@ -299,7 +301,7 @@ int runMainThread(Zk* zk_input, const vector<string>& myServiceFather) {
 	int schedule = NOSCHEDULE;
     //没有考虑异常，如pthread不成功等
 	pthread_create(&updateServiceThread, NULL, updateService, NULL);
-	unordered_map<string, unordered_set<string>> serviceFatherToIp = conf->getServiceFatherToIp();
+	unordered_map<string, unordered_set<string>> serviceFatherToIp = sl->getServiceFatherToIp();
 #ifdef DEBUGM
     for (auto it1 = serviceFatherToIp.begin(); it1 != serviceFatherToIp.end(); ++it1) {
         cout << it1->first << endl;
