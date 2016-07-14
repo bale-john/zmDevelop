@@ -25,6 +25,7 @@ private:
 	static MultiThread* mlInstance;
 	Config* conf;
 	ServiceListener* sl;
+    LoadBalance* lb;
 	unordered_map<string, int> updateServiceInfo;
 	list<string> priority;
 	//每个检查线程的pthread_t和该检车线程在线程池中的下标的对应关系
@@ -33,17 +34,18 @@ private:
 
 public:
 	~MultiThread();
-	MultiThread* getInstance(Zk*);
+	static MultiThread* getInstance(Zk*);
+    static MultiThread* getInstance();
 	int runMainThread();
 	static void* staticUpdateService(void* args);
 	static void* staticCheckService(void* args);
 	void checkService();
-	void updateService()
+	void updateService();
 	int tryConnect(string curServiceFather);
 	int isServiceExist(struct in_addr *addr, char* host, int port, int timeout, int curStatus);
 
 	int updateConf(string node, int val);
 	int updateZk(string node, int val);
-	bool isOnlyOneUp(string node, int val)
+	bool isOnlyOneUp(string node, int val);
 };
 #endif

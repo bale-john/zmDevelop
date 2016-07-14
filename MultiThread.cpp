@@ -36,18 +36,23 @@ static pthread_t updateServiceThread;
 static pthread_t checkServiceThread[MAX_THREAD_NUM];
 static spinlock_t updateServiceLock;
 
-MultiThread* MultiThread::ml = NULL;
+MultiThread* MultiThread::mlInstance = NULL;
 
 MultiThread* MultiThread::getInstance(Zk* zk_input) {
 	if (!mlInstance) {
 		mlInstance = new MultiThread(zk_input);
 	}
-	return ml;
+	return mlInstance;
+}
+
+MultiThread* MultiThread::getInstance() {
+    return mlInstance;
 }
 
 MultiThread::MultiThread(Zk* zk_input) : zk(zk_input) {
 	conf = Config::getInstance();
 	sl = ServiceListener::getInstance();
+    lb = LoadBalance::getInstance();
 	updateServiceLock = SPINLOCK_INITIALIZER;
 }
 
@@ -141,7 +146,7 @@ void MultiThread::updateService() {
 #ifdef DEBUGM
     cout << "out update service" << endl;
 #endif
-    pthread_exit(0);
+    return;
 }
 
 int MultiThread::isServiceExist(struct in_addr *addr, char* host, int port, int timeout, int curStatus) {
@@ -269,7 +274,7 @@ void MultiThread::checkService() {
     cout << "in check service thread " << endl;
 	pthread_t pthreadId = pthread_self();
 	size_t pos = threadPos[pthreadId];
-	string curServiceFather = serviceFather[pos];
+	string curServiceFather = (lb->getMyServiceFather())[pos];
 #ifdef DEBUGM
     cout << pthreadId << " " << pos << " " << serviceFather[pos] << " " << curServiceFather << endl;
 #endif
@@ -285,20 +290,22 @@ void MultiThread::checkService() {
 		//这里得维护一个数据结构来进行线程的调度，先放着 todo，因为目前是最简单的一个线程负责一个serviceFather
 		//if ()
 	}
-    pthread_exit(0);
+    return;
 }
 
 void* MultiThread::staticUpdateService(void* args) {
 	MultiThread* ml = MultiThread::getInstance();
 	ml->updateService();
+    pthread_exit(0);
 }
 
 void* MultiThread::staticCheckService(void* args) {
-	MultiThread::ml = MultiThread::getInstance();
+	MultiThread* ml = MultiThread::getInstance();
 	ml->checkService();
+    pthread_exit(0);
 }
 //TODO 主线程肯定是要考虑配置重载什么的这些事情的
-MultiThread::runMainThread() {
+int MultiThread::runMainThread() {
 	int schedule = NOSCHEDULE;
     //没有考虑异常，如pthread不成功等
 	pthread_create(&updateServiceThread, NULL, staticUpdateService, NULL);
