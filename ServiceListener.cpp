@@ -45,31 +45,31 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
     status = atoi(data);
     */
 	if (op == ADD) {
+        int status = STATUS_UNKNOWN;
+        char data[16] = {0};
+        int dataLen = 16;
+        int ret = zoo_get(zh, path.c_str(), 1, data, &dataLen, NULL);
+        status = atoi(data);
 		//这里好像还少几个成员没有设置 connRetry和connTimeout
         ServiceItem item;
         item.setServiceFather(serviceFather);
         item.setStatus(status);
         item.setHost(ip);
-        item.setPort(port);
+        item.setPort(atoi(port.c_str()));
         struct in_addr addr;
 		getAddrByHost(ip.c_str(), &addr);
-		serviceItem.setAddr(&addr);
-		if ((conf->getServiceMap).find(path) == (conf->getServiceMap).end()) {
-			conf->addService(path, serviceItem);//都是需要加锁的，还没加
+		item.setAddr(&addr);
+		if ((conf->getServiceMap()).find(path) == (conf->getServiceMap()).end()) {
+			conf->addService(path, item);//都是需要加锁的，还没加
 		}
 		else {
 			conf->deleteService(path);
-			conf->addService(path, serviceItem);
+			conf->addService(path, item);
 		}
 
 		if (serviceFatherToIp.find(serviceFather) == serviceFatherToIp.end()) {
 			serviceFatherToIp.insert(make_pair(serviceFather, unordered_set<string> ()));
             serviceFatherToIp[serviceFather].insert(ipPort);
-            int status = STATUS_UNKNOWN;
-            char data[16] = {0};
-            int dataLen = 16;
-            int ret = zoo_get(zh, path.c_str(), 1, data, &dataLen, NULL);
-            status = atoi(data);
             modifyServiceFatherStatus(serviceFather, status, 1);
 		}
 		else {
@@ -190,7 +190,7 @@ void ServiceListener::processChangedEvent(zhandle_t* zhandle, const string& path
 	sl->modifyServiceFatherStatus(serviceFather, oldStatus, -1);
 	sl->modifyServiceFatherStatus(serviceFather, newStatus, 1);
 	//update serviceMap
-	(conf->getServiceItem()).setStatus(newStatus);
+	(conf->getServiceItem(serviceFather)).setStatus(newStatus);
 }
 
 void ServiceListener::watcher(zhandle_t* zhandle, int type, int state, const char* path, void* context) {
