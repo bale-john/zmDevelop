@@ -34,35 +34,28 @@ using namespace std;
 extern bool _stop;
 static pthread_t updateServiceThread;
 static pthread_t checkServiceThread[MAX_THREAD_NUM];
-
-static Config* conf;
-static ServiceListener* sl;
-static unordered_map<string, int> updateServiceInfo;
-static list<string> priority;
 static spinlock_t updateServiceLock;
-//每个检查线程的pthread_t和该检车线程在线程池中的下标的对应关系
-static map<pthread_t, size_t> threadPos;
-static Zk* zk;
 
-static vector<string> serviceFather;
+MultiThread* MultiThread::ml = NULL;
 
-void init(Zk* zk_input, const vector<string>& myServiceFather){
-    zk = zk_input;
-    serviceFather = myServiceFather;
-#ifdef DEBUGM
-    cout << "rrrrrrrrrrrr" << endl;
-    for (auto it = myServiceFather.begin(); it != myServiceFather.end(); ++it) {
-        cout << *it << endl;
-    }
-#endif
+MultiThread* MultiThread::getInstance(Zk* zk_input) {
+	if (!mlInstance) {
+		mlInstance = new MultiThread(zk_input);
+	}
+	return ml;
+}
+
+MultiThread::MultiThread(Zk* zk_input) : zk(zk_input) {
 	conf = Config::getInstance();
 	sl = ServiceListener::getInstance();
 	updateServiceLock = SPINLOCK_INITIALIZER;
 }
 
+MultiThread::~MultiThread() {
+	mlInstance = NULL;
+}
 
-
-bool isOnlyOneUp(string node, int val) {
+bool MultiThread::isOnlyOneUp(string node, int val) {
 	ServiceListener* sl = ServiceListener::getInstance();
 	bool ret = true;
 	size_t pos = node.rfind('/');
@@ -85,13 +78,13 @@ bool isOnlyOneUp(string node, int val) {
 	return ret;
 }
 
-int updateZk(string node, int val) {
+int MultiThread::updateZk(string node, int val) {
 	string status = to_string(val);
 	zk->setZnode(node, status);
 	return 0;
 }
 
-int updateConf(string node, int val) {
+int MultiThread::updateConf(string node, int val) {
 	conf->setServiceMap(node, val);
 	return 0;
 }
@@ -99,7 +92,7 @@ int updateConf(string node, int val) {
 //更新线程。原来的设计是随机的更新顺序，我觉得这是不合理的，应该使用先来先服务的类型
 //这里判断是否为空需要加锁吗？感觉应该不需要吧，如果有另一个线程正在写，empty()将会返回什么值？
 //这里用先来先服务会有问题，如果一个节点被重复改变两次，怎么处理？
-void* updateService(void* args) {
+void MultiThread::updateService() {
 #ifdef DEBUGM
     cout << "in update service thread" << endl;
 #endif
@@ -151,7 +144,7 @@ void* updateService(void* args) {
     pthread_exit(0);
 }
 
-int isServiceExist(struct in_addr *addr, char* host, int port, int timeout, int curStatus) {
+int MultiThread::isServiceExist(struct in_addr *addr, char* host, int port, int timeout, int curStatus) {
 	bool exist = true;  
     int sock = -1, val = 1, ret = 0;
     //struct hostent *host;
@@ -244,7 +237,7 @@ int isServiceExist(struct in_addr *addr, char* host, int port, int timeout, int 
 
 
 //try to ping the ipPort to see weather it's connecteble
-int tryConnect(string curServiceFather) {
+int MultiThread::tryConnect(string curServiceFather) {
 	//这里也好浪费，我只要知道一个serviceFather，结果全都拿过来了。先写着 todo
 	map<string, ServiceItem> serviceMap = conf->getServiceMap();
 	unordered_map<string, unordered_set<string>> serviceFatherToIp = sl->getServiceFatherToIp();
@@ -272,7 +265,7 @@ int tryConnect(string curServiceFather) {
 
 
 //讲道理，这个函数只需要service father和service father和ip的对应，然后去修改updateInfo就好了,目前就最简单的，一个线程负责一个serviceFather
-void* checkService(void* args) {
+void MultiThread::checkService() {
     cout << "in check service thread " << endl;
 	pthread_t pthreadId = pthread_self();
 	size_t pos = threadPos[pthreadId];
@@ -295,12 +288,20 @@ void* checkService(void* args) {
     pthread_exit(0);
 }
 
+void* MultiThread::staticUpdateService(void* args) {
+	MultiThread* ml = MultiThread::getInstance();
+	ml->updateService();
+}
+
+void* MultiThread::staticCheckService(void* args) {
+	MultiThread::ml = MultiThread::getInstance();
+	ml->checkService();
+}
 //TODO 主线程肯定是要考虑配置重载什么的这些事情的
-int runMainThread(Zk* zk_input, const vector<string>& myServiceFather) {
-	init(zk_input, myServiceFather);
+MultiThread::runMainThread() {
 	int schedule = NOSCHEDULE;
     //没有考虑异常，如pthread不成功等
-	pthread_create(&updateServiceThread, NULL, updateService, NULL);
+	pthread_create(&updateServiceThread, NULL, staticUpdateService, NULL);
 	unordered_map<string, unordered_set<string>> serviceFatherToIp = sl->getServiceFatherToIp();
 #ifdef DEBUGM
     for (auto it1 = serviceFatherToIp.begin(); it1 != serviceFatherToIp.end(); ++it1) {
@@ -338,7 +339,7 @@ int runMainThread(Zk* zk_input, const vector<string>& myServiceFather) {
 				schedule = SCHEDULE;
 			}
 			for (; oldThreadNum < newThreadNum; ++oldThreadNum) {
-				pthread_create(checkServiceThread + oldThreadNum, NULL, checkService, &schedule);
+				pthread_create(checkServiceThread + oldThreadNum, NULL, staticCheckService, &schedule);
 				threadPos[checkServiceThread[oldThreadNum]] = oldThreadNum;
 			}
 		}
@@ -355,7 +356,7 @@ int runMainThread(Zk* zk_input, const vector<string>& myServiceFather) {
 			}
 			else {
 				for (; oldThreadNum < newThreadNum; ++oldThreadNum) {
-					pthread_create(checkServiceThread + oldThreadNum, NULL, checkService, &schedule);
+					pthread_create(checkServiceThread + oldThreadNum, NULL, staticCheckService, &schedule);
 					threadPos[checkServiceThread[oldThreadNum]] = oldThreadNum;
 #ifdef DEBUGM
                     cout << "checkServiceThread[" << oldThreadNum << "] " << checkServiceThread[oldThreadNum] << endl;
