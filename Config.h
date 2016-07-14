@@ -22,7 +22,7 @@ private:
 	std::string _instanceName;
 	std::string _zkHost;
 	std::string _zkLogPath;
-	//重要。记录了每一个服务的全路径与serviceItem的对应关系
+	//important. the key is the full path of ipPort and the value is serviceItem of this ipPort
 	map<string, ServiceItem> _serviceMap;
 	int _zkRecvTimeout;
 
@@ -53,6 +53,8 @@ public:
 
 	//这个名字不应该叫add，叫set，方便其他对象调用
 	int addService(string ipPath, ServiceItem serviceItem);
+	void deleteService(const string& ipPath);
+
     ServiceItem& getServiceItem(const string& ipPath);
 	//put this method to class Util may be better
 	int printMap();

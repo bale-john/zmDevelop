@@ -25,6 +25,7 @@ ServiceListener* ServiceListener::getInstance() {
 	return slInstance;
 }
 //path is the path of ipPort
+//这几个函数的意义和调用关系不清晰
 void ServiceListener::modifyServiceFatherToIp(const string op, const string& path) {
 	if (op == CLEAR) {
 		serviceFatherToIp.clear();
@@ -32,6 +33,9 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
 	size_t pos = path.rfind('/');
 	string serviceFather = path.substr(0, pos);
 	string ipPort = path.substr(pos + 1);
+	size_t pos2 = ipPort.rfind(':');
+	string ip = ipPort.substr(0, pos2);
+	string port = ipPort.substr(pos2 + 1);
     //一个很诡异的错误，如果我把下面的代码放在这里，就会导致子进程不断死亡
     /*
     int status = STATUS_UNKNOWN;
@@ -41,6 +45,23 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
     status = atoi(data);
     */
 	if (op == ADD) {
+		//这里好像还少几个成员没有设置 connRetry和connTimeout
+        ServiceItem item;
+        item.setServiceFather(serviceFather);
+        item.setStatus(status);
+        item.setHost(ip);
+        item.setPort(port);
+        struct in_addr addr;
+		getAddrByHost(ip.c_str(), &addr);
+		serviceItem.setAddr(&addr);
+		if ((conf->getServiceMap).find(path) == (conf->getServiceMap).end()) {
+			conf->addService(path, serviceItem);//都是需要加锁的，还没加
+		}
+		else {
+			conf->deleteService(path);
+			conf->addService(path, serviceItem);
+		}
+
 		if (serviceFatherToIp.find(serviceFather) == serviceFatherToIp.end()) {
 			serviceFatherToIp.insert(make_pair(serviceFather, unordered_set<string> ()));
             serviceFatherToIp[serviceFather].insert(ipPort);
@@ -66,6 +87,8 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
 		}
 	}
 	if (op == DELETE) {
+		//uodate serviceMap
+		conf->deleteService(path);
 		if (serviceFatherToIp.find(serviceFather) == serviceFatherToIp.end()) {
 			LOG(LOG_DEBUG, "service father: %s doesn't exist", serviceFather.c_str());
 		}
@@ -166,6 +189,8 @@ void ServiceListener::processChangedEvent(zhandle_t* zhandle, const string& path
     string serviceFather = path.substr(0, pos);
 	sl->modifyServiceFatherStatus(serviceFather, oldStatus, -1);
 	sl->modifyServiceFatherStatus(serviceFather, newStatus, 1);
+	//update serviceMap
+	(conf->getServiceItem()).setStatus(newStatus);
 }
 
 void ServiceListener::watcher(zhandle_t* zhandle, int type, int state, const char* path, void* context) {
