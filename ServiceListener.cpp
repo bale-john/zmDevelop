@@ -141,15 +141,6 @@ void ServiceListener::processDeleteEvent(zhandle_t* zhandle, const string& path)
 	sl->modifyServiceFatherToIp(DELETE, path);
 }
 
-size_t ServiceListener::getIpNum(const string& serviceFather) {
-    if (serviceFatherToIp.find(serviceFather) == serviceFatherToIp.end()) {
-        return 0;
-    }
-    else {
-        return serviceFatherToIp[serviceFather].size();
-    }
-}
-
 void ServiceListener::processChildEvent(zhandle_t* zhandle, const string& path) {
 	//只可能是某个serviceFather子节点变化，因为我只get_child过这个节点
 	//这里这个path是serviceFather
@@ -232,42 +223,6 @@ void ServiceListener::watcher(zhandle_t* zhandle, int type, int state, const cha
             processChangedEvent(zhandle, string(path));
             break;
 	}
-}
-
-int ServiceListener::destroyEnv() {
-	if (zh) {
-		LOG(LOG_INFO, "zookeeper close. func %s, line %d", __func__, __LINE__);
-		zookeeper_close(zh);
-		zh = NULL;
-	}
-    slInstance = NULL;
-	return M_OK;
-}
-
-int ServiceListener::initEnv() {
-	string zkHost = conf->getZkHost();
-	int revcTimeout = conf->getZkRecvTimeout();
-	zh = zookeeper_init(zkHost.c_str(), watcher, revcTimeout, NULL, NULL, 0);
-	if (!zh) {
-		LOG(LOG_ERROR, "zookeeper_init failed. Check whether zk_host(%s) is correct or not", zkHost.c_str());
-		return M_ERR;
-	}
-	LOG(LOG_INFO, "zookeeper init success");
-	return M_OK;
-}
-
-
-ServiceListener::ServiceListener() : zh(NULL) {
-	conf = Config::getInstance();
-	lb = LoadBalance::getInstance();
-	//这是有道理的，因为后续还要加锁。把所有加锁的行为都放在modifyServiceFatherToIp里很好
-	modifyServiceFatherToIp(CLEAR, "");
-	serviceFatherStatus.clear();
-	initEnv();
-}
-
-ServiceListener::~ServiceListener() {
-	destroyEnv();
 }
 
 int ServiceListener::addChildren(const string serviceFather, struct String_vector children) {
@@ -438,4 +393,48 @@ int ServiceListener::modifyServiceFatherStatus(const string& serviceFather, vect
 
 unordered_map<string, unordered_set<string>>& ServiceListener::getServiceFatherToIp() {
 	return serviceFatherToIp;
+}
+
+size_t ServiceListener::getIpNum(const string& serviceFather) {
+    if (serviceFatherToIp.find(serviceFather) == serviceFatherToIp.end()) {
+        return 0;
+    }
+    else {
+        return serviceFatherToIp[serviceFather].size();
+    }
+}
+
+int ServiceListener::destroyEnv() {
+	if (zh) {
+		LOG(LOG_INFO, "zookeeper close. func %s, line %d", __func__, __LINE__);
+		zookeeper_close(zh);
+		zh = NULL;
+	}
+    slInstance = NULL;
+	return M_OK;
+}
+
+int ServiceListener::initEnv() {
+	string zkHost = conf->getZkHost();
+	int revcTimeout = conf->getZkRecvTimeout();
+	zh = zookeeper_init(zkHost.c_str(), watcher, revcTimeout, NULL, NULL, 0);
+	if (!zh) {
+		LOG(LOG_ERROR, "zookeeper_init failed. Check whether zk_host(%s) is correct or not", zkHost.c_str());
+		return M_ERR;
+	}
+	LOG(LOG_INFO, "zookeeper init success");
+	return M_OK;
+}
+
+ServiceListener::ServiceListener() : zh(NULL) {
+	conf = Config::getInstance();
+	lb = LoadBalance::getInstance();
+	//这是有道理的，因为后续还要加锁。把所有加锁的行为都放在modifyServiceFatherToIp里很好
+	modifyServiceFatherToIp(CLEAR, "");
+	serviceFatherStatus.clear();
+	initEnv();
+}
+
+ServiceListener::~ServiceListener() {
+	destroyEnv();
 }
