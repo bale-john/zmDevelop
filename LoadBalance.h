@@ -45,7 +45,7 @@ public:
 
 	static void watcher(zhandle_t* zhandle, int type, int state, const char* path, void* context);
 	static void processChildEvent(zhandle_t* zhandle, const string path);
-	static void processChangedEvent(zhandle_t* zhandle, const string path)；
+	static void processChangedEvent(zhandle_t* zhandle, const string path);
 
 	static void setReBalance();
 	static void clearReBalance();

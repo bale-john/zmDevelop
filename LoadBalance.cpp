@@ -40,22 +40,29 @@ void LoadBalance::processChildEvent(zhandle_t* zhandle, const string path) {
 }
 
 void LoadBalance::processChangedEvent(zhandle_t* zhandle, const string path) {
-	LoadBalance::lb = LoadBalance::getInstance();
-	LOG(LOG_INFO, "the data of node %s changed." path.c_str());
+	LoadBalance* lb = LoadBalance::getInstance();
+	LOG(LOG_INFO, "the data of node %s changed.", path.c_str());
 	char serviceFather[256] = {0};
 	int dataLen = 256;
-	LOG(LOG_INFO, "md5Path: %s, serviceFather: %s, *dataLen: %d", path.c_str(), serviceFather, *dataLen);
-	int ret = zoo_get(zh, path.c_str(), 1, serviceFather, dataLen, NULL);
+	LOG(LOG_INFO, "md5Path: %s, serviceFather: %s, *dataLen: %d", path.c_str(), serviceFather, dataLen);
+	int ret = zoo_get(zhandle, path.c_str(), 1, serviceFather, &dataLen, NULL);
 	if (ret == ZOK) {
 		LOG(LOG_INFO, "get data success");
-		lb->updateMd5ToServiceFather(path, string(data));
+        size_t pos = path.rfind('/');
+        string md5Path = path.substr(pos + 1);
+		lb->updateMd5ToServiceFather(md5Path, string(serviceFather));
 	}
 	else if (ret == ZNONODE) {
-		LOG(LOG_TRACE, "%s...out...node:%s not exist.", __FUNCTION__, md5Path);
+		LOG(LOG_TRACE, "%s...out...node:%s not exist.", __FUNCTION__, path.c_str());
 	}
 	else {
 		LOG(LOG_ERROR, "parameter error. zhandle is NULL");
 	}
+#ifdef DEBUGL
+    for (auto it = (lb->md5ToServiceFather).begin(); it != (lb->md5ToServiceFather).end(); ++it) {
+        cout << it->first << " " << it->second << endl;
+    }
+#endif
 	return;
 }
 
@@ -178,10 +185,13 @@ int LoadBalance::zkGetNode(const char* md5Path, char* serviceFather, int* dataLe
 	return M_ERR;
 }
 
-void updateMd5ToServiceFather(const string& md5Path, const string& serviceFather) {
-	spinlock_lock();
+void LoadBalance::updateMd5ToServiceFather(const string& md5Path, const string& serviceFather) {
+    if (serviceFather.size() <= 0) {
+        return;
+    }
+	spinlock_lock(&md5ToServiceFatherLock);
 	md5ToServiceFather[md5Path] = serviceFather;
-	spinlock_unlock();
+	spinlock_unlock(&md5ToServiceFatherLock);
 }
 
 int LoadBalance::getMd5ToServiceFather() {
@@ -201,6 +211,11 @@ int LoadBalance::getMd5ToServiceFather() {
 		//md5ToServiceFather[string(md5Node.data[i])] = string(serviceFather);
 		LOG(LOG_INFO, "md5: %s, serviceFather: %s", md5Path.c_str(), serviceFather);
 	}
+#ifdef DEBUGL
+    for (auto it = md5ToServiceFather.begin(); it != md5ToServiceFather.end(); ++it) {
+        cout << it->first << " " << it->second << endl;
+    }
+#endif
 	return M_OK;
 }
 
