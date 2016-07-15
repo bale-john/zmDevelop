@@ -59,7 +59,7 @@ public:
     int getAddrByHost(const char* host, struct in_addr* addr);
 
     void modifyServiceFatherToIp(const string op, const string& path);
-    unordered_map<string, unordered_set<string>>& getServiceFatherToIp();
+    unordered_map<string, unordered_set<string>> getServiceFatherToIp();
     bool ipExist(const string& serviceFather, const string& ipPort);
     bool serviceFatherExist(const string& serviceFather);
     void addIpPort(const string& serviceFather, const string& ipPort);

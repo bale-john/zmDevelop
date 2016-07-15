@@ -416,7 +416,7 @@ int ServiceListener::modifyServiceFatherStatus(const string& serviceFather, vect
 	return 0;
 }
 
-unordered_map<string, unordered_set<string>>& ServiceListener::getServiceFatherToIp() {
+unordered_map<string, unordered_set<string>> ServiceListener::getServiceFatherToIp() {
 	unordered_map<string, unordered_set<string>> ret;
 	spinlock_lock(&serviceFatherToIpLock);
 	ret = serviceFatherToIp;
@@ -457,13 +457,13 @@ int ServiceListener::initEnv() {
 }
 
 ServiceListener::ServiceListener() : zh(NULL) {
+	serviceFatherToIpLock = SPINLOCK_INITIALIZER;
 	conf = Config::getInstance();
 	lb = LoadBalance::getInstance();
 	//这是有道理的，因为后续还要加锁。把所有加锁的行为都放在modifyServiceFatherToIp里很好
 	modifyServiceFatherToIp(CLEAR, "");
 	serviceFatherStatus.clear();
 	initEnv();
-	serviceFatherToIpLock = SPINLOCK_INITIALIZER;
 }
 
 ServiceListener::~ServiceListener() {
