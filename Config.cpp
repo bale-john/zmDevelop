@@ -256,5 +256,5 @@ ServiceItem Config::getServiceItem(const string& ipPath) {
 	spinlock_lock(&serviceMapLock);
 	ret = _serviceMap[ipPath];
 	spinlock_unlock(&serviceMapLock);
-    return ret
+    return ret;
 }
