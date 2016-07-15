@@ -1,4 +1,3 @@
-#include "MultiThread.h"
 #include <pthread.h>
 #include <iostream>
 #include <sys/types.h>
@@ -29,6 +28,7 @@
 #include "LoadBalance.h"
 #include "ServiceListener.h"
 #include "x86_spinlocks.h"
+#include "MultiThread.h"
 using namespace std;
 
 extern bool _stop;

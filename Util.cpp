@@ -1,10 +1,10 @@
-#include "Util.h"
 #include <string>
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include <cstdio>
 #include "Config.h"
-#include <fstream>
+#include "Util.h"
 using namespace std;
 
 int Util::trim(string& str) {

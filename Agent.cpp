@@ -134,7 +134,6 @@ int main(int argc, char** argv){
 			serviceListener->getAllIp();
 			serviceListener->loadAllService();
 
-	        cout << "runMainThread" << endl;
 	     	//multiThread module
 	     	MultiThread* ml = MultiThread::getInstance(_zk);
 	        ml->runMainThread();

@@ -2,10 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstdio>
-#include "Process.h"
 #include <cstring>
-#include "Log.h"
-#include "Util.h"
 #include <cstdlib>
 #include <unistd.h>
 #include <sys/types.h>
@@ -13,6 +10,9 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <fcntl.h>
+#include "Process.h"
+#include "Log.h"
+#include "Util.h"
 
 using namespace std;
 //weather process is stopped

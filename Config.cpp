@@ -1,5 +1,4 @@
 #include <fstream>
-#include "ConstDef.h"
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -7,11 +6,12 @@
 #include <set>
 #include <vector>
 #include <iostream>
-#include "Config.h"
 #include <unistd.h>
+#include "Config.h"
 #include "Util.h"
 #include "Log.h"
 #include "x86_spinlocks.h"
+#include "ConstDef.h"
 using namespace std;
 
 Config* Config::_instance = NULL;

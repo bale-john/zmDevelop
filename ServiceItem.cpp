@@ -1,12 +1,11 @@
-#include "ServiceItem.h"
 #include <map>
 #include <cstdio>
 #include <string>
 #include <iostream>
-//support in_addr. It's a ip struct
+#include <cstring>
 #include <netinet/in.h>
 #include "ConstDef.h"
-#include <cstring>
+#include "ServiceItem.h"
 using namespace std;
 
 ServiceItem::ServiceItem():
