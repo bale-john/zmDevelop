@@ -21,9 +21,13 @@ public:
 	ServiceListener();
 	static ServiceListener* slInstance;
 	zhandle_t* zh;
-	//key is serviceFather and value is ipPort
+	/*
+	core data
+	key is serviceFather and value is ipPort
+	*/
 	unordered_map<string, unordered_set<string>> serviceFatherToIp;
 	/*
+	core data
 	key is service father and value is the number of ipPort with different types.
 	It's used for check weather there are only one service alive 
 	*/

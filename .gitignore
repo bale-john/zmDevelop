@@ -9,3 +9,4 @@ conf/*
 qconf-monitor
 pid
 tmp/*
+variables-and-locks.txt

@@ -104,7 +104,6 @@ LoadBalance::LoadBalance() : zh(NULL) {
 	conf = Config::getInstance();
 	md5ToServiceFather.clear();
 	monitors.clear();
-	ipPort.clear();
 	initEnv();	
 }
 

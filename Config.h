@@ -22,7 +22,7 @@ private:
 	std::string _instanceName;
 	std::string _zkHost;
 	std::string _zkLogPath;
-	//important. the key is the full path of ipPort and the value is serviceItem of this ipPort
+	//core data. the key is the full path of ipPort and the value is serviceItem of this ipPort
 	map<string, ServiceItem> _serviceMap;
 	int _zkRecvTimeout;
 
