@@ -76,13 +76,9 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
         struct in_addr addr;
 		getAddrByHost(ip.c_str(), &addr);
 		item.setAddr(&addr);
-		if ((conf->getServiceMap()).find(path) == (conf->getServiceMap()).end()) {
-			conf->addService(path, item);//都是需要加锁的，还没加
-		}
-		else {
-			conf->deleteService(path);
-			conf->addService(path, item);
-		}
+
+		conf->deleteService(path);
+		conf->addService(path, item);
 		//actually serviceFather sure should exist. no need to discuss
 		/*
 		if (!serviceFatherExist(serviceFather)) {

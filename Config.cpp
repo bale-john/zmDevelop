@@ -11,11 +11,13 @@
 #include <unistd.h>
 #include "Util.h"
 #include "Log.h"
+#include "x86_spinlocks.h"
 using namespace std;
 
 Config* Config::_instance = NULL;
 
 Config::Config(){
+	serviceMapLock = SPINLOCK_INITIALIZER;
 	resetConfig();
 }
 
@@ -221,27 +223,38 @@ int Config::printMap() {
 
 
 int Config::addService(string ipPath, ServiceItem serviceItem) {
-	//这里还需要加锁
-
+	spinlock_lock(&serviceMapLock);
     _serviceMap[ipPath] = serviceItem;
+    spinlock_unlock(&serviceMapLock);
     return 0;
 }
 
 void Config::deleteService(const string& ipPath) {
+	spinlock_lock(&serviceMapLock);
 	_serviceMap.erase(ipPath);
+	spinlock_unlock(&serviceMapLock);
 }
 
-map<string, ServiceItem>& Config::getServiceMap() {
-	return _serviceMap;
+map<string, ServiceItem> Config::getServiceMap() {
+	map<string, ServiceItem> ret;
+	spinlock_lock(&serviceMapLock);
+	ret = _serviceMap;
+	spinlock_unlock(&serviceMapLock);
+	return ret;
 }
 
 int Config::setServiceMap(string node, int val) {
 	//todo 同样缺异常判断，比如找不到怎么办啊什么的，还有这里锁怎么加？
-	ServiceItem item = _serviceMap[node];
-	item.setStatus(val);
+	spinlock_lock(&serviceMapLock);
+	_serviceMap[node].setStatus(val);
+	spinlock_unlock(&serviceMapLock);
 	return 0;
 }
 
-ServiceItem& Config::getServiceItem(const string& ipPath) {
-    return _serviceMap[ipPath];
+ServiceItem Config::getServiceItem(const string& ipPath) {
+	ServiceItem ret;
+	spinlock_lock(&serviceMapLock);
+	ret = _serviceMap[ipPath];
+	spinlock_unlock(&serviceMapLock);
+    return ret
 }
