@@ -111,7 +111,7 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
 		}
 		else {
 			LOG(LOG_DEBUG, "delete service father %s, ip port %s", serviceFather.c_str(), ipPort.c_str());
-			deleteipPort(serviceFather, ipPort);
+			deleteIpPort(serviceFather, ipPort);
             int status = (conf->getServiceItem(path)).getStatus();
             modifyServiceFatherStatus(serviceFather, status, -1);
 		}
