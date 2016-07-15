@@ -20,8 +20,50 @@ extern bool _stop;
 extern char _zkLockBuf[512];
 
 bool LoadBalance::reBalance = false;
-
 LoadBalance* LoadBalance::lbInstance = NULL;
+
+int LoadBalance::initEnv(){
+	string zkHost = conf->getZkHost();
+	int revcTimeout = conf->getZkRecvTimeout();
+	zh = zookeeper_init(zkHost.c_str(), watcher, revcTimeout, NULL, NULL, 0);
+	if (!zh) {
+		LOG(LOG_ERROR, "zookeeper_init failed. Check whether zk_host(%s) is correct or not", zkHost.c_str());
+		return M_ERR;
+	}
+	LOG(LOG_INFO, "zookeeper init success");
+	return M_OK;
+}
+
+int LoadBalance::destroyEnv() {
+	if (zh) {
+		LOG(LOG_INFO, "zookeeper close. func %s, line %d", __func__, __LINE__);
+		zookeeper_close(zh);
+		zh = NULL;
+	}
+    lbInstance = NULL;
+	return M_OK;
+}
+
+LoadBalance::LoadBalance() : zh(NULL) {
+	conf = Config::getInstance();
+	md5ToServiceFather.clear();
+	monitors.clear();
+	myServiceFather.clear();
+	initEnv();
+	md5ToServiceFatherLock = SPINLOCK_INITIALIZER;
+}
+
+LoadBalance::~LoadBalance(){
+	destroyEnv();
+}
+
+LoadBalance* LoadBalance::getInstance() {
+	if (!lbInstance) {
+		lbInstance = new LoadBalance();
+	}
+	return lbInstance;
+}
+
 void LoadBalance::processChildEvent(zhandle_t* zhandle, const string path) {
 	string monitorsPath = Config::getInstance()->getMonitorList();
 	string md5Path = Config::getInstance()->getNodeList();
@@ -100,48 +142,6 @@ void LoadBalance::watcher(zhandle_t* zhandle, int type, int state, const char* p
 	}
 }
 
-int LoadBalance::initEnv(){
-	string zkHost = conf->getZkHost();
-	int revcTimeout = conf->getZkRecvTimeout();
-	zh = zookeeper_init(zkHost.c_str(), watcher, revcTimeout, NULL, NULL, 0);
-	if (!zh) {
-		LOG(LOG_ERROR, "zookeeper_init failed. Check whether zk_host(%s) is correct or not", zkHost.c_str());
-		return M_ERR;
-	}
-	LOG(LOG_INFO, "zookeeper init success");
-	return M_OK;
-}
-
-int LoadBalance::destroyEnv() {
-	if (zh) {
-		LOG(LOG_INFO, "zookeeper close. func %s, line %d", __func__, __LINE__);
-		zookeeper_close(zh);
-		zh = NULL;
-	}
-    lbInstance = NULL;
-	return M_OK;
-}
-
-LoadBalance* LoadBalance::getInstance() {
-	if (!lbInstance) {
-		lbInstance = new LoadBalance();
-	}
-	return lbInstance;
-}
-
-LoadBalance::LoadBalance() : zh(NULL) {
-	conf = Config::getInstance();
-	md5ToServiceFather.clear();
-	monitors.clear();
-	myServiceFather.clear();
-	initEnv();
-	md5ToServiceFatherLock = SPINLOCK_INITIALIZER;
-}
-
-LoadBalance::~LoadBalance(){
-	destroyEnv();
-}
-
 int LoadBalance::zkGetChildren(const string path, struct String_vector* children) {
 	if (!zh) {
 		LOG(LOG_ERROR, "zhandle is NULL");
@@ -184,15 +184,6 @@ int LoadBalance::zkGetNode(const char* md5Path, char* serviceFather, int* dataLe
 		return M_ERR;
 	}
 	return M_ERR;
-}
-
-void LoadBalance::updateMd5ToServiceFather(const string& md5Path, const string& serviceFather) {
-    if (serviceFather.size() <= 0) {
-        return;
-    }
-	spinlock_lock(&md5ToServiceFatherLock);
-	md5ToServiceFather[md5Path] = serviceFather;
-	spinlock_unlock(&md5ToServiceFatherLock);
 }
 
 int LoadBalance::getMd5ToServiceFather() {
@@ -300,7 +291,7 @@ int LoadBalance::balance(bool flag /*=false*/) {
 	return M_OK;
 }
 
-const vector<string>& LoadBalance::getMyServiceFather() {
+const vector<string> LoadBalance::getMyServiceFather() {
 	return myServiceFather;
 }
 
@@ -314,4 +305,13 @@ void LoadBalance::clearReBalance() {
 
 bool LoadBalance::getReBalance() {
 	return reBalance;
+}
+
+void LoadBalance::updateMd5ToServiceFather(const string& md5Path, const string& serviceFather) {
+    if (serviceFather.size() <= 0) {
+        return;
+    }
+	spinlock_lock(&md5ToServiceFatherLock);
+	md5ToServiceFather[md5Path] = serviceFather;
+	spinlock_unlock(&md5ToServiceFatherLock);
 }

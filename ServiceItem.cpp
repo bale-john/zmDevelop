@@ -93,6 +93,6 @@ int ServiceItem::setConnectTimeout(int timeout) {
     return 0;
 }
 
-const string& ServiceItem::getServiceFather() {
+const string ServiceItem::getServiceFather() {
     return _serviceFather;
 }

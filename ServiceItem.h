@@ -8,7 +8,7 @@
 #include <netinet/in.h>
 using namespace std;
 
-class ServiceItem{
+class ServiceItem {
 private:
     //_host is IP without port
     std::string _host;
@@ -41,7 +41,7 @@ public:
     int getConnectTimeout();
 
     int setServiceFather(string serviceFather);
-    const string& getServiceFather();
+    const string getServiceFather();
 
     void clear();
 };

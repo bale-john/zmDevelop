@@ -7,6 +7,8 @@ using namespace std;
 
 #define dp() printf("zgw:func %s, line %d\n", __func__, __LINE__)
 class Util{
+private:
+	
 public:
 	Util();
 	~Util();

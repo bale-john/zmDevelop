@@ -15,20 +15,22 @@ using namespace std;
 
 class LoadBalance {
 public:
-	LoadBalance();
+	zhandle_t* zh;
+	static bool reBalance;
+	static LoadBalance* lbInstance;
+	Config* conf;
+
+	spinlock_t md5ToServiceFatherLock;
+
     //use map but not unordered_map so it can be sorted autonatically
     //存的是md5节点和对应的serviceFather节点
 	map<string, string> md5ToServiceFather;
 	unordered_set<string> monitors;
 	vector<string> myServiceFather;
-	zhandle_t* zh;
+
+	LoadBalance();
 	int initEnv();
 	int destroyEnv();
-	Config* conf;
-	static LoadBalance* lbInstance;
-	static bool reBalance;
-
-	spinlock_t md5ToServiceFatherLock;
     
 public:
 	~LoadBalance();
@@ -41,7 +43,7 @@ public:
 	void updateMd5ToServiceFather(const string& md5Path, const string& serviceFather);
 	int getMonitors(bool flag = false);
 	int balance(bool flag = false);
-	const vector<string>& getMyServiceFather();
+	const vector<string> getMyServiceFather();
 
 	static void watcher(zhandle_t* zhandle, int type, int state, const char* path, void* context);
 	static void processChildEvent(zhandle_t* zhandle, const string path);

@@ -7,6 +7,10 @@
 using namespace std;
 
 class Process{
+private:
+	Process();
+	~Process();
+
 public:
 	static bool isProcessRunning(const string& processName);
 	static int daemonize();
@@ -14,8 +18,5 @@ public:
 	static void sigForward(const int sig);
 	static void sigHandler(const int sig);
 	static int processFileMsg(const string cmdFile);
-private:
-	Process();
-	~Process();
 };
 #endif

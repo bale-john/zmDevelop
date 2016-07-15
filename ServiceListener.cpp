@@ -24,6 +24,44 @@ ServiceListener* ServiceListener::getInstance() {
 	}
 	return slInstance;
 }
+
+int ServiceListener::destroyEnv() {
+	if (zh) {
+		LOG(LOG_INFO, "zookeeper close. func %s, line %d", __func__, __LINE__);
+		zookeeper_close(zh);
+		zh = NULL;
+	}
+    slInstance = NULL;
+	return M_OK;
+}
+
+int ServiceListener::initEnv() {
+	string zkHost = conf->getZkHost();
+	int revcTimeout = conf->getZkRecvTimeout();
+	zh = zookeeper_init(zkHost.c_str(), watcher, revcTimeout, NULL, NULL, 0);
+	if (!zh) {
+		LOG(LOG_ERROR, "zookeeper_init failed. Check whether zk_host(%s) is correct or not", zkHost.c_str());
+		return M_ERR;
+	}
+	LOG(LOG_INFO, "zookeeper init success");
+	return M_OK;
+}
+
+ServiceListener::ServiceListener() : zh(NULL) {
+	serviceFatherToIpLock = SPINLOCK_INITIALIZER;
+	serviceFatherStatusLock = SPINLOCK_INITIALIZER;
+	conf = Config::getInstance();
+	lb = LoadBalance::getInstance();
+	//这是有道理的，因为后续还要加锁。把所有加锁的行为都放在modifyServiceFatherToIp里很好
+	modifyServiceFatherToIp(CLEAR, "");
+	serviceFatherStatus.clear();
+	initEnv();
+}
+
+ServiceListener::~ServiceListener() {
+	destroyEnv();
+}
+
 //path is the path of ipPort
 //这几个函数的意义和调用关系不清晰
 void ServiceListener::modifyServiceFatherToIp(const string op, const string& path) {
@@ -436,43 +474,6 @@ size_t ServiceListener::getIpNum(const string& serviceFather) {
     }
 	spinlock_unlock(&serviceFatherToIpLock);
 	return ret;
-}
-
-int ServiceListener::destroyEnv() {
-	if (zh) {
-		LOG(LOG_INFO, "zookeeper close. func %s, line %d", __func__, __LINE__);
-		zookeeper_close(zh);
-		zh = NULL;
-	}
-    slInstance = NULL;
-	return M_OK;
-}
-
-int ServiceListener::initEnv() {
-	string zkHost = conf->getZkHost();
-	int revcTimeout = conf->getZkRecvTimeout();
-	zh = zookeeper_init(zkHost.c_str(), watcher, revcTimeout, NULL, NULL, 0);
-	if (!zh) {
-		LOG(LOG_ERROR, "zookeeper_init failed. Check whether zk_host(%s) is correct or not", zkHost.c_str());
-		return M_ERR;
-	}
-	LOG(LOG_INFO, "zookeeper init success");
-	return M_OK;
-}
-
-ServiceListener::ServiceListener() : zh(NULL) {
-	serviceFatherToIpLock = SPINLOCK_INITIALIZER;
-	serviceFatherStatusLock = SPINLOCK_INITIALIZER;
-	conf = Config::getInstance();
-	lb = LoadBalance::getInstance();
-	//这是有道理的，因为后续还要加锁。把所有加锁的行为都放在modifyServiceFatherToIp里很好
-	modifyServiceFatherToIp(CLEAR, "");
-	serviceFatherStatus.clear();
-	initEnv();
-}
-
-ServiceListener::~ServiceListener() {
-	destroyEnv();
 }
 
 bool ServiceListener::ipExist(const string& serviceFather, const string& ipPort) {

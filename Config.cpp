@@ -103,13 +103,6 @@ int Config::setValueStr(const string& key, const string& value){
 				break;
 			}
 		}
-        //no need to log this or there will be a lot error because config file has other idc
-        /*
-		if (i == singleWord.size()){
-			LOG(LOG_ERROR, "idc not found");
-			return -1;
-		}
-        */
 	}
 	return 0;
 }
@@ -187,10 +180,6 @@ string Config::getZkLogPath(){
 	return _zkLogPath;
 }
 
-void Config::clearServiceMap() {
-	_serviceMap.clear();
-}
-
 int Config::getZkRecvTimeout() {
 	return _zkRecvTimeout;
 }
@@ -249,6 +238,10 @@ int Config::setServiceMap(string node, int val) {
 	_serviceMap[node].setStatus(val);
 	spinlock_unlock(&serviceMapLock);
 	return 0;
+}
+// no necessity to add lock
+void Config::clearServiceMap() {
+	_serviceMap.clear();
 }
 
 ServiceItem Config::getServiceItem(const string& ipPath) {

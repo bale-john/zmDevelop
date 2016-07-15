@@ -20,11 +20,6 @@ using namespace std;
 
 
 class Log{
-public:
-	static int printLog(const char* fileName, const int line, const int level, const char* format, ...);
-	//load the loglevel from config file
-	static int init(const int ll);
-	static string getLogLevelStr(int n);
 private:
 	Log();
 	~Log();
@@ -34,5 +29,11 @@ private:
 	static char curLogFileName[128];
 	static string logLevelitos[7];
 	static int checkFile(const int year, const int mon, const int day);
+
+public:
+	static int printLog(const char* fileName, const int line, const int level, const char* format, ...);
+	//load the loglevel from config file
+	static int init(const int ll);
+	static string getLogLevelStr(int n);
 };
 #endif
