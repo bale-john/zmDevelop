@@ -27,7 +27,15 @@ Zk* Zk::getInstance() {
 }
 
 void Zk::processDeleteEvent(zhandle_t* zhandle, const string& path) {
-	//if (path == )
+	Zk* zk = Zk::getInstance();
+	if (path == conf->getNodeList()) {
+		LOG(LOG_INFO, "node %s is removed", path.c_str());
+		zk->createZnode(path);
+	}
+	if (path == conf->getMonitorList()) {
+		LOG(LOG_INFO, "monitor dir %s is removed", path.c_str());
+		zk->createZnode(path);
+	}
 }
 
 //Zk中的watcher只负责处理与zk的会话断开怎么办，因为monitor注册是有zk完成的，这里断开相当于丢失了一个monitor，肯定要重新启动main loop
@@ -130,7 +138,7 @@ bool Zk::znodeExist(const string& path) {
 		return false;
 	}
 	struct Stat stat;
-	int ret = zoo_exists(_zh, path.c_str(), 1, &stat);
+	int ret = zoo_exists(_zh, path.c_str(), 0, &stat);
 	if (ret == ZOK) {
 		LOG(LOG_INFO, "node exist. node: %s", path.c_str());
 		return true;
@@ -147,6 +155,7 @@ bool Zk::znodeExist(const string& path) {
 	}
 }
 
+//我应该在节点建立之后再用exist访问，这样才能设置上watcher
 int Zk::createZnode(string path) {
 	vector<string> nodeList = Util::split(path, '/');
 	string node("");
@@ -157,6 +166,9 @@ int Zk::createZnode(string path) {
 		int ret = zoo_create(_zh, node.c_str(), NULL, 0, &ZOO_OPEN_ACL_UNSAFE, 0, NULL, 0);
 		if (ret == ZOK) {
 			LOG(LOG_INFO, "Create node succeeded. node: %s", node.c_str());
+			//add the watcher
+			struct Stat stat;
+			zoo_exists(_zh, node.c_str(), 1, &stat);
 		}
 		else if (ret == ZNODEEXISTS) {
 			LOG(LOG_INFO, "Create node .Node exists. node: %s", node.c_str());
