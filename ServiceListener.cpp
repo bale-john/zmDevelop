@@ -401,18 +401,26 @@ int ServiceListener::loadAllService() {
     return 0;
 }
 
-//对这种和较多类有关系的数据结构，一定要注意是否需要加锁
+//pay attention to locks
 int ServiceListener::modifyServiceFatherStatus(const string& serviceFather, int status, int op) {
+	spinlock_lock(&serviceFatherStatusLock);
 	serviceFatherStatus[serviceFather][status + 1] += op;
+	spinlock_unlock(&serviceFatherStatusLock);
 	return 0;
 }
 
 int ServiceListener::getServiceFatherStatus(const string& serviceFather, int status) {
-	return serviceFatherStatus[serviceFather][status + 1];
+	int ret;
+	spinlock_lock(&serviceFatherStatusLock);
+	ret = serviceFatherStatus[serviceFather][status + 1];
+	spinlock_unlock(&serviceFatherStatusLock);
+	return ret;
 }
 
 int ServiceListener::modifyServiceFatherStatus(const string& serviceFather, vector<int>& statusv) {
+	spinlock_lock(serviceFatherStatusLock);
 	serviceFatherStatus[serviceFather] = statusv;
+	spinlock_unlock(serviceFatherStatusLock);
 	return 0;
 }
 
@@ -458,6 +466,7 @@ int ServiceListener::initEnv() {
 
 ServiceListener::ServiceListener() : zh(NULL) {
 	serviceFatherToIpLock = SPINLOCK_INITIALIZER;
+	serviceFatherStatusLock = SPINLOCK_INITIALIZER;
 	conf = Config::getInstance();
 	lb = LoadBalance::getInstance();
 	//这是有道理的，因为后续还要加锁。把所有加锁的行为都放在modifyServiceFatherToIp里很好

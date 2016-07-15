@@ -42,6 +42,7 @@ public:
     size_t getIpNum(const string& serviceFather);
 
     spinlock_t serviceFatherToIpLock;
+    spinlock_t serviceFatherStatusLock;
 
 
 public:

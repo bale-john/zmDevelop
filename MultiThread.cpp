@@ -70,10 +70,6 @@ bool MultiThread::isOnlyOneUp(string node, int val) {
 		//在锁内部直接把serviceFatherStatus改变了，up的-1，down的+1；
 		sl->modifyServiceFatherStatus(serviceFather, STATUS_UP, 1);
 		sl->modifyServiceFatherStatus(serviceFather, STATUS_DOWN, -1);
-		/*
-		--((conf->serviceFatherStatus)[serviceFather][STATUS_UP+1]);
-		++((conf->serviceFatherStatus)[serviceFather][STATUS_DOWN+1]);
-		*/
 		spinlock_unlock(&updateServiceLock);
 		ret = false;
 	}
