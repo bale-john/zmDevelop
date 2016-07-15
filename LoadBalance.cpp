@@ -15,7 +15,7 @@
 #include "Config.h"
 #include <algorithm>
 using namespace std;
-
+extern bool _stop;
 extern char _zkLockBuf[512];
 
 bool LoadBalance::reBalance = false;
@@ -235,6 +235,11 @@ int LoadBalance::balance(bool flag /*=false*/) {
 			break;
 		}
 	}
+    if (rank == sequence.size()) {
+        LOG(LOG_INFO, "I'm connect to zk. But the monitor registed is removed. Restart main loop");
+        _stop = true;
+        return M_ERR;
+    }
 	for (size_t i = rank; i < md5Node.size(); i += monitors.size()) {
 		myServiceFather.push_back(md5ToServiceFather[md5Node[i]]);
 	}

@@ -13,7 +13,7 @@
 #include <errno.h>
 using namespace std;
 
-
+extern bool _stop;
 //临时解决方案，把_zkLockBuf作为非静态全局变量，使得它对所有文件可见。最后还是应该把注册monitor移到loadbalance类里才是正途
 char _zkLockBuf[512] = {0};
 
@@ -28,13 +28,14 @@ Zk* Zk::getInstance() {
 
 void Zk::processDeleteEvent(zhandle_t* zhandle, const string& path) {
 	Zk* zk = Zk::getInstance();
+    Config* conf = Config::getInstance();
 	if (path == conf->getNodeList()) {
 		LOG(LOG_INFO, "node %s is removed", path.c_str());
 		zk->createZnode(path);
 	}
 	if (path == conf->getMonitorList()) {
-		LOG(LOG_INFO, "monitor dir %s is removed", path.c_str());
-		zk->createZnode(path);
+		LOG(LOG_INFO, "monitor dir %s is removed. Restart mail loop", path.c_str());
+        _stop = true;
 	}
 }
 
