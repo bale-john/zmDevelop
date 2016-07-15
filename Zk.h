@@ -1,6 +1,5 @@
 #ifndef ZK_H
 #define ZK_H
-#include "ServiceItem.h"
 #include <map>
 #include <cstdio>
 #include <string>
@@ -8,6 +7,7 @@
 #include <zookeeper.h>
 #include <zk_adaptor.h>
 #include "Config.h"
+#include "ServiceItem.h"
 using namespace std;
 
 class Zk{
