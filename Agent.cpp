@@ -118,6 +118,8 @@ int main(int argc, char** argv){
 		}
 
 		while (1) {
+			cout << "second start" << endl;
+			LOG(LOG_INFO, " second loop start -> !!!!!!");
 			LoadBalance::clearReBalance();
 			//load balance
 			//get the service father. Stored in class LB

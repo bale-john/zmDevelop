@@ -23,7 +23,7 @@ public:
 	zhandle_t* zh;
 	/*
 	core data
-	key is serviceFather and value is ipPort
+	key is serviceFather and value is a set of ipPort
 	*/
 	unordered_map<string, unordered_set<string>> serviceFatherToIp;
 	/*
@@ -40,6 +40,8 @@ public:
 	int destroyEnv();
     int zkGetChildren(const string path, struct String_vector* children);
     size_t getIpNum(const string& serviceFather);
+
+    spinlock_t serviceFatherToIpLock;
 
 
 public:
@@ -58,13 +60,15 @@ public:
 
     void modifyServiceFatherToIp(const string op, const string& path);
     unordered_map<string, unordered_set<string>>& getServiceFatherToIp();
+    bool ipExist(const string& serviceFather, const string& ipPort);
+    bool serviceFatherExist(const string& serviceFather);
+    void addIpPort(const string& serviceFather, const string& ipPort);
+    void deleteIpPort(const string& serviceFather, const string& ipPort);
 
     static void watcher(zhandle_t* zhandle, int type, int state, const char* node, void* context);
     static void processDeleteEvent(zhandle_t* zhandle, const string& path);
     static void processChildEvent(zhandle_t* zhandle, const string& path);
     static void processChangedEvent(zhandle_t* zhandle, const string& path);
-
-    size_t getServiceFatherNum();
 
     int modifyServiceFatherStatus(const string& serviceFather, int status, int op);
 	int modifyServiceFatherStatus(const string& serviceFather, vector<int>& statusv);

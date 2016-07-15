@@ -45,6 +45,10 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
     status = atoi(data);
     */
 	if (op == ADD) {
+		//如果当前进来的不是新增的，自然就不用操作了
+		if (ipExist(serviceFather, ipPort)) {
+			return;
+		}
         int status = STATUS_UNKNOWN;
         char data[16] = {0};
         int dataLen = 16;
@@ -77,10 +81,14 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
 			conf->deleteService(path);
 			conf->addService(path, item);
 		}
-
-		if (serviceFatherToIp.find(serviceFather) == serviceFatherToIp.end()) {
+		//actually serviceFather sure should exist. the if is useless
+		/*
+		if (!serviceFatherExist(serviceFather)) {
+			spinlock_lock(&serviceFatherToIpLock);
 			serviceFatherToIp.insert(make_pair(serviceFather, unordered_set<string> ()));
             serviceFatherToIp[serviceFather].insert(ipPort);
+            spinlock_unlock(&serviceFatherToIpLock);
+
             modifyServiceFatherStatus(serviceFather, status, 1);
 		}
 		else {
@@ -88,36 +96,22 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
             if ((it->second).find(ipPort) == (it->second).end()) {
                 serviceFatherToIp[serviceFather].insert(ipPort);
                 //modify the serviceFatherStatus.serviceFatherStatus changed too
-                int status = STATUS_UNKNOWN;
-                char data[16] = {0};
-                int dataLen = 16;
-                int ret = zoo_get(zh, path.c_str(), 1, data, &dataLen, NULL);
-                if (ret == ZOK) {
-                    LOG(LOG_INFO, "get node:%s success", __FUNCTION__, path.c_str());
-                }
-                else if (ret == ZNONODE) {
-                    LOG(LOG_TRACE, "%s...out...node:%s not exist.", __FUNCTION__, path.c_str());
-                    return;
-                }
-                else {
-                    LOG(LOG_ERROR, "parameter error. zhandle is NULL");
-                    return;
-                }
-                status = atoi(data);
                 modifyServiceFatherStatus(serviceFather, status, 1);
             }
-		}
+		}*/
+        addIpPort(serviceFather, ipPort);
+        modifyServiceFatherStatus(serviceFather, status, 1);
 	}
 	if (op == DELETE) {
-		if (serviceFatherToIp.find(serviceFather) == serviceFatherToIp.end()) {
+		if (!serviceFatherExist(serviceFather)) {
 			LOG(LOG_DEBUG, "service father: %s doesn't exist", serviceFather.c_str());
 		}
-		else if (serviceFatherToIp[serviceFather].find(ipPort) == serviceFatherToIp[serviceFather].end()){
+		else if (!ipExist(serviceFather, ipPort)){
 			LOG(LOG_DEBUG, "service father: %s doesn't have ipPort %s", serviceFather.c_str(), ipPort.c_str());
 		}
 		else {
 			LOG(LOG_DEBUG, "delete service father %s, ip port %s", serviceFather.c_str(), ipPort.c_str());
-			serviceFatherToIp[serviceFather].erase(ipPort);
+			deleteipPort(serviceFather, ipPort);
             int status = (conf->getServiceItem(path)).getStatus();
             modifyServiceFatherStatus(serviceFather, status, -1);
 		}
@@ -261,7 +255,7 @@ void ServiceListener::watcher(zhandle_t* zhandle, int type, int state, const cha
 int ServiceListener::addChildren(const string serviceFather, struct String_vector children) {
 	for (int i = 0; i < children.count; ++i) {
 		string ip(children.data[i]);
-		serviceFatherToIp[serviceFather].insert(ip);
+		addIpPort(serviceFather, ip);
 	}
 	return 0;
 }
@@ -405,10 +399,6 @@ int ServiceListener::loadAllService() {
     return 0;
 }
 
-size_t ServiceListener::getServiceFatherNum() {
-	return serviceFatherToIp.size();
-}
-
 //对这种和较多类有关系的数据结构，一定要注意是否需要加锁
 int ServiceListener::modifyServiceFatherStatus(const string& serviceFather, int status, int op) {
 	serviceFatherStatus[serviceFather][status + 1] += op;
@@ -429,12 +419,13 @@ unordered_map<string, unordered_set<string>>& ServiceListener::getServiceFatherT
 }
 
 size_t ServiceListener::getIpNum(const string& serviceFather) {
-    if (serviceFatherToIp.find(serviceFather) == serviceFatherToIp.end()) {
-        return 0;
+	size_t ret = 0;
+	spinlock_lock(&serviceFatherToIpLock);
+	if (serviceFatherToIp.find(serviceFather) != serviceFatherToIp.end()) {
+        ret = serviceFatherToIp[serviceFather].size();
     }
-    else {
-        return serviceFatherToIp[serviceFather].size();
-    }
+	spinlock_unlock(&serviceFatherToIpLock);
+	return ret;
 }
 
 int ServiceListener::destroyEnv() {
@@ -466,8 +457,42 @@ ServiceListener::ServiceListener() : zh(NULL) {
 	modifyServiceFatherToIp(CLEAR, "");
 	serviceFatherStatus.clear();
 	initEnv();
+	serviceFatherToIpLock = SPINLOCK_INITIALIZER;
 }
 
 ServiceListener::~ServiceListener() {
 	destroyEnv();
+}
+
+bool ServiceListener::ipExist(const string& serviceFather, const string& ipPort) {
+	bool ret = true;
+	spinlock_lock(&serviceFatherToIpLock);
+	if (serviceFatherToIp[serviceFather].find(ipPort) == serviceFatherToIp[serviceFather].end()) {
+		ret = false;
+	}
+	spinlock_unlock(&serviceFatherToIpLock);
+	return ret;
+}
+
+bool ServiceListener::serviceFatherExist(const string& serviceFather) {
+	bool ret = true;
+	spinlock_lock(&serviceFatherToIpLock);
+	if (serviceFatherToIp.find(serviceFather) == serviceFatherToIp.end()) {
+		ret = false;
+	}
+	spinlock_unlock(&serviceFatherToIpLock);
+	return ret;
+}
+
+//要增加健壮性也应该在这里增加
+void ServiceListener::addIpPort(const string& serviceFather, const string& ipPort) {
+	spinlock_lock(&serviceFatherToIpLock);
+	serviceFatherToIp[serviceFather].insert(ipPort);
+	spinlock_unlock(&serviceFatherToIpLock);
+}
+
+void ServiceListener::deleteIpPort(const string& serviceFather, const string& ipPort) {
+	spinlock_lock(&serviceFatherToIpLock);
+	serviceFatherToIp[serviceFather].erase(ipPort);
+	spinlock_unlock(&serviceFatherToIpLock);
 }
