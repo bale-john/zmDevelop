@@ -39,6 +39,26 @@ void LoadBalance::processChildEvent(zhandle_t* zhandle, const string path) {
 	}
 }
 
+void LoadBalance::processChangedEvent(zhandle_t* zhandle, const string path) {
+	LoadBalance::lb = LoadBalance::getInstance();
+	LOG(LOG_INFO, "the data of node %s changed." path.c_str());
+	char serviceFather[256] = {0};
+	int dataLen = 256;
+	LOG(LOG_INFO, "md5Path: %s, serviceFather: %s, *dataLen: %d", path.c_str(), serviceFather, *dataLen);
+	int ret = zoo_get(zh, path.c_str(), 1, serviceFather, dataLen, NULL);
+	if (ret == ZOK) {
+		LOG(LOG_INFO, "get data success");
+		lb->updateMd5ToServiceFather(path, string(data));
+	}
+	else if (ret == ZNONODE) {
+		LOG(LOG_TRACE, "%s...out...node:%s not exist.", __FUNCTION__, md5Path);
+	}
+	else {
+		LOG(LOG_ERROR, "parameter error. zhandle is NULL");
+	}
+	return;
+}
+
 void LoadBalance::watcher(zhandle_t* zhandle, int type, int state, const char* path, void* context) {
 	switch (type) {
 		case SESSION_EVENT_DEF:
@@ -66,6 +86,7 @@ void LoadBalance::watcher(zhandle_t* zhandle, int type, int state, const char* p
             break;
         case CHANGED_EVENT_DEF:
             LOG(LOG_INFO, "zookeeper watcher [ change event ] path:%s", path);
+            processChangedEvent(zhandle, string(path));
             //todo 意味着md5对应的serviceFather改变了。这也太奇怪了，难道是serviceFather的名字改变了？
             break;
 	}
@@ -104,7 +125,9 @@ LoadBalance::LoadBalance() : zh(NULL) {
 	conf = Config::getInstance();
 	md5ToServiceFather.clear();
 	monitors.clear();
-	initEnv();	
+	myServiceFather.clear();
+	initEnv();
+	md5ToServiceFatherLock = SPINLOCK_INITIALIZER;
 }
 
 LoadBalance::~LoadBalance(){
@@ -155,6 +178,12 @@ int LoadBalance::zkGetNode(const char* md5Path, char* serviceFather, int* dataLe
 	return M_ERR;
 }
 
+void updateMd5ToServiceFather(const string& md5Path, const string& serviceFather) {
+	spinlock_lock();
+	md5ToServiceFather[md5Path] = serviceFather;
+	spinlock_unlock();
+}
+
 int LoadBalance::getMd5ToServiceFather() {
 	string path = conf->getNodeList();
 	struct String_vector md5Node = {0};
@@ -168,7 +197,8 @@ int LoadBalance::getMd5ToServiceFather() {
 		//todo 根据ret的值加入异常
         int dataLen = sizeof(serviceFather);
 		ret = zkGetNode(md5Path.c_str(), serviceFather, &dataLen);
-		md5ToServiceFather[string(md5Node.data[i])] = string(serviceFather);
+		updateMd5ToServiceFather(string(md5Node.data[i]), string(serviceFather));
+		//md5ToServiceFather[string(md5Node.data[i])] = string(serviceFather);
 		LOG(LOG_INFO, "md5: %s, serviceFather: %s", md5Path.c_str(), serviceFather);
 	}
 	return M_OK;
