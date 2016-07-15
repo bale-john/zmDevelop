@@ -418,9 +418,9 @@ int ServiceListener::getServiceFatherStatus(const string& serviceFather, int sta
 }
 
 int ServiceListener::modifyServiceFatherStatus(const string& serviceFather, vector<int>& statusv) {
-	spinlock_lock(serviceFatherStatusLock);
+	spinlock_lock(&serviceFatherStatusLock);
 	serviceFatherStatus[serviceFather] = statusv;
-	spinlock_unlock(serviceFatherStatusLock);
+	spinlock_unlock(&serviceFatherStatusLock);
 	return 0;
 }
 
