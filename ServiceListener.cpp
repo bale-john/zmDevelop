@@ -5,6 +5,7 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <zk_adaptor.h>
+#include <netdb.h>
 #include "Config.h"
 #include "ServiceItem.h"
 #include "ServiceListener.h"
@@ -12,7 +13,6 @@
 #include "Log.h"
 #include "ConstDef.h"
 #include "Util.h"
-#include <netdb.h>
 #include "x86_spinlocks.h"
 using namespace std;
 
@@ -28,7 +28,9 @@ ServiceListener* ServiceListener::getInstance() {
 //这几个函数的意义和调用关系不清晰
 void ServiceListener::modifyServiceFatherToIp(const string op, const string& path) {
 	if (op == CLEAR) {
+		spinlock_lock(&serviceFatherToIpLock);
 		serviceFatherToIp.clear();
+		spinlock_unlock(&serviceFatherToIpLock);
 	}
 	size_t pos = path.rfind('/');
 	string serviceFather = path.substr(0, pos);
@@ -45,7 +47,7 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
     status = atoi(data);
     */
 	if (op == ADD) {
-		//如果当前进来的不是新增的，自然就不用操作了
+		//If this ipPort has exist, no need to do anything
 		if (ipExist(serviceFather, ipPort)) {
 			return;
 		}
@@ -81,7 +83,7 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
 			conf->deleteService(path);
 			conf->addService(path, item);
 		}
-		//actually serviceFather sure should exist. the if is useless
+		//actually serviceFather sure should exist. no need to discuss
 		/*
 		if (!serviceFatherExist(serviceFather)) {
 			spinlock_lock(&serviceFatherToIpLock);
@@ -415,7 +417,11 @@ int ServiceListener::modifyServiceFatherStatus(const string& serviceFather, vect
 }
 
 unordered_map<string, unordered_set<string>>& ServiceListener::getServiceFatherToIp() {
-	return serviceFatherToIp;
+	unordered_map<string, unordered_set<string>> ret;
+	spinlock_lock(&serviceFatherToIpLock);
+	ret = serviceFatherToIp;
+	spinlock_unlock(&serviceFatherToIpLock);
+	return ret;
 }
 
 size_t ServiceListener::getIpNum(const string& serviceFather) {
