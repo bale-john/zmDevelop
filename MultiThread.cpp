@@ -91,7 +91,8 @@ int MultiThread::updateConf(string node, int val) {
 }
 
 //更新线程。原来的设计是随机的更新顺序，我觉得这是不合理的，应该使用先来先服务的类型
-//这里判断是否为空需要加锁吗？感觉应该不需要吧，如果有另一个线程正在写，empty()将会返回什么值？
+//这里判断是否为空需要加锁吗？感觉应该不需要吧，如果有另一个线程正在写，empty()将会返回什么值
+//还是要加锁的。。
 //这里用先来先服务会有问题，如果一个节点被重复改变两次，怎么处理？
 void MultiThread::updateService() {
 #ifdef DEBUGM
@@ -104,7 +105,8 @@ void MultiThread::updateService() {
 		spinlock_lock(&updateServiceLock);
 		if (updateServiceInfo.empty()) {
 			spinlock_unlock(&updateServiceLock);
-			usleep(1000);
+			//why sleep? I think there is no nessarity
+			//usleep(1000);
 			continue;
 		}
 		spinlock_unlock(&updateServiceLock);
@@ -113,26 +115,50 @@ void MultiThread::updateService() {
 		//spinlock_lock(&updateServiceLock);
 		priority.pop_front();
 		//spinlock_unlock(&updateServiceLock);
-		//是有可能在优先级队列中存在，但是在字典中不存在的
+		//是有可能在优先级队列中存在，但是在字典中不存在的，比如一个节点连续被检测到两次改变，则在优先级队列中就会出现2次，但是在map中只会有一次
 		spinlock_lock(&updateServiceLock);
 		if (updateServiceInfo.find(key) == updateServiceInfo.end()) {
 			spinlock_unlock(&updateServiceLock);
-			usleep(1000);
+			//usleep(1000);
 			continue;
 		}
 		int val = updateServiceInfo[key];
 		updateServiceInfo.erase(key);
 		spinlock_unlock(&updateServiceLock);
+		int oldStatus = (conf->getServiceItem(key)).getStatus();
 		//现在获取了需要更新的key和value了,要把他们的状态更新到config类里和zk上
 		//如果节点死了，而且这个节点是这个serviceFather的唯一一个活着的节点，那么不改变状态，否则都要改变状态
 		//我应该在Config或者loadBalance里维护一个结构，保存每个serviceFather它对应的节点的状态，这样判断是否是唯一存活的节点就方便多了！
 		//我觉得这个数据结构放在LoadBalance里更合理，但是放在Config里更好做，先放在Config里吧
-		//这里应该进行更多判断，原来是什么状态？
-		if (val == STATUS_DOWN && isOnlyOneUp(key, val)) {
-			usleep(1000);
+		
+		//这里状态的转化要回去确认一下
+		if (oldStatus == STATUS_UP) {
+			if (val == STATUS_UP) {
+				continue;
+			}
+			else {
+				if (isOnlyOneUp(key, val)) {
+					LOG(LOG_INFO, "all service down and %s is kept up which actually down" key.c_str());
+					continue;
+				}
+				else {
+					//update
+				}
+			}
+		}
+		else if (oldStatus == STATUS_DOWN) {
+			if (val == STATUS_DOWN) {
+				continue;
+			}
+			else {
+				//update
+			}
+		}
+		else {
 			continue;
 		}
-		//可以进行更新
+
+		//可以进行更新，这里没有考虑zk更新失败的问题
 		//1.更新zk，这应该不用设置watch，那最好就用zk类来做
         updateZk(key, val);
 		//2.更新conf
