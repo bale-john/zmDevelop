@@ -59,7 +59,7 @@ int ServiceItem::setPort(int port) {
 }
 
 int ServiceItem::setAddr(struct in_addr* addr) {
-    memcpy(addr, &_addr, sizeof(struct in_addr));
+    memcpy(&_addr, addr, sizeof(struct in_addr));
     return 0;
 }
 

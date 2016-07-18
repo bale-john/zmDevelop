@@ -2,6 +2,8 @@
 #include <iostream>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <zk_adaptor.h>
@@ -204,6 +206,10 @@ void MultiThread::updateService() {
 }
 
 int MultiThread::isServiceExist(struct in_addr *addr, char* host, int port, int timeout, int curStatus) {
+    printf("%s\n", inet_ntoa(*addr));
+    printf("%s\n", host);
+    cout << port << endl;
+    cout << timeout << endl;
 	bool exist = true;  
     int sock = -1, val = 1, ret = 0;
     //struct hostent *host;
@@ -255,6 +261,7 @@ int MultiThread::isServiceExist(struct in_addr *addr, char* host, int port, int 
     FD_ZERO(&errfds);
     FD_SET(sock, &errfds);
     ret = select(sock+1, &readfds, &writefds, &errfds, &conn_tv);
+    cout << "fuck you " << ret << endl;
     if ( ret == 0 ){
         // connect timeout
         if (curStatus != STATUS_DOWN) {
@@ -272,21 +279,26 @@ int MultiThread::isServiceExist(struct in_addr *addr, char* host, int port, int 
     }
     else {
         if (! FD_ISSET(sock, &readfds) && ! FD_ISSET(sock, &writefds)) {
+            cout << "fuck you1" << endl;
             if (curStatus != STATUS_DOWN) {
                LOG(LOG_ERROR, "select not in read fds and write fds.host:%s port:%d error:%s",
                    host, port, strerror(errno));
             }
         }
         else if (FD_ISSET(sock, &errfds)) {
+            cout << "fuck you2" << endl;
             exist = false;
         }
         else if (FD_ISSET(sock, &writefds) && FD_ISSET(sock, &readfds)) {
+            cout << "fuck you3" << endl;
             exist = false;
         }
         else if (FD_ISSET(sock, &readfds) || FD_ISSET(sock, &writefds)) {
+            cout << "fuck you4" << endl;
             exist = true;
         }
         else {
+            cout << "fuck you5" << endl;
             exist = false;
         }
     }
@@ -312,7 +324,8 @@ int MultiThread::tryConnect(string curServiceFather) {
 		struct in_addr addr;
         item.getAddr(&addr);
 		int timeout = item.getConnectTimeout() > 0 ? item.getConnectTimeout() : 3;
-		int status = isServiceExist(&addr, (char*)item.getHost().c_str(), item.getPort(), timeout, item.getStatus());
+		int res = isServiceExist(&addr, (char*)item.getHost().c_str(), item.getPort(), timeout, item.getStatus());
+        int status = (res)? 0 : 2;
 		//todo 根据status进行分类。这里先打印出来
 		cout << "sssssssssssssssssssssssssssss" << endl;
 		cout << "ipPort: " << ipPort << " status: " << status << " oldstatus: " << oldStatus << endl;
