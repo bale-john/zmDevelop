@@ -22,6 +22,7 @@ using namespace std;
 class MultiThread {
 private:
 	MultiThread(Zk*);
+	static bool threadError;
 	static MultiThread* mlInstance;
 	Config* conf;
 	ServiceListener* sl;
@@ -34,8 +35,10 @@ private:
 
 public:
 	~MultiThread();
+	//overload
 	static MultiThread* getInstance(Zk*);
     static MultiThread* getInstance();
+    
 	int runMainThread();
 	static void* staticUpdateService(void* args);
 	static void* staticCheckService(void* args);
@@ -47,5 +50,9 @@ public:
 	int updateConf(string node, int val);
 	int updateZk(string node, int val);
 	bool isOnlyOneUp(string node, int val);
+
+	bool isThreadError();
+	void setThreadError();
+	void clearThreadError();
 };
 #endif

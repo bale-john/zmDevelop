@@ -142,7 +142,7 @@ int main(int argc, char** argv){
 			delete lb;
 			delete serviceListener;
 			delete ml;
-            if (_stop) {
+            if (_stop || MultiThread::isThreadError()) {
                 break;
             }
 		}

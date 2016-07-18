@@ -38,6 +38,8 @@ static spinlock_t updateServiceLock;
 
 MultiThread* MultiThread::mlInstance = NULL;
 
+bool MultiThread::threadError = false;
+
 MultiThread* MultiThread::getInstance(Zk* zk_input) {
 	if (!mlInstance) {
 		mlInstance = new MultiThread(zk_input);
@@ -58,6 +60,19 @@ MultiThread::MultiThread(Zk* zk_input) : zk(zk_input) {
 
 MultiThread::~MultiThread() {
 	mlInstance = NULL;
+	clearThreadError();
+}
+
+bool MultiThread::isThreadError() {
+	return threadError;
+}
+
+void setThreadError() {
+	threadError = true;
+}
+
+void clearThreadError() {
+	threadError = false;
 }
 
 bool MultiThread::isOnlyOneUp(string node, int val) {
@@ -99,7 +114,7 @@ void MultiThread::updateService() {
     cout << "in update service thread" << endl;
 #endif
 	while (1) {
-        if (_stop || LoadBalance::getReBalance()) {
+        if (_stop || LoadBalance::getReBalance() || isThreadError()) {
             break;
         }
 		spinlock_lock(&updateServiceLock);
@@ -301,7 +316,7 @@ void MultiThread::checkService() {
     cout << pthreadId << " " << pos << " " << serviceFather[pos] << " " << curServiceFather << endl;
 #endif
 	while (1) {
-        if (_stop || LoadBalance::getReBalance()) {
+        if (_stop || LoadBalance::getReBalance() || isThreadError()) {
             break;
         }
 		//应该先去检查这个节点是什么状态，这里要考虑一下，如果原来就是offline肯定不用管。
@@ -330,8 +345,10 @@ void* MultiThread::staticCheckService(void* args) {
 int MultiThread::runMainThread() {
 	int schedule = NOSCHEDULE;
     //没有考虑异常，如pthread不成功等
-	pthread_create(&updateServiceThread, NULL, staticUpdateService, NULL);
-
+	int res = pthread_create(&updateServiceThread, NULL, staticUpdateService, NULL);
+	if (res != 0) {
+		setThreadError();
+	}
 	//这里要考虑如何分配检查线程了，应该可以做很多文章，比如记录每个father有多少个服务，如果很多就分配两个线程等等。这里先用最简单的，线程足够的情况下，一个serviceFather一个线程
 	int oldThreadNum = 0;
 	int newThreadNum = 0;
@@ -346,7 +363,7 @@ int MultiThread::runMainThread() {
 #ifdef DEBUGM
         cout << "xxxxxxxxxxx" << endl;
 #endif
-        if (_stop || LoadBalance::getReBalance()) {
+        if (_stop || LoadBalance::getReBalance() || isThreadError()) {
             break;
         }
 		newThreadNum = serviceFatherToIp.size();
@@ -399,5 +416,6 @@ int MultiThread::runMainThread() {
     pthread_join(updateServiceThread, &exitStatus);
     cout << "exit update " << endl;
     cout << "fffffffff" << endl;
+    clearThreadError();
     return 0;
 }
