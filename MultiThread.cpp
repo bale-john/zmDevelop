@@ -53,6 +53,7 @@ MultiThread* MultiThread::getInstance() {
 
 MultiThread::MultiThread(Zk* zk_input) : zk(zk_input) {
 	updateServiceInfoLock = SPINLOCK_INITIALIZER;
+	waitingIndexLock = SPINLOCK_INITIALIZER;
 	conf = Config::getInstance();
 	sl = ServiceListener::getInstance();
     lb = LoadBalance::getInstance();
@@ -321,16 +322,15 @@ int MultiThread::tryConnect(string curServiceFather) {
     return 0;
 }
 
-
-//讲道理，这个函数只需要service father和service father和ip的对应，然后去修改updateInfo就好了,目前就最简单的，一个线程负责一个serviceFather
 void MultiThread::checkService() {
-    cout << "in check service thread " << endl;
 	pthread_t pthreadId = pthread_self();
 	size_t pos = threadPos[pthreadId];
 	string curServiceFather = (lb->getMyServiceFather())[pos];
 #ifdef DEBUGM
-    cout << pthreadId << " " << pos << " " << serviceFather[pos] << " " << curServiceFather << endl;
+	cout << "check service thread " << pthreadId << " pos: " << pos << " current service father: " << curServiceFather << endl;
 #endif
+	LOG(LOG_INFO, "|checkService| pthread id %x, pthread pos %d, current service father %s", \
+		(unsigned int)pthreadId, (int)pos, curServiceFather.c_str());
 	while (1) {
         if (_stop || LoadBalance::getReBalance() || isThreadError()) {
             break;
@@ -340,7 +340,6 @@ void MultiThread::checkService() {
 		//目前只检查上线的
 		tryConnect(curServiceFather);
         sleep(2);
-		//这里得维护一个数据结构来进行线程的调度，先放着 todo，因为目前是最简单的一个线程负责一个serviceFather
 		//if ()
 	}
     return;
@@ -447,4 +446,20 @@ int MultiThread::runMainThread() {
     cout << "fffffffff" << endl;
     clearThreadError();
     return ret;
+}
+
+void MultiThread::setWaitingIndex(int val) {
+	spinlock_lock(&waitingIndexLock);
+	waitingIndex = val;
+	spinlock_unlock(&waitingIndexLock);
+	return;
+}
+
+int MultiThread::getAndAddWaitingIndex() {
+	int ret;
+	spinlock_lock(&waitingIndexLock);
+	ret = waitingIndex;
+	++waitingIndex;
+	spinlock_unlock(&waitingIndexLock);
+	return ret;
 }

@@ -34,6 +34,9 @@ private:
 	Zk* zk;
 	spinlock_t updateServiceInfoLock;
 
+	int waitingIndex;
+	spinlock_t waitingIndexLock;
+
 public:
 	~MultiThread();
 	//overload
@@ -55,5 +58,8 @@ public:
 	static bool isThreadError();
 	static void setThreadError();
 	static void clearThreadError();
+
+	void setWaitingIndex(int val);
+	int getAndAddWaitingIndex();
 };
 #endif
