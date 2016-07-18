@@ -52,6 +52,7 @@ MultiThread* MultiThread::getInstance() {
 }
 
 MultiThread::MultiThread(Zk* zk_input) : zk(zk_input) {
+	updateServiceInfoLock = SPINLOCK_INITIALIZER;
 	conf = Config::getInstance();
 	sl = ServiceListener::getInstance();
     lb = LoadBalance::getInstance();
@@ -93,7 +94,7 @@ bool MultiThread::isOnlyOneUp(string node, int val) {
 	}
 	return ret;
 }
-
+//todo 要操作zk的就存在失败的可能，所以要加入各种异常
 int MultiThread::updateZk(string node, int val) {
 	string status = to_string(val);
 	zk->setZnode(node, status);
@@ -105,10 +106,8 @@ int MultiThread::updateConf(string node, int val) {
 	return 0;
 }
 
-//更新线程。原来的设计是随机的更新顺序，我觉得这是不合理的，应该使用先来先服务的类型
-//这里判断是否为空需要加锁吗？感觉应该不需要吧，如果有另一个线程正在写，empty()将会返回什么值
-//还是要加锁的。。
-//这里用先来先服务会有问题，如果一个节点被重复改变两次，怎么处理？
+
+//update service thread. comes first update first
 void MultiThread::updateService() {
 #ifdef DEBUGM
     cout << "in update service thread" << endl;
@@ -119,6 +118,7 @@ void MultiThread::updateService() {
         }
 		spinlock_lock(&updateServiceLock);
 		if (updateServiceInfo.empty()) {
+			priority.clear();
 			spinlock_unlock(&updateServiceLock);
 			//why sleep? I think there is no nessarity
 			//usleep(1000);
@@ -126,7 +126,7 @@ void MultiThread::updateService() {
 		}
 		spinlock_unlock(&updateServiceLock);
 		string key = priority.front();
-		//这需要加锁吗？如果一个线程只会操作list的头部，而另一个只会操作尾部，好像不用加锁
+		//这需要加锁吗？如果一个线程只会操作list的头部，而另一个只会操作尾部?不确定
 		//spinlock_lock(&updateServiceLock);
 		priority.pop_front();
 		//spinlock_unlock(&updateServiceLock);
@@ -141,44 +141,60 @@ void MultiThread::updateService() {
 		updateServiceInfo.erase(key);
 		spinlock_unlock(&updateServiceLock);
 		int oldStatus = (conf->getServiceItem(key)).getStatus();
-		//现在获取了需要更新的key和value了,要把他们的状态更新到config类里和zk上
-		//如果节点死了，而且这个节点是这个serviceFather的唯一一个活着的节点，那么不改变状态，否则都要改变状态
-		//我应该在Config或者loadBalance里维护一个结构，保存每个serviceFather它对应的节点的状态，这样判断是否是唯一存活的节点就方便多了！
-		//我觉得这个数据结构放在LoadBalance里更合理，但是放在Config里更好做，先放在Config里吧
-		
-		//这里状态的转化要回去确认一下
-		if (oldStatus == STATUS_UP) {
-			if (val == STATUS_UP) {
-				continue;
-			}
-			else {
-				if (isOnlyOneUp(key, val)) {
-					LOG(LOG_INFO, "all service down and %s is kept up which actually down", key.c_str());
+
+		//compare the new status and old status to decide weather to update status		
+		if (val == STATUS_DOWN) {
+			if (oldStatus == STATUS_UP) {
+				if (isOnlyOneUp()) {
+					LOG(LOG_FATAL_ERROR, "Maybe %s is the last server that is up. 
+						But monitor CAN'T connect to it. its Status will not change!", key.c_str());
 					continue;
 				}
 				else {
-					//update
+					int res = updateZk(key, val);
+					if (res ！= 0) {
+						LOG(LOG_ERROR, "update zk failed. server %s should be %d", key.c_str(), val);
+					}
+					else {
+						updateConf(key, val);
+					}
 				}
 			}
-		}
-		else if (oldStatus == STATUS_DOWN) {
-			if (val == STATUS_DOWN) {
-				continue;
+			else if (oldStatus == STATUS_DOWN) {
+				LOG(LOG_INFO, "service %s keeps down", key.c_str());
+			}
+			else if (oldStatus == STATUS_OFFLINE) {
+				LOG(LOG_INFO, "service %s is off line and it can't be connected", key.c_str());
 			}
 			else {
-				//update
+				LOG(LOG_WARNING, "status: %d should not exist!", oldStatus);
+			}
+		}
+		else if (val == STATUS_UP) {
+			if (oldStatus == STATUS_DOWN) {
+				int res = updateZk(key, val);
+				if (res ！= 0) {
+					LOG(LOG_ERROR, "update zk failed. server %s should be %d", key.c_str(), val);
+				}
+				else {
+					updateConf(key, val);
+				}
+			}
+			else if (oldStatus == STATUS_UP) {
+				LOG(LOG_INFO, "service %s keeps up", key.c_str());
+			}
+			else if (oldStatus == STATUS_OFFLINE) {
+				LOG(LOG_INFO, "service %s is off line and it can be connected", key.c_str());
+			}
+			else {
+				LOG(LOG_WARNING, "status: %d should not exist!", oldStatus);
 			}
 		}
 		else {
-			continue;
+			LOG(LOG_INFO, "should not come here")
 		}
-
-		//可以进行更新，这里没有考虑zk更新失败的问题
-		//1.更新zk，这应该不用设置watch，那最好就用zk类来做
-        updateZk(key, val);
-		//2.更新conf
-		updateConf(key, val);
-		usleep(1000);
+		//why sleep? 
+		//usleep(1000);
 	}
 #ifdef DEBUGM
     cout << "out update service" << endl;
