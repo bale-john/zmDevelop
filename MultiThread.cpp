@@ -52,12 +52,11 @@ MultiThread* MultiThread::getInstance() {
 }
 
 MultiThread::MultiThread(Zk* zk_input) : zk(zk_input) {
-	updateServiceInfoLock = SPINLOCK_INITIALIZER;
+	updateServiceLock = SPINLOCK_INITIALIZER;
 	waitingIndexLock = SPINLOCK_INITIALIZER;
 	conf = Config::getInstance();
 	sl = ServiceListener::getInstance();
     lb = LoadBalance::getInstance();
-	updateServiceLock = SPINLOCK_INITIALIZER;
 }
 
 MultiThread::~MultiThread() {
@@ -142,6 +141,7 @@ void MultiThread::updateService() {
 		updateServiceInfo.erase(key);
 		spinlock_unlock(&updateServiceLock);
 		int oldStatus = (conf->getServiceItem(key)).getStatus();
+        cout << "key: " << key << " val: " << val << endl;
 
 		//compare the new status and old status to decide weather to update status		
 		if (val == STATUS_DOWN) {
@@ -303,9 +303,7 @@ int MultiThread::tryConnect(string curServiceFather) {
 	unordered_set<string> ip = serviceFatherToIp[curServiceFather];
 #ifdef DEBUGM
 	for (auto it = ip.begin(); it != ip.end(); ++it) {
-        cout << *it << endl;
 		string ipPort = curServiceFather + "/" + (*it);
-        cout << ipPort << endl;
 		ServiceItem item = serviceMap[ipPort];
 		int oldStatus = item.getStatus();
 		if (oldStatus == STATUS_UNKNOWN || oldStatus == STATUS_OFFLINE) {
@@ -317,10 +315,12 @@ int MultiThread::tryConnect(string curServiceFather) {
 		int status = isServiceExist(&addr, (char*)item.getHost().c_str(), item.getPort(), timeout, item.getStatus());
 		//todo 根据status进行分类。这里先打印出来
 		cout << "sssssssssssssssssssssssssssss" << endl;
-		cout << ipPort << " " << status << endl;
+		cout << "ipPort: " << ipPort << " status: " << status << " oldstatus: " << oldStatus << endl;
 		if (status != oldStatus) {
 			spinlock_lock(&updateServiceLock);
-			updateServiceInfo[ipPort] = status;
+            priority.push_back(ipPort);
+            updateServiceInfo[ipPort] = status;
+            cout << "priority: " << priority.size() << "updateServiceInfo: " << updateServiceInfo.size() << endl;
 			LOG(LOG_INFO, "|checkService| service %s new status %d", ipPort.c_str(), status);
 			spinlock_unlock(&updateServiceLock);
 		}

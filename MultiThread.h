@@ -32,7 +32,6 @@ private:
 	//每个检查线程的pthread_t和该检车线程在线程池中的下标的对应关系
 	map<pthread_t, size_t> threadPos;
 	Zk* zk;
-	spinlock_t updateServiceInfoLock;
 
 	int waitingIndex;
 	spinlock_t waitingIndexLock;

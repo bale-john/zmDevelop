@@ -50,8 +50,8 @@ const string SLASH = "/";
 const string NODE_LIST = "md5_list";
 
 //multi thread
-#ifdef DEBUG_FLAGS
-constexpr int MAX_THREAD_NUM = 5;
+#ifdef DEBUGM
+constexpr int MAX_THREAD_NUM = 1;
 #else
 constexpr int MAX_THREAD_NUM = 128;
 #endif
