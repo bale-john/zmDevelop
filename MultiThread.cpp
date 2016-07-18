@@ -307,7 +307,8 @@ int MultiThread::tryConnect(string curServiceFather) {
 		string ipPort = curServiceFather + "/" + (*it);
         cout << ipPort << endl;
 		ServiceItem item = serviceMap[ipPort];
-		if (item.getStatus() != STATUS_UP) {
+		int oldStatus = item.getStatus();
+		if (oldStatus == STATUS_UNKNOWN || oldStatus == STATUS_OFFLINE) {
 			continue;
 		}
 		struct in_addr addr;
@@ -317,6 +318,12 @@ int MultiThread::tryConnect(string curServiceFather) {
 		//todo 根据status进行分类。这里先打印出来
 		cout << "sssssssssssssssssssssssssssss" << endl;
 		cout << ipPort << " " << status << endl;
+		if (status != oldStatus) {
+			spinlock_lock(&updateServiceLock);
+			updateServiceInfo[ipPort] = status;
+			LOG(LOG_INFO, "|checkService| service %s new status %d", ipPort.c_str(), status);
+			spinlock_unlock(&updateServiceLock);
+		}
 	}
 #endif
     return 0;
@@ -335,9 +342,7 @@ void MultiThread::checkService() {
         if (_stop || LoadBalance::getReBalance() || isThreadError()) {
             break;
         }
-		//应该先去检查这个节点是什么状态，这里要考虑一下，如果原来就是offline肯定不用管。
-		//如果原来是upline肯定需要管，如果原来是down和unknown呢？这个我觉得可能要
-		//目前只检查上线的
+		//应该先去检查这个节点是什么状态，这里要考虑一下，如果原来就是offline或者unknown就不检查
 		tryConnect(curServiceFather);
         sleep(2);
 		//if ()
@@ -382,6 +387,7 @@ int MultiThread::runMainThread() {
 		//线程需要开满，且需要调度.需要调度与否通过参数传一个flag进去
 		if (newThreadNum > MAX_THREAD_NUM) {
 			newThreadNum = MAX_THREAD_NUM;
+			setWaitingIndex(MAX_THREAD_NUM);
 			//todo 这个变量作为flag，只有主线程可以修改，但是所有的检查线程都要读它，这里是否需要加锁呢
 			//todo 我应该先改变schedule的值还是先创建新线程呢？
 			if (schedule == NOSCHEDULE) {

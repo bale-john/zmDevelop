@@ -61,5 +61,7 @@ public:
 
 	void setWaitingIndex(int val);
 	int getAndAddWaitingIndex();
+
+	void insertUpdateServiceInfo(const string& service, const int val);
 };
 #endif
