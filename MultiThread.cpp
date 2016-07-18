@@ -344,19 +344,16 @@ void* MultiThread::staticCheckService(void* args) {
 //TODO 主线程肯定是要考虑配置重载什么的这些事情的
 int MultiThread::runMainThread() {
 	int schedule = NOSCHEDULE;
-    //没有考虑异常，如pthread不成功等
 	int res = pthread_create(&updateServiceThread, NULL, staticUpdateService, NULL);
 	if (res != 0) {
 		setThreadError();
+		LOG(LOG_ERROR, "create the update service thread error: %s", strerror(res));
 	}
-	//这里要考虑如何分配检查线程了，应该可以做很多文章，比如记录每个father有多少个服务，如果很多就分配两个线程等等。这里先用最简单的，线程足够的情况下，一个serviceFather一个线程
+	//考虑如何分配检查线程，比如记录每个father有多少个服务，如果很多就分配两个线程等等。
 	int oldThreadNum = 0;
 	int newThreadNum = 0;
-	//如果serviceFather数目小于最大线程数目，每个线程一个serviceFather玩去吧
-	//如果serviceFather数目大于最大线程数目，这应该是更常见的，然后就要复用线程。同样的这里怎么复用，复用哪些线程都是可以做文章的
-	//先实现最简单的，谁做完了就复用谁？
-	//或者新思路，重新安排ip。每个线程取一个得放，这样完全不用管线程数目的事了，所有线程还是在ip级别一视同仁怎么样？线程数目少饿仍然可能饿死。。。
-	//构思了一种思路，但这种思路其实最好把serviceFather和ip等数据封装成一个类。
+	//如果serviceFather数目小于最大线程数目，每个线程一个serviceFather
+	//如果serviceFather数目大于最大线程数目，这应该是更常见的，然后就要复用线程。同样的这里怎么复用，复用哪些线程有很多方法
 	//todo
 	while (1) {
 		unordered_map<string, unordered_set<string>> serviceFatherToIp = sl->getServiceFatherToIp();
@@ -367,7 +364,7 @@ int MultiThread::runMainThread() {
             break;
         }
 		newThreadNum = serviceFatherToIp.size();
-		//线程需要开满，且需要调度.需要调度与否必须通过参数传一个flag进去
+		//线程需要开满，且需要调度.需要调度与否通过参数传一个flag进去
 		if (newThreadNum > MAX_THREAD_NUM) {
 			newThreadNum = MAX_THREAD_NUM;
 			//todo 这个变量作为flag，只有主线程可以修改，但是所有的检查线程都要读它，这里是否需要加锁呢
@@ -376,7 +373,12 @@ int MultiThread::runMainThread() {
 				schedule = SCHEDULE;
 			}
 			for (; oldThreadNum < newThreadNum; ++oldThreadNum) {
-				pthread_create(checkServiceThread + oldThreadNum, NULL, staticCheckService, &schedule);
+				res = pthread_create(checkServiceThread + oldThreadNum, NULL, staticCheckService, &schedule);
+				if (res != 0) {
+					setThreadError();
+					LOG(LOG_ERROR, "create the check service thread error: %s", strerror(res));
+					break;
+				}
 				threadPos[checkServiceThread[oldThreadNum]] = oldThreadNum;
 			}
 		}
@@ -385,15 +387,17 @@ int MultiThread::runMainThread() {
 			if (schedule == SCHEDULE) {
 				schedule = NOSCHEDULE;
 			}
-			//每个serviceFather一个线程，而且旧的就已经完全够用了
 			if (newThreadNum <= oldThreadNum) {
-				oldThreadNum = newThreadNum;
-				sleep(2);
-				continue;
+				//some thread may be left to be idle
 			}
 			else {
 				for (; oldThreadNum < newThreadNum; ++oldThreadNum) {
-					pthread_create(checkServiceThread + oldThreadNum, NULL, staticCheckService, &schedule);
+					res = pthread_create(checkServiceThread + oldThreadNum, NULL, staticCheckService, &schedule);
+					if (res != 0) {
+						setThreadError();
+						LOG(LOG_ERROR, "create the check service thread error: %s", strerror(res));
+						break;
+					}
 					threadPos[checkServiceThread[oldThreadNum]] = oldThreadNum;
 #ifdef DEBUGM
                     cout << "checkServiceThread[" << oldThreadNum << "] " << checkServiceThread[oldThreadNum] << endl;
@@ -404,18 +408,27 @@ int MultiThread::runMainThread() {
 #ifdef DEBUGM
     cout << "finish one round" << endl;
 #endif
-		//why sleep?
 		sleep(2);
 	}
-	//todo 退出标识，退出动作等等都还没写
+
     void* exitStatus;
+    int ret = 0;
     for (int i = 0; i < oldThreadNum; ++i) {
-        pthread_join(checkServiceThread[i], &exitStatus);
+        res = pthread_join(checkServiceThread[i], &exitStatus);
+        if (res != 0) {
+        	LOG(LOG_ERROR, "join check service thread error: %s", strerror(res));
+        	ret = -1;
+        	continue;
+        }
         cout << "exit check " << i << endl;
     }
-    pthread_join(updateServiceThread, &exitStatus);
+    res = pthread_join(updateServiceThread, &exitStatus);
+    if (res != 0) {
+    	LOG(LOG_ERROR, "join update service thread error: %s", strerror(res));
+    	ret = -1;
+    }
     cout << "exit update " << endl;
     cout << "fffffffff" << endl;
     clearThreadError();
-    return 0;
+    return ret;
 }
