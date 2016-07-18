@@ -67,11 +67,11 @@ bool MultiThread::isThreadError() {
 	return threadError;
 }
 
-void setThreadError() {
+void MultiThread::setThreadError() {
 	threadError = true;
 }
 
-void clearThreadError() {
+void MultiThread::clearThreadError() {
 	threadError = false;
 }
 
@@ -153,7 +153,7 @@ void MultiThread::updateService() {
 			}
 			else {
 				if (isOnlyOneUp(key, val)) {
-					LOG(LOG_INFO, "all service down and %s is kept up which actually down" key.c_str());
+					LOG(LOG_INFO, "all service down and %s is kept up which actually down", key.c_str());
 					continue;
 				}
 				else {

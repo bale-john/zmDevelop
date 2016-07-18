@@ -51,8 +51,8 @@ public:
 	int updateZk(string node, int val);
 	bool isOnlyOneUp(string node, int val);
 
-	bool isThreadError();
-	void setThreadError();
-	void clearThreadError();
+	static bool isThreadError();
+	static void setThreadError();
+	static void clearThreadError();
 };
 #endif
