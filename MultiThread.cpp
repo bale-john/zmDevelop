@@ -261,7 +261,7 @@ int MultiThread::isServiceExist(struct in_addr *addr, char* host, int port, int 
     FD_ZERO(&errfds);
     FD_SET(sock, &errfds);
     ret = select(sock+1, &readfds, &writefds, &errfds, &conn_tv);
-    cout << "fuck you " << ret << endl;
+    cout << "ret: " << ret << endl;
     if ( ret == 0 ){
         // connect timeout
         if (curStatus != STATUS_DOWN) {
@@ -279,26 +279,26 @@ int MultiThread::isServiceExist(struct in_addr *addr, char* host, int port, int 
     }
     else {
         if (! FD_ISSET(sock, &readfds) && ! FD_ISSET(sock, &writefds)) {
-            cout << "fuck you1" << endl;
+            cout << "1111" << endl;
             if (curStatus != STATUS_DOWN) {
                LOG(LOG_ERROR, "select not in read fds and write fds.host:%s port:%d error:%s",
                    host, port, strerror(errno));
             }
         }
         else if (FD_ISSET(sock, &errfds)) {
-            cout << "fuck you2" << endl;
+            cout << "2222" << endl;
             exist = false;
         }
         else if (FD_ISSET(sock, &writefds) && FD_ISSET(sock, &readfds)) {
-            cout << "fuck you3" << endl;
+            cout << "3333" << endl;
             exist = false;
         }
         else if (FD_ISSET(sock, &readfds) || FD_ISSET(sock, &writefds)) {
-            cout << "fuck you4" << endl;
+            cout << "4444" << endl;
             exist = true;
         }
         else {
-            cout << "fuck you5" << endl;
+            cout << "5555" << endl;
             exist = false;
         }
     }
