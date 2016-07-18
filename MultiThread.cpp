@@ -145,14 +145,14 @@ void MultiThread::updateService() {
 		//compare the new status and old status to decide weather to update status		
 		if (val == STATUS_DOWN) {
 			if (oldStatus == STATUS_UP) {
-				if (isOnlyOneUp()) {
-					LOG(LOG_FATAL_ERROR, "Maybe %s is the last server that is up. 
-						But monitor CAN'T connect to it. its Status will not change!", key.c_str());
+				if (isOnlyOneUp(key, val)) {
+					LOG(LOG_FATAL_ERROR, "Maybe %s is the last server that is up. \
+                    But monitor CAN NOT connect to it. its Status will not change!", key.c_str());
 					continue;
 				}
 				else {
 					int res = updateZk(key, val);
-					if (res ！= 0) {
+					if (res != 0) {
 						LOG(LOG_ERROR, "update zk failed. server %s should be %d", key.c_str(), val);
 					}
 					else {
@@ -173,7 +173,7 @@ void MultiThread::updateService() {
 		else if (val == STATUS_UP) {
 			if (oldStatus == STATUS_DOWN) {
 				int res = updateZk(key, val);
-				if (res ！= 0) {
+				if (res != 0) {
 					LOG(LOG_ERROR, "update zk failed. server %s should be %d", key.c_str(), val);
 				}
 				else {
@@ -191,7 +191,7 @@ void MultiThread::updateService() {
 			}
 		}
 		else {
-			LOG(LOG_INFO, "should not come here")
+			LOG(LOG_INFO, "should not come here");
 		}
 		//why sleep? 
 		//usleep(1000);
