@@ -59,6 +59,7 @@ MultiThread::MultiThread(Zk* zk_input) : zk(zk_input) {
 	conf = Config::getInstance();
 	sl = ServiceListener::getInstance();
     lb = LoadBalance::getInstance();
+    serviceFatherNum = 0;
 }
 
 MultiThread::~MultiThread() {
@@ -91,12 +92,12 @@ bool MultiThread::isOnlyOneUp(string node) {
 		if (status == STATUS_UP) {
 			++alive;
 		}
+		cout << "isonlyone: " << ipPath << " " << status << " " << alive << endl;
 		if (alive > 1) {
 			ret = false;
             break;
 		}
 	}
-    cout << "isonlyone: " << ipPath << " " << status << " " << alive << endl;
     if (alive > 1) {
         ret = false;
     }
@@ -335,6 +336,7 @@ int MultiThread::tryConnect(string curServiceFather) {
 		string ipPort = curServiceFather + "/" + (*it);
 		ServiceItem item = serviceMap[ipPort];
 		int oldStatus = item.getStatus();
+		//If the node is STATUS_UNKNOWN or STATUS_OFFLINE, we will ignore it
 		if (oldStatus == STATUS_UNKNOWN || oldStatus == STATUS_OFFLINE) {
 			continue;
 		}
@@ -362,18 +364,18 @@ int MultiThread::tryConnect(string curServiceFather) {
 void MultiThread::checkService() {
 	pthread_t pthreadId = pthread_self();
 	size_t pos = threadPos[pthreadId];
-	string curServiceFather = (lb->getMyServiceFather())[pos];
-#ifdef DEBUGM
-	cout << "check service thread " << pthreadId << " pos: " << pos << " current service father: " << curServiceFather << endl;
-#endif
-	LOG(LOG_INFO, "|checkService| pthread id %x, pthread pos %d, current service father %s", \
-		(unsigned int)pthreadId, (int)pos, curServiceFather.c_str());
 	while (1) {
         if (_stop || LoadBalance::getReBalance() || isThreadError()) {
             break;
         }
-		//应该先去检查这个节点是什么状态，这里要考虑一下，如果原来就是offline或者unknown就不检查
+		string curServiceFather = (lb->getMyServiceFather())[pos];
+#ifdef DEBUGM
+		cout << "check service thread " << pthreadId << " pos: " << pos << " current service father: " << curServiceFather << endl;
+#endif
+		LOG(LOG_INFO, "|checkService| pthread id %x, pthread pos %d, current service father %s", \
+			(unsigned int)pthreadId, (int)pos, curServiceFather.c_str());
 		tryConnect(curServiceFather);
+		pos = (pos + MAX_THREAD_NUM) % serviceFatherNum;
         sleep(2);
 		//if ()
 	}
@@ -411,6 +413,7 @@ int MultiThread::runMainThread() {
             break;
         }
 		newThreadNum = serviceFatherToIp.size();
+		serviceFatherNum = newThreadNum;
 		//线程需要开满，且需要调度.需要调度与否通过参数传一个flag进去
 		if (newThreadNum > MAX_THREAD_NUM) {
 			newThreadNum = MAX_THREAD_NUM;
