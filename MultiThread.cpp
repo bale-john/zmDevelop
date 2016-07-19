@@ -57,6 +57,7 @@ MultiThread::MultiThread(Zk* zk_input) : zk(zk_input) {
 	updateServiceLock = SPINLOCK_INITIALIZER;
 	waitingIndexLock = SPINLOCK_INITIALIZER;
 	hasThreadLock = SPINLOCK_INITIALIZER;
+    threadPosLock = SPINLOCK_INITIALIZER;
 	conf = Config::getInstance();
 	sl = ServiceListener::getInstance();
     lb = LoadBalance::getInstance();
@@ -367,7 +368,9 @@ int MultiThread::tryConnect(string curServiceFather) {
 
 void MultiThread::checkService() {
 	pthread_t pthreadId = pthread_self();
+    spinlock_lock(&threadPosLock);
 	size_t pos = threadPos[pthreadId];
+    spinlock_unlock(&threadPosLock);
 	while (1) {
         if (_stop || LoadBalance::getReBalance() || isThreadError()) {
             break;
@@ -432,6 +435,7 @@ int MultiThread::runMainThread() {
 				schedule = SCHEDULE;
 			}
 			for (; oldThreadNum < newThreadNum; ++oldThreadNum) {
+                spinlock_lock(&threadPosLock);
 				res = pthread_create(checkServiceThread + oldThreadNum, NULL, staticCheckService, &schedule);
 				if (res != 0) {
 					setThreadError();
@@ -439,6 +443,7 @@ int MultiThread::runMainThread() {
 					break;
 				}
 				threadPos[checkServiceThread[oldThreadNum]] = oldThreadNum;
+                spinlock_unlock(&threadPosLock);
 			}
 		}
 		//线程不用开满，也不需要调度
@@ -451,6 +456,7 @@ int MultiThread::runMainThread() {
 			}
 			else {
 				for (; oldThreadNum < newThreadNum; ++oldThreadNum) {
+                    spinlock_lock(&threadPosLock);
 					res = pthread_create(checkServiceThread + oldThreadNum, NULL, staticCheckService, &schedule);
 					if (res != 0) {
 						setThreadError();
@@ -458,6 +464,7 @@ int MultiThread::runMainThread() {
 						break;
 					}
 					threadPos[checkServiceThread[oldThreadNum]] = oldThreadNum;
+                    spinlock_unlock(&threadPosLock);
 #ifdef DEBUGM
                     cout << "checkServiceThread[" << oldThreadNum << "] " << checkServiceThread[oldThreadNum] << endl;
 #endif
