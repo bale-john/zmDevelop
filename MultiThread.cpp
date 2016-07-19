@@ -96,11 +96,10 @@ bool MultiThread::isOnlyOneUp(string node, int val) {
 	}
 	return ret;
 }
-//todo 要操作zk的就存在失败的可能，所以要加入各种异常
+//todo 
 int MultiThread::updateZk(string node, int val) {
 	string status = to_string(val);
-	zk->setZnode(node, status);
-	return 0;
+	return zk->setZnode(node, status);
 }
 
 int MultiThread::updateConf(string node, int val) {

@@ -240,6 +240,13 @@ int Zk::registerMonitor(string path) {
 int Zk::setZnode(string node, string data) {
 	//todo,现在写的非常简单，几乎没有任何异常判断
 	int ver = -1;
-	zoo_set(_zh, node.c_str(), data.c_str(), data.length(), ver);
-	return 0;
+	int status = zoo_set(_zh, node.c_str(), data.c_str(), data.length(), ver);
+	if (status == ZOK) {
+		return 0;
+	}
+	else {
+		LOG(LOG_ERROR, "%s failed when zoo_set node(%s), data(%d), error:%s", \
+			__FUNCTION__, node.c_str(), data.c_str(), zerror(status));
+		return -1;
+	}
 }
