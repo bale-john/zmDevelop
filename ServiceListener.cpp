@@ -50,6 +50,7 @@ int ServiceListener::initEnv() {
 ServiceListener::ServiceListener() : zh(NULL) {
 	serviceFatherToIpLock = SPINLOCK_INITIALIZER;
 	serviceFatherStatusLock = SPINLOCK_INITIALIZER;
+    watchFlagLock = SPINLOCK_INITIALIZER;
 	conf = Config::getInstance();
 	lb = LoadBalance::getInstance();
 	//这是有道理的，因为后续还要加锁。把所有加锁的行为都放在modifyServiceFatherToIp里很好
@@ -249,8 +250,13 @@ void ServiceListener::processChangedEvent(zhandle_t* zhandle, const string& path
 	newStatus = atoi(data);
     size_t pos = path.rfind('/');
     string serviceFather = path.substr(0, pos);
-	sl->modifyServiceFatherStatus(serviceFather, oldStatus, -1);
-	sl->modifyServiceFatherStatus(serviceFather, newStatus, 1);
+    if (sl->getWatchFlag()) {
+        sl->clearWatchFlag();
+    }
+    else {
+	    sl->modifyServiceFatherStatus(serviceFather, oldStatus, -1);
+	    sl->modifyServiceFatherStatus(serviceFather, newStatus, 1);
+    }
 	//update serviceMap
 	(conf->getServiceItem(serviceFather)).setStatus(newStatus);
 }
@@ -507,4 +513,23 @@ void ServiceListener::deleteIpPort(const string& serviceFather, const string& ip
 	spinlock_lock(&serviceFatherToIpLock);
 	serviceFatherToIp[serviceFather].erase(ipPort);
 	spinlock_unlock(&serviceFatherToIpLock);
+}
+
+void ServiceListener::setWatchFlag() {
+    spinlock_lock(&watchFlagLock);
+    watchFlag = true;
+    spinlock_unlock(&watchFlagLock);
+}
+void ServiceListener::clearWatchFlag() {
+    spinlock_lock(&watchFlagLock);
+    watchFlag = true;
+    spinlock_unlock(&watchFlagLock);
+}
+
+bool ServiceListener::getWatchFlag(){
+    bool ret;
+    spinlock_lock(&watchFlagLock);
+    ret = watchFlag;
+    spinlock_unlock(&watchFlagLock);
+    return ret;
 }

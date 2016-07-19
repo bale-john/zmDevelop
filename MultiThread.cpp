@@ -84,10 +84,13 @@ bool MultiThread::isOnlyOneUp(string node, int val) {
 	size_t pos = node.rfind('/');
 	string serviceFather = node.substr(0, pos);
 	spinlock_lock(&updateServiceLock);
-	if (sl->getServiceFatherStatus(serviceFather, val) > 1) {
+    cout << "aaa: " << serviceFather << " "  << (sl->getServiceFatherStatus(serviceFather, STATUS_UP)) << endl;
+	if (sl->getServiceFatherStatus(serviceFather, STATUS_UP) > 1) {
 		//在锁内部直接把serviceFatherStatus改变了，up的-1，down的+1；
-		sl->modifyServiceFatherStatus(serviceFather, STATUS_UP, 1);
-		sl->modifyServiceFatherStatus(serviceFather, STATUS_DOWN, -1);
+        sl->setWatchFlag();
+		sl->modifyServiceFatherStatus(serviceFather, STATUS_UP, -1);
+    cout << "bbb: " << serviceFather << " "  << (sl->getServiceFatherStatus(serviceFather, STATUS_UP)) << endl;
+		sl->modifyServiceFatherStatus(serviceFather, STATUS_DOWN, 1);
 		spinlock_unlock(&updateServiceLock);
 		ret = false;
 	}
@@ -206,9 +209,9 @@ void MultiThread::updateService() {
 
 int MultiThread::isServiceExist(struct in_addr *addr, char* host, int port, int timeout, int curStatus) {
     printf("%s\n", inet_ntoa(*addr));
-    printf("%s\n", host);
-    cout << port << endl;
-    cout << timeout << endl;
+    //printf("%s\n", host);
+    //cout << port << endl;
+    //cout << timeout << endl;
 	bool exist = true;  
     int sock = -1, val = 1, ret = 0;
     //struct hostent *host;
@@ -260,7 +263,7 @@ int MultiThread::isServiceExist(struct in_addr *addr, char* host, int port, int 
     FD_ZERO(&errfds);
     FD_SET(sock, &errfds);
     ret = select(sock+1, &readfds, &writefds, &errfds, &conn_tv);
-    cout << "ret: " << ret << endl;
+    cout << "select ret: " << ret << endl;
     if ( ret == 0 ){
         // connect timeout
         if (curStatus != STATUS_DOWN) {

@@ -43,7 +43,9 @@ public:
 
     spinlock_t serviceFatherToIpLock;
     spinlock_t serviceFatherStatusLock;
-
+    spinlock_t watchFlagLock;
+    
+    bool watchFlag;
 
 public:
 	static ServiceListener* getInstance();
@@ -74,5 +76,9 @@ public:
     int modifyServiceFatherStatus(const string& serviceFather, int status, int op);
 	int modifyServiceFatherStatus(const string& serviceFather, vector<int>& statusv);
 	int getServiceFatherStatus(const string& serviceFather, int status);
+
+    void setWatchFlag();
+    void clearWatchFlag();
+    bool getWatchFlag();
 };
 #endif
