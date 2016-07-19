@@ -56,10 +56,13 @@ MultiThread* MultiThread::getInstance() {
 MultiThread::MultiThread(Zk* zk_input) : zk(zk_input) {
 	updateServiceLock = SPINLOCK_INITIALIZER;
 	waitingIndexLock = SPINLOCK_INITIALIZER;
+	hasThreadLock = SPINLOCK_INITIALIZER;
 	conf = Config::getInstance();
 	sl = ServiceListener::getInstance();
     lb = LoadBalance::getInstance();
-    serviceFatherNum = 0;
+    serviceFathers = lb->getMyServiceFather();
+	serviceFatherNum = serviceFathers.size();
+    clearHasThread(serviceFatherNum);
 }
 
 MultiThread::~MultiThread() {
@@ -368,14 +371,17 @@ void MultiThread::checkService() {
         if (_stop || LoadBalance::getReBalance() || isThreadError()) {
             break;
         }
-		string curServiceFather = (lb->getMyServiceFather())[pos];
+		//string curServiceFather = (lb->getMyServiceFather())[pos];
+		string curServiceFather = serviceFathers[pos];
 #ifdef DEBUGM
 		cout << "check service thread " << pthreadId << " pos: " << pos << " current service father: " << curServiceFather << endl;
 #endif
 		LOG(LOG_INFO, "|checkService| pthread id %x, pthread pos %d, current service father %s", \
 			(unsigned int)pthreadId, (int)pos, curServiceFather.c_str());
 		tryConnect(curServiceFather);
-		pos = (pos + MAX_THREAD_NUM) % serviceFatherNum;
+		setHasThread(pos, false);
+		pos = getAndAddWaitingIndex();
+		setHasThread(pos, true);
         sleep(2);
 		//if ()
 	}
@@ -396,6 +402,7 @@ void* MultiThread::staticCheckService(void* args) {
 //TODO 主线程肯定是要考虑配置重载什么的这些事情的
 int MultiThread::runMainThread() {
 	int schedule = NOSCHEDULE;
+	//Are there any problem?
 	int res = pthread_create(&updateServiceThread, NULL, staticUpdateService, NULL);
 	if (res != 0) {
 		setThreadError();
@@ -413,7 +420,6 @@ int MultiThread::runMainThread() {
             break;
         }
 		newThreadNum = serviceFatherToIp.size();
-		serviceFatherNum = newThreadNum;
 		//线程需要开满，且需要调度.需要调度与否通过参数传一个flag进去
 		if (newThreadNum > MAX_THREAD_NUM) {
 			newThreadNum = MAX_THREAD_NUM;
@@ -495,7 +501,34 @@ int MultiThread::getAndAddWaitingIndex() {
 	int ret;
 	spinlock_lock(&waitingIndexLock);
 	ret = waitingIndex;
-	++waitingIndex;
+	waitingIndex = (waitingIndex+1) % serviceFatherNum;
+	spinlock_lock(&hasThreadLock);
+	while (hasThread[waitingIndex]) {
+		waitingIndex = (waitingIndex+1) % serviceFatherNum;
+	}
+	spinlock_unlock(&hasThreadLock);
 	spinlock_unlock(&waitingIndexLock);
+	return ret;
+}
+
+void MultiThread::clearHasThread(int sz) {
+	spinlock_lock(&hasThreadLock);
+	hasThread.resize(sz, false);
+	spinlock_unlock(&hasThreadLock);
+	return;
+}
+
+void MultiThread::setHasThread(int index, bool val) {
+	spinlock_lock(&hasThreadLock);
+	hasThread[index] = val;
+	spinlock_unlock(&hasThreadLock);
+	return;
+}
+
+bool MultiThread::getHasThread(int index) {
+	bool ret = false;
+	spinlock_lock(&hasThreadLock);
+	ret = hasThread[index];
+	spinlock_unlock(&hasThreadLock);
 	return ret;
 }

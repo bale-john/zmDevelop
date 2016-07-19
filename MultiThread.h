@@ -33,6 +33,10 @@ private:
 	map<pthread_t, size_t> threadPos;
 	Zk* zk;
 	int serviceFatherNum;
+	//copy of myServiceFather in loadBalance
+	vector<string> serviceFathers;
+	vector<bool> hasThread;
+	spinlock_t hasThreadLock;
 
 	int waitingIndex;
 	spinlock_t waitingIndexLock;
