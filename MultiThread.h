@@ -68,5 +68,9 @@ public:
 	int getAndAddWaitingIndex();
 
 	void insertUpdateServiceInfo(const string& service, const int val);
+
+    void clearHasThread(int sz);
+    void setHasThread(int index, bool val);
+    bool getHasThread(int index);
 };
 #endif

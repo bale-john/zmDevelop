@@ -63,6 +63,7 @@ MultiThread::MultiThread(Zk* zk_input) : zk(zk_input) {
     serviceFathers = lb->getMyServiceFather();
 	serviceFatherNum = serviceFathers.size();
     clearHasThread(serviceFatherNum);
+	setWaitingIndex(MAX_THREAD_NUM);
 }
 
 MultiThread::~MultiThread() {
@@ -379,9 +380,11 @@ void MultiThread::checkService() {
 		LOG(LOG_INFO, "|checkService| pthread id %x, pthread pos %d, current service father %s", \
 			(unsigned int)pthreadId, (int)pos, curServiceFather.c_str());
 		tryConnect(curServiceFather);
-		setHasThread(pos, false);
-		pos = getAndAddWaitingIndex();
-		setHasThread(pos, true);
+        if (serviceFatherNum > MAX_THREAD_NUM) {
+		    setHasThread(pos, false);
+		    pos = getAndAddWaitingIndex();
+		    setHasThread(pos, true);
+        }
         sleep(2);
 		//if ()
 	}
@@ -423,7 +426,6 @@ int MultiThread::runMainThread() {
 		//线程需要开满，且需要调度.需要调度与否通过参数传一个flag进去
 		if (newThreadNum > MAX_THREAD_NUM) {
 			newThreadNum = MAX_THREAD_NUM;
-			setWaitingIndex(MAX_THREAD_NUM);
 			//todo 这个变量作为flag，只有主线程可以修改，但是所有的检查线程都要读它，这里是否需要加锁呢
 			//todo 我应该先改变schedule的值还是先创建新线程呢？
 			if (schedule == NOSCHEDULE) {
