@@ -53,6 +53,7 @@ public:
 	int updateConf(string node, int val);
 	int updateZk(string node, int val);
 	bool isOnlyOneUp(string node, int val);
+	bool isOnlyOneUp(string node);
 
 	static bool isThreadError();
 	static void setThreadError();

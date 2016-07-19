@@ -78,6 +78,26 @@ void MultiThread::clearThreadError() {
 	threadError = false;
 }
 
+bool MultiThread::isOnlyOneUp(string node) {
+	ServiceListener* sl = ServiceListener::getInstance();
+	bool ret = true;
+	int alive = 0;
+	size_t pos = node.rfind('/');
+	string serviceFather = node.substr(0, pos);
+	unordered_set<string> ips = (sl->getServiceFatherToIp())[serviceFather];
+	for (auto it = ips.begin(); it != ips.end(); ++it) {
+		if (alive > 1) {
+			return false;
+		}
+		string ipPath = serviceFather + "/" + (*it);
+		int status = (conf->getServiceItem).getStatus();
+		if (status == STATUS_UP) {
+			++alive;
+		}
+	}
+	return true;
+}
+
 bool MultiThread::isOnlyOneUp(string node, int val) {
 	ServiceListener* sl = ServiceListener::getInstance();
 	bool ret = true;
@@ -150,7 +170,7 @@ void MultiThread::updateService() {
 		//compare the new status and old status to decide weather to update status		
 		if (val == STATUS_DOWN) {
 			if (oldStatus == STATUS_UP) {
-				if (isOnlyOneUp(key, val)) {
+				if (isOnlyOneUp(key)) {
 					LOG(LOG_FATAL_ERROR, "Maybe %s is the last server that is up. \
                     But monitor CAN NOT connect to it. its Status will not change!", key.c_str());
 					continue;
