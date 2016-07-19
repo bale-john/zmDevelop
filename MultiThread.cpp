@@ -86,16 +86,21 @@ bool MultiThread::isOnlyOneUp(string node) {
 	string serviceFather = node.substr(0, pos);
 	unordered_set<string> ips = (sl->getServiceFatherToIp())[serviceFather];
 	for (auto it = ips.begin(); it != ips.end(); ++it) {
-		if (alive > 1) {
-			return false;
-		}
 		string ipPath = serviceFather + "/" + (*it);
-		int status = (conf->getServiceItem).getStatus();
+		int status = (conf->getServiceItem(ipPath)).getStatus();
 		if (status == STATUS_UP) {
 			++alive;
 		}
+		if (alive > 1) {
+			ret = false;
+            break;
+		}
 	}
-	return true;
+    cout << "isonlyone: " << ipPath << " " << status << " " << alive << endl;
+    if (alive > 1) {
+        ret = false;
+    }
+	return ret;
 }
 
 bool MultiThread::isOnlyOneUp(string node, int val) {
@@ -104,12 +109,10 @@ bool MultiThread::isOnlyOneUp(string node, int val) {
 	size_t pos = node.rfind('/');
 	string serviceFather = node.substr(0, pos);
 	spinlock_lock(&updateServiceLock);
-    cout << "aaa: " << serviceFather << " "  << (sl->getServiceFatherStatus(serviceFather, STATUS_UP)) << endl;
 	if (sl->getServiceFatherStatus(serviceFather, STATUS_UP) > 1) {
 		//在锁内部直接把serviceFatherStatus改变了，up的-1，down的+1；
         sl->setWatchFlag();
 		sl->modifyServiceFatherStatus(serviceFather, STATUS_UP, -1);
-    cout << "bbb: " << serviceFather << " "  << (sl->getServiceFatherStatus(serviceFather, STATUS_UP)) << endl;
 		sl->modifyServiceFatherStatus(serviceFather, STATUS_DOWN, 1);
 		spinlock_unlock(&updateServiceLock);
 		ret = false;
@@ -229,9 +232,6 @@ void MultiThread::updateService() {
 
 int MultiThread::isServiceExist(struct in_addr *addr, char* host, int port, int timeout, int curStatus) {
     printf("%s\n", inet_ntoa(*addr));
-    //printf("%s\n", host);
-    //cout << port << endl;
-    //cout << timeout << endl;
 	bool exist = true;  
     int sock = -1, val = 1, ret = 0;
     //struct hostent *host;
@@ -301,26 +301,21 @@ int MultiThread::isServiceExist(struct in_addr *addr, char* host, int port, int 
     }
     else {
         if (! FD_ISSET(sock, &readfds) && ! FD_ISSET(sock, &writefds)) {
-            cout << "1111" << endl;
             if (curStatus != STATUS_DOWN) {
                LOG(LOG_ERROR, "select not in read fds and write fds.host:%s port:%d error:%s",
                    host, port, strerror(errno));
             }
         }
         else if (FD_ISSET(sock, &errfds)) {
-            cout << "2222" << endl;
             exist = false;
         }
         else if (FD_ISSET(sock, &writefds) && FD_ISSET(sock, &readfds)) {
-            cout << "3333" << endl;
             exist = false;
         }
         else if (FD_ISSET(sock, &readfds) || FD_ISSET(sock, &writefds)) {
-            cout << "4444" << endl;
             exist = true;
         }
         else {
-            cout << "5555" << endl;
             exist = false;
         }
     }
@@ -355,7 +350,7 @@ int MultiThread::tryConnect(string curServiceFather) {
 			spinlock_lock(&updateServiceLock);
             priority.push_back(ipPort);
             updateServiceInfo[ipPort] = status;
-            cout << "priority: " << priority.size() << "updateServiceInfo: " << updateServiceInfo.size() << endl;
+            cout << "priority size: " << priority.size() << " updateServiceInfo size: " << updateServiceInfo.size() << endl;
 			LOG(LOG_INFO, "|checkService| service %s new status %d", ipPort.c_str(), status);
 			spinlock_unlock(&updateServiceLock);
 		}
@@ -412,9 +407,6 @@ int MultiThread::runMainThread() {
 	//todo
 	while (1) {
 		unordered_map<string, unordered_set<string>> serviceFatherToIp = sl->getServiceFatherToIp();
-#ifdef DEBUGM
-        cout << "xxxxxxxxxxx" << endl;
-#endif
         if (_stop || LoadBalance::getReBalance() || isThreadError()) {
             break;
         }

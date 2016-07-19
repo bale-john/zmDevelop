@@ -258,7 +258,8 @@ void ServiceListener::processChangedEvent(zhandle_t* zhandle, const string& path
 	    sl->modifyServiceFatherStatus(serviceFather, newStatus, 1);
     }
 	//update serviceMap
-	(conf->getServiceItem(serviceFather)).setStatus(newStatus);
+	//(conf->getServiceItem(serviceFather)).setStatus(newStatus);
+    conf->setServiceMap(path, newStatus);
 }
 
 void ServiceListener::watcher(zhandle_t* zhandle, int type, int state, const char* path, void* context) {
