@@ -42,9 +42,10 @@ int main(int argc, char** argv){
 		else if (ret < 0) {
 			return -1;
 		}
-		//child process
 		else {
-
+			if (Util::writePid(PIDFILE.c_str()) != 0) {
+				return -1;
+			}
 		}
 	}
     //maybe we need it to make the child process wait a while

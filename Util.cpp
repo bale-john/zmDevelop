@@ -48,6 +48,21 @@ vector<string> Util::split(const string& str, const char separator){
 	return res;
 }
 
+int Util::writePid(const char* fileName) {
+	int fd;
+	if ((fd = open(fileName, O_WRONLY|O_TRUNC|O_CREAT, 0600)) == -1) {
+		LOG(LOG_ERROR, "open pid file failed. %s", fileName);
+		return -1;
+	}
+	pid_t pid = getpid();
+	if (write(fd, (void*)&pid, sizeof(pid)) < 0) {
+		LOG(LOG_ERROR, "write pid file failed. %s", fileName);
+		return -1;
+	}
+	close (fd);
+	return 0;
+}
+
 int Util::writeToFile(const string content, const string fileName) {
 	ofstream file;
 	//todo what to do if failed.
