@@ -167,6 +167,7 @@ int Process::processKeepalive(int& childExitStatus, const string pidFile) {
             //child process
             else if (childPid == 0) {
                 LOG(LOG_INFO, "child process ID %d", getpid());
+                //child process has It's own signal handler
                 signal(SIGTERM, sigHandler);
                 signal(SIGKILL, sigHandler);
                 signal(SIGUSR1, sigHandler);
@@ -180,7 +181,7 @@ int Process::processKeepalive(int& childExitStatus, const string pidFile) {
                 //todo write failes and something like that
                 //int ret = Util::writeToFile(to_string(childPid), pidFile);
                 Util::writeToFile(to_string(childPid), pidFile);
-
+                //parent process forward the signal to child process
                 signal(SIGINT, sigForward);
                 signal(SIGTERM, sigForward);
                 signal(SIGHUP, sigForward);
@@ -190,11 +191,12 @@ int Process::processKeepalive(int& childExitStatus, const string pidFile) {
         }
         //parent process 
         LOG(LOG_INFO, "waiting for PID = %d", childPid);
+
         struct rusage resourceUsage;
         int exitPid = -1;
         int exitStatus = -1;
 #ifdef HAVE_WAIT4
-        exitPid = wait4(childPid, &exitStatus, 0, resourceUsage);
+        exitPid = wait4(childPid, &exitStatus, 0, &resourceUsage);
 #else
         memset(&resourceUsage, 0, sizeof(resourceUsage));
         exitPid = waitpid(childPid, &exitStatus, 0);
@@ -202,7 +204,10 @@ int Process::processKeepalive(int& childExitStatus, const string pidFile) {
         LOG(LOG_INFO, "child process %d returned %d", childPid, exitPid);
 
         if (childPid == exitPid) {
-            //todo delete pid file or clear it?
+            //delete pid file
+            if (pidFile.c_str()) {
+                unlink(pidFile.c_str());
+            }
 
             //正常退出。但到底怎么定义正常退出？
             if (WIFEXITED(exitStatus)) {
@@ -213,7 +218,7 @@ int Process::processKeepalive(int& childExitStatus, const string pidFile) {
             }
             //因为收到信号退出，比如用户kill了这个进程，那么父进程应该会自动再启动它
             else if (WIFSIGNALED(exitStatus)) {
-                LOG(LOG_INFO, "worker process PID = %d died on signal=%d (it used %ld kBytes max) ",
+                LOG(LOG_INFO, "worker process PID = %d died on signal = %d (it used %ld kBytes max) ",
                     childPid, WTERMSIG(exitStatus), resourceUsage.ru_maxrss / 1024);
                 int timeToWait = 2;
                 while (timeToWait > 0) {
@@ -227,6 +232,15 @@ int Process::processKeepalive(int& childExitStatus, const string pidFile) {
             }
             else if (WIFSTOPPED(exitStatus)) {
                 LOG(LOG_INFO, "child process is stopped and should restart later");
+                --processNum;
+                childPid = -1;
+                sleep(2);
+            }
+            else {
+                LOG(LOG_ERROR, "Can't get here!");
+                --processNum;
+                childPid = -1;
+                sleep(2);
             }
         }
         else if (exitPid == -1) {
@@ -235,6 +249,9 @@ int Process::processKeepalive(int& childExitStatus, const string pidFile) {
                 LOG(LOG_INFO, "wait4(%d, ...) failed. errno: %d", childPid, errno);
                 return -1; 
             }
+        }
+        else {
+            LOG(LOG_ERROR, "Can't get here");
         }
     } 
 }
