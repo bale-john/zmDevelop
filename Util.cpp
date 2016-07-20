@@ -50,7 +50,7 @@ vector<string> Util::split(const string& str, const char separator){
 
 int Util::writeToFile(const string content, const string fileName) {
 	ofstream file;
-	//todo what to do if failed. And maybe I can learn to use the exception in cpp
+	//todo what to do if failed.
 	file.open(fileName);
 	file << content << endl;
 	file.close();

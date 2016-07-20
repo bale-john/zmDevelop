@@ -35,7 +35,7 @@ int main(int argc, char** argv){
 	if (conf->isAutoStart()) {
 		int childExitStatus = -1;
 		int ret = Process::processKeepalive(childExitStatus, PIDFILE);
-		//parent thread
+		//parent process
 		if (ret > 0) {
 			return childExitStatus;
 		}
@@ -116,9 +116,11 @@ int main(int argc, char** argv){
 			sleep(2);
 			continue;
 		}
-
+		/*
+		this loop is for load balance.
+		If rebalance is needed, the loop will be reiterate
+		*/
 		while (1) {
-			cout << "second start" << endl;
 			LOG(LOG_INFO, " second loop start -> !!!!!!");
 			LoadBalance::clearReBalance();
 			//load balance
@@ -138,7 +140,7 @@ int main(int argc, char** argv){
 	     	MultiThread* ml = MultiThread::getInstance(_zk);
 	        ml->runMainThread();
 
-	        //seems it's important !! Remember to close it always
+	        //It's important !! Remember to close it always
 			delete lb;
 			delete serviceListener;
 			delete ml;

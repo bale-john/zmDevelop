@@ -26,7 +26,7 @@ Config::~Config(){
 }
 
 Config* Config::getInstance(){
-	if (_instance == NULL){
+	if (!_instance){
 		_instance = new Config();
 		_instance->load();
 		//reload the config result in the change of loglevel in Log
@@ -88,14 +88,13 @@ int Config::setValueStr(const string& key, const string& value){
 	}
 	//find the zk host this monitor should focus on. Their idc should be the same
 	else if (key.substr(0, zkHost.length()) == zkHost){
-		char hostname[512] = {0};
+		char hostname[128] = {0};
 		if (gethostname(hostname, sizeof(hostname)) != 0) {
 			LOG(LOG_ERROR, "get host name failed");
 			return -1;
 		}
 		string idc = key.substr(zkHost.length());
-		vector<string> singleWord;
-		singleWord = Util::split(string(hostname), '.');
+		vector<string> singleWord = Util::split(string(hostname), '.');
 		size_t i = 0;
 		for (; i < singleWord.size(); ++i){
 			if (singleWord[i] == idc){
@@ -115,7 +114,8 @@ int Config::load(){
 	if (file.good()){
 		resetConfig();
 		string line;
-		while (getline(file, line)) {
+		while (!file.eof()) {
+			getline(file, line);
 			Util::trim(line);
 			if (line.size() <= 0 || line[0] == '#') {
 				continue;
@@ -127,18 +127,22 @@ int Config::load(){
 			//get the key
 			string key = line.substr(0, pos);
 			Util::trim(key);
-			if (key.size() == 0 || key[0] == '#') {
+			if (key.size() == 0) {
 				continue;
 			}
 			//get the value
 			string value = line.substr(pos + 1);
 			Util::trim(value);
+			if (value.size() == 0) {
+				continue;
+			}
 			setValueInt(key, value);
 			setValueStr(key, value);
 		}
 	} 
 	else {
-		LOG(LOG_ERROR, "config file open wrong");
+		LOG(LOG_FATAL_ERROR, "Load configure file failed. path: %s", confPath.c_str());
+		exit(-1);
 	}
 	file.close();
 	return 0;
@@ -233,13 +237,13 @@ map<string, ServiceItem> Config::getServiceMap() {
 }
 
 int Config::setServiceMap(string node, int val) {
-	//todo 同样缺异常判断，比如找不到怎么办啊什么的，还有这里锁怎么加？
+	//todo 同样缺异常判断，比如找不到怎么办啊什么的
 	spinlock_lock(&serviceMapLock);
 	_serviceMap[node].setStatus(val);
 	spinlock_unlock(&serviceMapLock);
 	return 0;
 }
-// no necessity to add lock
+//no necessity to add lock
 void Config::clearServiceMap() {
 	_serviceMap.clear();
 }
