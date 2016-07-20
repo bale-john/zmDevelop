@@ -43,6 +43,7 @@ int main(int argc, char** argv){
 			return -1;
 		}
 		else {
+			//child process write pid to PIDFILE
 			if (Util::writePid(PIDFILE.c_str()) != 0) {
 				return -1;
 			}
@@ -63,6 +64,11 @@ int main(int argc, char** argv){
 		string zkHost = conf->getZkHost();
 		string zkLogPath = conf->getZkLogPath();
 		int recvTimeout = conf->getZkRecvTimeout();
+		//choose a zk machine random
+		vector<string> hosts = Util::split(zkHost, ',');
+		srandom(time(0));
+		int i = random() % hosts.size();
+		zkHost = hosts[i];
 
 		// init zookeeper handler
 		if (_zk->initEnv(zkHost, zkLogPath, recvTimeout) == M_OK) {
