@@ -1,9 +1,12 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <fstream>
 #include <cstdio>
 #include "Config.h"
+#include "Log.h"
 #include "Util.h"
 using namespace std;
 
@@ -54,8 +57,9 @@ int Util::writePid(const char* fileName) {
 		LOG(LOG_ERROR, "open pid file failed. %s", fileName);
 		return -1;
 	}
-	pid_t pid = getpid();
-	if (write(fd, (void*)&pid, sizeof(pid)) < 0) {
+    char pidBuf[64] = {0};
+    snprintf(pidBuf, sizeof(pidBuf), "%d", getpid());
+	if (write(fd, pidBuf, sizeof(pidBuf)) < 0) {
 		LOG(LOG_ERROR, "write pid file failed. %s", fileName);
 		return -1;
 	}
