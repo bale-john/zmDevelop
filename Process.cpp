@@ -25,19 +25,20 @@ bool Process::isProcessRunning(const string& processName) {
 	snprintf(ps, sizeof(ps), "ps -e | grep -c %s", processName.c_str());
 	strcpy(resBuf, "ABNORMAL");
 	if ((ptr = popen(ps, "r")) != NULL) {
-		while(fgets(resBuf, 128, ptr)) {
-			if (stoi(resBuf) >= 2) {
+		while(fgets(resBuf, sizeof(resBuf), ptr)) {
+			if (atoi(resBuf) >= 2) {
 				pclose(ptr);
 				return true;
 			}
 		}
-		if (strcmp(resBuf, "ABNORMAL") != 0) {
-			return false;
-		}
 	}
-	//excute ps failed or fgets() failed
-	LOG(LOG_ERROR, "excute command failed");
-	return true;
+    //excute ps failed or fgets() failed
+    if (strcmp(resBuf, "ABNORMAL") == 0) {
+        LOG(LOG_ERROR, "excute command failed");
+        return true;
+    }
+	pclose(ptr);
+    return false;
 }
 
 int Process::daemonize() {
