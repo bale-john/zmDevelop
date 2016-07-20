@@ -17,5 +17,6 @@ public:
 	static int writePid(const char* fileName);
 	static int writeToFile(const string content, const string file);
 	static int printServiceMap();
+	static string chooseZkHostRandom();
 };
 #endif

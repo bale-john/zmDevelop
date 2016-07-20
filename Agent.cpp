@@ -61,14 +61,10 @@ int main(int argc, char** argv){
             delete _zk;
         }
 		_zk = Zk::getInstance();
-		string zkHost = conf->getZkHost();
+		//choose a zk machine random
+		string zkHost = Util::chooseZkHostRandom();
 		string zkLogPath = conf->getZkLogPath();
 		int recvTimeout = conf->getZkRecvTimeout();
-		//choose a zk machine random
-		vector<string> hosts = Util::split(zkHost, ',');
-		srandom(time(0));
-		int i = random() % hosts.size();
-		zkHost = hosts[i];
 
 		// init zookeeper handler
 		if (_zk->initEnv(zkHost, zkLogPath, recvTimeout) == M_OK) {
