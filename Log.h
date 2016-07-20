@@ -19,7 +19,7 @@ using namespace std;
 #define LOG(level, format, ...) Log::printLog(__FILE__, __LINE__, level, format, ## __VA_ARGS__)
 #define dp() printf("func %s, line %d\n", __func__, __LINE__)
 #define LOG_FUNC_IN LOG(LOG_TRACE, "func %s...in, line %d", __func__, __LINE__);
-#define LOG_FUNC_IN LOG(LOG_TRACE, "func %s...out, line %d", __func__, __LINE__);
+#define LOG_FUNC_OUT LOG(LOG_TRACE, "func %s...out, line %d", __func__, __LINE__);
 
 class Log{
 private:
