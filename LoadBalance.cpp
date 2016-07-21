@@ -156,7 +156,7 @@ int LoadBalance::zkGetChildren(const string path, struct String_vector* children
         return M_ERR;
 	}
 	else {
-		LOG(LOG_ERROR, "zoo_get_children. error: %s node:%s", zerror(ret), node.c_str());
+		LOG(LOG_ERROR, "zoo_get_children. error: %s node:%s", zerror(ret), path.c_str());
 		return M_ERR;
 	}
 	return M_ERR;
@@ -199,13 +199,13 @@ int LoadBalance::getMd5ToServiceFather() {
         //get the value of md5Node which is serviceFather
 		ret = zkGetNode(md5Path.c_str(), serviceFather, &dataLen);
 		if (ret == M_ERR) {
-			LOG(LOG_ERROR, "get value of node:%s failed", md5Path);
+			LOG(LOG_ERROR, "get value of node:%s failed", md5Path.c_str());
 			continue;
 		}
 		updateMd5ToServiceFather(string(md5Node.data[i]), string(serviceFather));
 		LOG(LOG_INFO, "md5: %s, serviceFather: %s", md5Path.c_str(), serviceFather);
 	}
-	deallocate_String_vector(md5Node);
+	deallocate_String_vector(&md5Node);
 #ifdef DEBUGL
     for (auto it = md5ToServiceFather.begin(); it != md5ToServiceFather.end(); ++it) {
         cout << it->first << " " << it->second << endl;
