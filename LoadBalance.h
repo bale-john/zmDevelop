@@ -23,17 +23,17 @@ public:
 	spinlock_t md5ToServiceFatherLock;
 
     //use map but not unordered_map so it can be sorted autonatically
-    //存的是md5节点和对应的serviceFather节点
+    //key is md5 and value is serviceFather
 	map<string, string> md5ToServiceFather;
 	unordered_set<string> monitors;
 	vector<string> myServiceFather;
 
 	LoadBalance();
-	int initEnv();
 	int destroyEnv();
     
 public:
 	~LoadBalance();
+	int initEnv();
 	static LoadBalance* getInstance();
 
 	int zkGetChildren(const string path, struct String_vector* children);

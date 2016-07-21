@@ -127,9 +127,19 @@ int main(int argc, char** argv){
 			LOG(LOG_INFO, " second loop start -> !!!!!!");
 			LoadBalance::clearReBalance();
 			//load balance
-			//get the service father. Stored in class LB
-			//todo，对每一步的异常都还没有进行考虑
 			LoadBalance* lb = LoadBalance::getInstance();
+			if (lb->initEnv() == M_OK) {
+				LOG(LOG_INFO, "init load balance env succeeded");
+			}
+			else {
+				LOG(LOG_ERROR, "init load balance env failed")
+				if (lb) {
+					delete lb;
+				}
+				sleep(2);
+				continue;
+			}
+
 			lb->getMd5ToServiceFather();
 			lb->getMonitors();
 			lb->balance();

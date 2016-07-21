@@ -45,12 +45,11 @@ int LoadBalance::destroyEnv() {
 }
 
 LoadBalance::LoadBalance() : zh(NULL) {
+	md5ToServiceFatherLock = SPINLOCK_INITIALIZER;
 	conf = Config::getInstance();
 	md5ToServiceFather.clear();
 	monitors.clear();
 	myServiceFather.clear();
-	initEnv();
-	md5ToServiceFatherLock = SPINLOCK_INITIALIZER;
 }
 
 LoadBalance::~LoadBalance(){
