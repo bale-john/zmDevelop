@@ -298,6 +298,7 @@ int ServiceListener::addChildren(const string serviceFather, struct String_vecto
 	for (int i = 0; i < children.count; ++i) {
 		string ip(children.data[i]);
 		addIpPort(serviceFather, ip);
+		LOG(LOG_INFO, "service father:%s, Ip:Port:%s", serviceFather.c_str(), ip.c_str());
 	}
 	return 0;
 }
@@ -331,10 +332,7 @@ int ServiceListener::getAllIp() {
 		struct String_vector children = {0};
 		//get all ipPort belong to this serviceFather
 		int status = zkGetChildren(*it, &children);
-		if (status == M_OK) {
-			LOG(LOG_INFO, "get IP:Port secceed");
-		}
-		else {
+		if (status != M_OK) {
 			LOG(LOG_ERROR, "get IP:Port failed. serviceFather:%s", (*it).c_str());
 			deallocate_String_vector(&children);
 			continue;
@@ -364,7 +362,6 @@ int ServiceListener::zkGetNode(const char* path, char* data, int* dataLen) {
 		LOG(LOG_ERROR, "zhandle is NULL");
 		return M_ERR;
 	}
-	//todo 下面其实就是一个zoo_get，但是原来的设计中有很多错误判断，我这里先都跳过吧.而且原设计中先用了exist，原因是想知道这个节点的数据有多长，需要多大的buf去存放？
     LOG(LOG_INFO, "Path: %s, data: %s, *dataLen: %d", path, data, *dataLen);
 	int ret = zoo_get(zh, path, 1, data, dataLen, NULL);
 	if (ret == ZOK) {
