@@ -72,7 +72,6 @@ void LoadBalance::processChildEvent(zhandle_t* zhandle, const string path) {
 		setReBalance();
 	}
 	//serviceFather节点减少了，需要进行负载的重新均衡吗？还是只要把对应的服务接口删除就好了。
-	//或许在serviceListener里监听这个更好？可以知道哪个服务被删除了
 	//但是如果大量serviceFather被删除，会导致负载不均衡，又有必要进行rebalance
 	//目前先直接rebalance，如何面对serviceFather数目的变化，的确是个问题
 	else if (path == md5Path) {

@@ -124,6 +124,12 @@ int main(int argc, char** argv){
 		If rebalance is needed, the loop will be reiterate
 		*/
 		while (1) {
+			if (lb) {
+				delete lb;
+			}
+			if (sl) {
+				delete sl;
+			}
 			LOG(LOG_INFO, " second loop start -> !!!!!!");
 			LoadBalance::clearReBalance();
 			//load balance
@@ -133,9 +139,6 @@ int main(int argc, char** argv){
 			}
 			else {
 				LOG(LOG_ERROR, "init load balance env failed");
-				if (lb) {
-					delete lb;
-				}
 				sleep(2);
 				continue;
 			}
@@ -149,9 +152,6 @@ int main(int argc, char** argv){
 				how to deal with this in a better way?
 				if the reason of failure is node not exist, we should restart main loop
 				*/
-				if (lb) {
-					delete lb;
-				}
 				sleep(2);
 				continue;
 			}
@@ -161,9 +161,6 @@ int main(int argc, char** argv){
 			}
 			else {
 				LOG(LOG_INFO, "get monitors failed");
-				if (lb) {
-					delete lb;
-				}
 				sleep(2);
 				continue;
 			}
@@ -173,15 +170,20 @@ int main(int argc, char** argv){
 			}
 			else {
 				LOG(LOG_INFO, "balance failed");
-				if (lb) {
-					delete lb;
-				}
 				sleep(2);
 				continue;
 			}
 
 			//after load balance. Each monitor should load the service to Config
 			ServiceListener* serviceListener = ServiceListener::getInstance();
+			if (sl->initEnv() == M_OK) {
+				LOG(LOG_INFO, "init service listener env succeeded");
+			}
+			else {
+				LOG(LOG_INFO, "init service listener env failed");
+				sleep(2);
+				continue;
+			}
 			serviceListener->getAllIp();
 			serviceListener->loadAllService();
 

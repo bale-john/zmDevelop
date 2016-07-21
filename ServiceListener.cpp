@@ -56,7 +56,6 @@ ServiceListener::ServiceListener() : zh(NULL) {
 	//这是有道理的，因为后续还要加锁。把所有加锁的行为都放在modifyServiceFatherToIp里很好
 	modifyServiceFatherToIp(CLEAR, "");
 	serviceFatherStatus.clear();
-	initEnv();
 }
 
 ServiceListener::~ServiceListener() {
