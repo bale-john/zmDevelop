@@ -225,9 +225,9 @@ void ServiceListener::processChildEvent(zhandle_t* zhandle, const string& path) 
 }
 
 void ServiceListener::processChangedEvent(zhandle_t* zhandle, const string& path) {
-	ServiceListener* sl = ServiceListener::getInstance();
+	//ServiceListener* sl = ServiceListener::getInstance();
 	Config* conf = Config::getInstance();
-	int oldStatus = (conf->getServiceItem(path)).getStatus();
+	//int oldStatus = (conf->getServiceItem(path)).getStatus();
 
 	int newStatus = STATUS_UNKNOWN;
 	char data[16] = {0};
