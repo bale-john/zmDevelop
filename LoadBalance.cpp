@@ -247,7 +247,7 @@ int LoadBalance::balance(bool flag /*=false*/) {
 #endif
 	vector<unsigned int> sequence;
 	for (auto it = monitors.begin(); it != monitors.end(); ++it) {
-		unsigned int tmp = stoui((*it).substr((*it).size() - 10));
+		unsigned int tmp = stoi((*it).substr((*it).size() - 10));
 		sequence.push_back(tmp);
 	}
 #ifdef DEBUG
@@ -266,7 +266,7 @@ int LoadBalance::balance(bool flag /*=false*/) {
 	}
 #endif
 	string monitor = string(_zkLockBuf);
-	unsigned int mySeq = stoui(monitor.substr(monitor.size() - 10));
+	unsigned int mySeq = stoi(monitor.substr(monitor.size() - 10));
     //It's ok to use size_t. But it may have error when it's negative
     size_t rank = 0;
 	for (; rank < sequence.size(); ++rank) {
