@@ -53,7 +53,7 @@ ServiceListener::ServiceListener() : zh(NULL) {
     watchFlagLock = SPINLOCK_INITIALIZER;
 	conf = Config::getInstance();
 	lb = LoadBalance::getInstance();
-	//这是有道理的，因为后续还要加锁。把所有加锁的行为都放在modifyServiceFatherToIp里很好
+	//It makes sense. Make all locks occur in one function
 	modifyServiceFatherToIp(CLEAR, "");
 	serviceFatherStatus.clear();
 }
@@ -330,9 +330,18 @@ int ServiceListener::getAllIp() {
 	for (auto it = serviceFather.begin(); it != serviceFather.end(); ++it) {
 		struct String_vector children = {0};
 		//get all ipPort belong to this serviceFather
-		zkGetChildren(*it, &children);
+		int status = zkGetChildren(*it, &children);
+		if (status == M_OK) {
+			LOG(LOG_INFO, "get IP:Port secceed");
+		}
+		else {
+			LOG(LOG_ERROR, "get IP:Port failed. serviceFather:%s", (*it).c_str());
+			deallocate_String_vector(&children);
+			continue;
+		}
 		//add the serviceFather and ipPort to the map serviceFatherToIp
 		addChildren(*it, children);
+		deallocate_String_vector(&children);
 	}
 #ifdef DEBUGS
     cout << 55555555555 << endl;
