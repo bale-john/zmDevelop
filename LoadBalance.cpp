@@ -233,26 +233,25 @@ int LoadBalance::getMonitors(bool flag /*=false*/) {
 
 int LoadBalance::balance(bool flag /*=false*/) {
 	vector<string> md5Node;
+	spinlock_lock(&md5ToServiceFatherLock);
 	for (auto it = md5ToServiceFather.begin(); it != md5ToServiceFather.end(); ++it) {
 		md5Node.push_back(it->first);
 	}
+	spinlock_unlock(&md5ToServiceFatherLock);
 #ifdef DEBUG
 	cout << "LLL11111111111" << endl;
-    //md5节点值
     cout << "md5 node value:" << endl;
 	for (auto it = md5Node.begin(); it != md5Node.end(); ++it) {
 		cout << (*it) << endl;
 	}
 #endif
 	vector<unsigned int> sequence;
-	//actually we need a lock here
 	for (auto it = monitors.begin(); it != monitors.end(); ++it) {
-		int tmp = stoi((*it).substr((*it).size() - 10));
+		unsigned int tmp = stoui((*it).substr((*it).size() - 10));
 		sequence.push_back(tmp);
 	}
 #ifdef DEBUG
 	cout << "LLL222222222222" << endl;
-    //monitors的序列号
     cout << "sequence number of monitors registed:" << endl;
 	for (auto it = sequence.begin(); it != sequence.end(); ++it) {
 		cout << (*it) << endl;
@@ -261,14 +260,13 @@ int LoadBalance::balance(bool flag /*=false*/) {
 	sort(sequence.begin(), sequence.end());
 #ifdef DEBUG
 	cout << "LLL33333333333" << endl;
-    //排序之后monitors的序列号
     cout << "sorted sequence number of monitors registed:" << endl;
 	for (auto it = sequence.begin(); it != sequence.end(); ++it) {
 		cout << (*it) << endl;
 	}
 #endif
 	string monitor = string(_zkLockBuf);
-	unsigned int mySeq = stoi(monitor.substr(monitor.size() - 10));
+	unsigned int mySeq = stoui(monitor.substr(monitor.size() - 10));
     //It's ok to use size_t. But it may have error when it's negative
     size_t rank = 0;
 	for (; rank < sequence.size(); ++rank) {
@@ -282,12 +280,14 @@ int LoadBalance::balance(bool flag /*=false*/) {
         return M_ERR;
     }
 	for (size_t i = rank; i < md5Node.size(); i += monitors.size()) {
+		//maybe this lock is useless
+		spinlock_lock(&md5ToServiceFatherLock);
 		myServiceFather.push_back(md5ToServiceFather[md5Node[i]]);
+		spinlock_unlock(&md5ToServiceFatherLock);
+		LOG(LOG_INFO, "my service father:%s", myServiceFather.back().c_str());
 	}
-	LOG(LOG_INFO, "There are %d monitors, I am %s", monitors.size(), _zkLockBuf);
 #ifdef DEBUG
 	cout << "LLL44444444444" << endl;
-    //进行负载均衡后，分配到这个Monitors的serviceFather节点
     cout << "my service father:" << endl;
 	for (auto it = myServiceFather.begin(); it != myServiceFather.end(); ++it) {
 		cout << (*it) << endl;

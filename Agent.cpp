@@ -167,7 +167,18 @@ int main(int argc, char** argv){
 				sleep(2);
 				continue;
 			}
-			lb->balance();
+
+			if (lb->balance() == M_OK) {
+				LOG(LOG_INFO, "balance secceeded");
+			}
+			else {
+				LOG(LOG_INFO, "balance failed");
+				if (lb) {
+					delete lb;
+				}
+				sleep(2);
+				continue;
+			}
 
 			//after load balance. Each monitor should load the service to Config
 			ServiceListener* serviceListener = ServiceListener::getInstance();
