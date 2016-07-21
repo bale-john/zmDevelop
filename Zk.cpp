@@ -238,17 +238,18 @@ int Zk::checkAndCreateZnode(string path) {
 }
 
 int Zk::registerMonitor(string path) {
+    int ret = ZOK;
 	while (_zh) {
 		memset(_zkLockBuf, 0, sizeof(_zkLockBuf));
 		string hostName = conf->getMonitorHostname();
 		//register the monitor. 
 		if (hostName.empty()) {
-			int ret = zoo_create(_zh, path.c_str(), NULL, 0, &ZOO_OPEN_ACL_UNSAFE, 
+			ret = zoo_create(_zh, path.c_str(), NULL, 0, &ZOO_OPEN_ACL_UNSAFE, 
 				ZOO_EPHEMERAL | ZOO_SEQUENCE, _zkLockBuf, sizeof(_zkLockBuf));
 		}
 		//if set the value of monitor node. It may be used in rebalance
 		else {
-			int ret = zoo_create(_zh, path.c_str(), hostName.c_str(), hostName.length(), &ZOO_OPEN_ACL_UNSAFE, 
+			ret = zoo_create(_zh, path.c_str(), hostName.c_str(), hostName.length(), &ZOO_OPEN_ACL_UNSAFE, 
 				ZOO_EPHEMERAL | ZOO_SEQUENCE, _zkLockBuf, sizeof(_zkLockBuf));
 		}
 

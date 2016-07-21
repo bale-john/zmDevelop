@@ -96,7 +96,7 @@ int Util::printServiceMap() {
 }
 
 string Util::chooseZkHostRandom() {
-	string zkHost = conf->getZkHost();
+	string zkHost = (Config::getInstance())->getZkHost();
 	vector<string> hosts = split(zkHost, ',');
 	srandom(time(0));
 	int i = random() % hosts.size();
