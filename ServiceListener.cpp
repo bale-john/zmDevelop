@@ -420,6 +420,7 @@ int ServiceListener::loadService(string path, string serviceFather, string ipPor
 	serviceItem.setAddr(&addr);
 	serviceItem.setServiceFather(serviceFather);
 	conf->addService(path, serviceItem);
+    LOG(LOG_INFO, "load service succeed, service:%s, status:%d", path.c_str(), status);
 	return M_OK;
 }
 
