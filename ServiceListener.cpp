@@ -397,7 +397,11 @@ int ServiceListener::loadService(string path, string serviceFather, string ipPor
 	int status = STATUS_UNKNOWN;
 	char data[16] = {0};
 	int dataLen = 16;
-	zkGetNode(path.c_str(), data, &dataLen);
+	int ret = zkGetNode(path.c_str(), data, &dataLen);
+	if (ret != M_OK) {
+		LOG(LOG_ERROR, "get service status failed. service:%s", path.c_str());
+		return M_ERR;
+	}
 	status = atoi(data);
     if (status < -1 || status > 2) {
         status = -1;
@@ -416,20 +420,26 @@ int ServiceListener::loadService(string path, string serviceFather, string ipPor
 	serviceItem.setAddr(&addr);
 	serviceItem.setServiceFather(serviceFather);
 	conf->addService(path, serviceItem);
-	return 0;
+	return M_OK;
 }
 
 int ServiceListener::loadAllService() {
+	//here we need locks. Maybe we can remove it
+	spinlock_lock(&serviceFatherToIpLock);
 	for (auto it1 = serviceFatherToIp.begin(); it1 != serviceFatherToIp.end(); ++it1) {
 		string serviceFather = it1->first;
+		unordered_set<string> ips = it1->second;
+		spinlock_unlock(&serviceFatherToIpLock);
 		vector<int> status(4, 0);
-		for (auto it2 = (it1->second).begin(); it2 != (it1->second).end(); ++it2) {
+		for (auto it2 = ips.begin(); it2 != ips.end(); ++it2) {
 			string path = serviceFather + "/" + (*it2);
 			loadService(path, serviceFather, *it2, status);
 		}
 		//还是没有异常处理
 		modifyServiceFatherStatus(serviceFather, status);
+		spinlock_lock(&serviceFatherToIpLock);
 	}
+	spinlock_unlock(&serviceFatherToIpLock);
 #ifdef DEBUGSS
 	cout << 444444444 << endl;
 	for (auto it = serviceFatherStatus.begin(); it != serviceFatherStatus.end(); ++it) {
