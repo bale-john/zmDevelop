@@ -156,7 +156,7 @@ int LoadBalance::zkGetChildren(const string path, struct String_vector* children
         return M_ERR;
 	}
 	else {
-		LOG(LOG_ERROR, "parameter error. zhandle is NULL");
+		LOG(LOG_ERROR, "zoo_get_children. error: %s node:%s", zerror(ret), node.c_str());
 		return M_ERR;
 	}
 	return M_ERR;
@@ -167,7 +167,6 @@ int LoadBalance::zkGetNode(const char* md5Path, char* serviceFather, int* dataLe
 		LOG(LOG_ERROR, "zhandle is NULL");
 		return M_ERR;
 	}
-	//todo 下面其实就是一个zoo_get，但是原来的设计中有很多错误判断，我这里先都跳过吧.而且原设计中先用了exist，原因是想知道这个节点的数据有多长，需要多大的buf去存放？
     LOG(LOG_INFO, "md5Path: %s, serviceFather: %s, *dataLen: %d", md5Path, serviceFather, *dataLen);
 	int ret = zoo_get(zh, md5Path, 1, serviceFather, dataLen, NULL);
 	if (ret == ZOK) {
@@ -188,6 +187,7 @@ int LoadBalance::zkGetNode(const char* md5Path, char* serviceFather, int* dataLe
 int LoadBalance::getMd5ToServiceFather() {
 	string path = conf->getNodeList();
 	struct String_vector md5Node = {0};
+	//get all md5 node
 	int ret = zkGetChildren(path, &md5Node);
 	if (ret == M_ERR) {
 		return M_ERR;
@@ -195,13 +195,17 @@ int LoadBalance::getMd5ToServiceFather() {
 	for (int i = 0; i < md5Node.count; ++i) {
 		char serviceFather[256] = {0};
 		string md5Path = conf->getNodeList() + "/" + string(md5Node.data[i]);
-		//todo 根据ret的值加入异常
         int dataLen = sizeof(serviceFather);
+        //get the value of md5Node which is serviceFather
 		ret = zkGetNode(md5Path.c_str(), serviceFather, &dataLen);
+		if (ret == M_ERR) {
+			LOG(LOG_ERROR, "get value of node:%s failed", md5Path);
+			continue;
+		}
 		updateMd5ToServiceFather(string(md5Node.data[i]), string(serviceFather));
-		//md5ToServiceFather[string(md5Node.data[i])] = string(serviceFather);
 		LOG(LOG_INFO, "md5: %s, serviceFather: %s", md5Path.c_str(), serviceFather);
 	}
+	deallocate_String_vector(md5Node);
 #ifdef DEBUGL
     for (auto it = md5ToServiceFather.begin(); it != md5ToServiceFather.end(); ++it) {
         cout << it->first << " " << it->second << endl;

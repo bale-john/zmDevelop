@@ -140,7 +140,19 @@ int main(int argc, char** argv){
 				continue;
 			}
 
-			lb->getMd5ToServiceFather();
+			if (lb->getMd5ToServiceFather() == M_OK) {
+				LOG(LOG_INFO, "get md5 to service father succeeded");
+			}
+			else {
+				LOG(LOG_ERROR, "get md5 to service father failed");
+				//how to deal with this in a better way?
+				if (lb) {
+					delete lb;
+				}
+				sleep(2);
+				continue;
+			}
+			
 			lb->getMonitors();
 			lb->balance();
 
