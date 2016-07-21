@@ -417,9 +417,8 @@ int MultiThread::runMainThread() {
 	//考虑如何分配检查线程，比如记录每个father有多少个服务，如果很多就分配两个线程等等。
 	int oldThreadNum = 0;
 	int newThreadNum = 0;
-	//如果serviceFather数目小于最大线程数目，每个线程一个serviceFather
-	//如果serviceFather数目大于最大线程数目，这应该是更常见的，然后就要复用线程。同样的这里怎么复用，复用哪些线程有很多方法
-	//todo
+	//If the number of service father < MAX_THREAD_NUM, one service father one thread
+	//todo. Better way to reuse thread
 	while (1) {
 		unordered_map<string, unordered_set<string>> serviceFatherToIp = sl->getServiceFatherToIp();
         if (_stop || LoadBalance::getReBalance() || isThreadError()) {
