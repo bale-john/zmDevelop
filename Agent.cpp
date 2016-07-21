@@ -173,7 +173,7 @@ int main(int argc, char** argv){
 			}
 
 			//after load balance. Each monitor should load the service to Config
-			ServiceListener* serviceListener = ServiceListener::getInstance();
+			ServiceListener* sl = ServiceListener::getInstance();
 			if (sl->initEnv() == M_OK) {
 				LOG(LOG_INFO, "init service listener env succeeded");
 			}
@@ -184,8 +184,8 @@ int main(int argc, char** argv){
 				sleep(2);
 				continue;
 			}
-			serviceListener->getAllIp();
-			serviceListener->loadAllService();
+			sl->getAllIp();
+			sl->loadAllService();
 
 	     	//multiThread module
 	     	MultiThread* ml = MultiThread::getInstance(_zk);
@@ -193,7 +193,7 @@ int main(int argc, char** argv){
 
 	        //It's important !! Remember to close it always
 			delete lb;
-			delete serviceListener;
+			delete sl;
 			delete ml;
             if (_stop || MultiThread::isThreadError()) {
                 break;
