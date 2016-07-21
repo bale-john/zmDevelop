@@ -63,7 +63,6 @@ ServiceListener::~ServiceListener() {
 }
 
 //path is the path of ipPort
-//这几个函数的意义和调用关系不清晰
 void ServiceListener::modifyServiceFatherToIp(const string op, const string& path) {
 	if (op == CLEAR) {
 		spinlock_lock(&serviceFatherToIpLock);
@@ -187,15 +186,14 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
 }
 
 void ServiceListener::processDeleteEvent(zhandle_t* zhandle, const string& path) {
-	//只可能是某个服务被删除了，因为我只去get过这个节点，后续可以加异常处理
+	//It must be a service node. Because I do zoo_get only in service node
 	//update serviceFatherToIp
 	ServiceListener* sl = ServiceListener::getInstance();
 	sl->modifyServiceFatherToIp(DELETE, path);
 }
 
 void ServiceListener::processChildEvent(zhandle_t* zhandle, const string& path) {
-	//只可能是某个serviceFather子节点变化，因为我只get_child过这个节点
-	//这里这个path是serviceFather
+	//It must be a service father node. Because I do zoo_get_children only in service father node
 	ServiceListener* sl = ServiceListener::getInstance();
 	struct String_vector children = {0};
 	int ret = zoo_get_children(zhandle, path.c_str(), 1, &children);
@@ -205,7 +203,7 @@ void ServiceListener::processChildEvent(zhandle_t* zhandle, const string& path) 
 			LOG(LOG_INFO, "actually It's a delete event");
 		}
 		else {
-			//感觉很低效，可是新建了一个节点，好像只能把所有子节点都获取来，重新加一遍啊
+			//感觉很低效，可是新建了一个节点，好像只能把所有子节点都获取来，重新加一遍
 			LOG(LOG_INFO, "add new service");
 			for (int i = 0; i < children.count; ++i) {
 				string ipPort = string(children.data[i]);
@@ -216,7 +214,7 @@ void ServiceListener::processChildEvent(zhandle_t* zhandle, const string& path) 
 	}
 	else if (ret == ZNONODE) {
 		LOG(LOG_TRACE, "%s...out...node:%s not exist.", __FUNCTION__, path.c_str());
-		//这个serviceFather不存在了，可能是删除了 todo serviceFatherToIp这个数据结构里还是要加更多动作，比如删除serviceFather
+		//这个serviceFather不存在了，可能是删除了，这个事件由readBalance完成，也许这里也应该做点什么
 		//serviceFatherToIp.erase(path);
         return;
 	}
@@ -247,6 +245,7 @@ void ServiceListener::processChangedEvent(zhandle_t* zhandle, const string& path
         return;
     }
 	newStatus = atoi(data);
+	/*
     size_t pos = path.rfind('/');
     string serviceFather = path.substr(0, pos);
     if (sl->getWatchFlag()) {
@@ -256,6 +255,7 @@ void ServiceListener::processChangedEvent(zhandle_t* zhandle, const string& path
 	    sl->modifyServiceFatherStatus(serviceFather, oldStatus, -1);
 	    sl->modifyServiceFatherStatus(serviceFather, newStatus, 1);
     }
+    */
 	//update serviceMap
     conf->setServiceMap(path, newStatus);
 }
