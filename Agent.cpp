@@ -132,7 +132,7 @@ int main(int argc, char** argv){
 				LOG(LOG_INFO, "init load balance env succeeded");
 			}
 			else {
-				LOG(LOG_ERROR, "init load balance env failed")
+				LOG(LOG_ERROR, "init load balance env failed");
 				if (lb) {
 					delete lb;
 				}
