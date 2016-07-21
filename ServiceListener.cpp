@@ -257,7 +257,6 @@ void ServiceListener::processChangedEvent(zhandle_t* zhandle, const string& path
 	    sl->modifyServiceFatherStatus(serviceFather, newStatus, 1);
     }
 	//update serviceMap
-	//(conf->getServiceItem(serviceFather)).setStatus(newStatus);
     conf->setServiceMap(path, newStatus);
 }
 
@@ -265,7 +264,7 @@ void ServiceListener::watcher(zhandle_t* zhandle, int type, int state, const cha
 	switch (type) {
 		case SESSION_EVENT_DEF:
 			if (state == ZOO_EXPIRED_SESSION_STATE) {
-				LOG(LOG_INFO, "[ session event ] state: ZOO_EXPIRED_SESSION_STATE");
+				LOG(LOG_INFO, "[ session event ] state: state");
 				LOG(LOG_INFO, "restart the main loop!");
 				kill(getpid(), SIGUSR2);
 			}
@@ -381,18 +380,15 @@ int ServiceListener::zkGetNode(const char* path, char* data, int* dataLen) {
 
 int ServiceListener::getAddrByHost(const char* host, struct in_addr* addr) {
 	int ret = M_ERR;
-	//todo 关于如何加锁还没想好
-    //spinlock_lock(&_getaddr_spinlock);
-    struct hostent *ht; //// ht should be release?
+    struct hostent *ht;
     if ((ht = gethostbyname(host)) !=  NULL) {
         *addr = *((struct in_addr *)ht->h_addr);
         ret = M_OK;
     }   
-    //spinlock_unlock(&_getaddr_spinlock);
     return ret;
 }
 
-//todo 这里参数有重复，从path就可以知道其他两个的内容了
+//the args are repeat. But it's ok
 int ServiceListener::loadService(string path, string serviceFather, string ipPort, vector<int>& st) {
 	int status = STATUS_UNKNOWN;
 	char data[16] = {0};
@@ -407,7 +403,6 @@ int ServiceListener::loadService(string path, string serviceFather, string ipPor
         status = -1;
     }
 	++(st[status + 1]);
-	//todo, 这里要判断异常，比如值不是允许的那几个
 	size_t pos = ipPort.find(':');
 	string ip = ipPort.substr(0, pos);
 	int port = atoi((ipPort.substr(pos+1)).c_str());
@@ -436,7 +431,6 @@ int ServiceListener::loadAllService() {
 			string path = serviceFather + "/" + (*it2);
 			loadService(path, serviceFather, *it2, status);
 		}
-		//还是没有异常处理
 		modifyServiceFatherStatus(serviceFather, status);
 		spinlock_lock(&serviceFatherToIpLock);
 	}
@@ -535,11 +529,16 @@ void ServiceListener::deleteIpPort(const string& serviceFather, const string& ip
 	spinlock_unlock(&serviceFatherToIpLock);
 }
 
+
+//这个标记一开始是用来区分zk节点的值是由monitor去改变的还是zk自己改变的
+//是为了使用serviceFatherStatus来判断是否仅剩一个up的服务节点的
+//最后发现这样还是不可行，因为网络的原因等，还是无法确认每次设置了标记位之后就清楚，在设置，暂时无用
 void ServiceListener::setWatchFlag() {
     spinlock_lock(&watchFlagLock);
     watchFlag = true;
     spinlock_unlock(&watchFlagLock);
 }
+
 void ServiceListener::clearWatchFlag() {
     spinlock_lock(&watchFlagLock);
     watchFlag = true;
