@@ -219,6 +219,7 @@ int LoadBalance::getMonitors(bool flag /*=false*/) {
 	struct String_vector monitorNode = {0};
 	int ret = zkGetChildren(path, &monitorNode);
 	if (ret == M_ERR) {
+		LOG(LOG_ERROR, "get monitors failes. path:%s", path.c_str());
 		return M_ERR;
 	}
 	for (int i = 0; i < monitorNode.count; ++i) {
@@ -226,6 +227,7 @@ int LoadBalance::getMonitors(bool flag /*=false*/) {
 		monitors.insert(monitor);
 	}
 	LOG(LOG_INFO, "There are %d monitors, I am %s", monitors.size(), _zkLockBuf);
+	deallocate_String_vector(&monitorNode);
     return M_OK;
 }
 

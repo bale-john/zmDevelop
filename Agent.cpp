@@ -145,15 +145,28 @@ int main(int argc, char** argv){
 			}
 			else {
 				LOG(LOG_ERROR, "get md5 to service father failed");
-				//how to deal with this in a better way?
+				/*
+				how to deal with this in a better way?
+				if the reason of failure is node not exist, we should restart main loop
+				*/
 				if (lb) {
 					delete lb;
 				}
 				sleep(2);
 				continue;
 			}
-			
-			lb->getMonitors();
+
+			if (lb->getMonitors() == M_OK) {
+				LOG(LOG_INFO, "get monitors secceeded");
+			}
+			else {
+				LOG(LOG_INFO, "get monitors failed");
+				if (lb) {
+					delete lb;
+				}
+				sleep(2);
+				continue;
+			}
 			lb->balance();
 
 			//after load balance. Each monitor should load the service to Config
