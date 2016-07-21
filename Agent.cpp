@@ -71,7 +71,7 @@ int main(int argc, char** argv){
 			LOG(LOG_INFO, "Zk init env succeeded. host:%s zk log path:%s", zkHost.c_str(), zkLogPath.c_str());
 		}
 		else {
-			LOG(LOG_ERROR, "Zk init env failed, retry");
+			LOG(LOG_ERROR, "Zk init env failed, host:%s, zk log path:%s", zkHost.c_str(), zkLogPath.c_str());
 			if (_zk) {
 				delete _zk;
 			}

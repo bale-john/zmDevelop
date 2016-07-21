@@ -189,12 +189,19 @@ int Config::getZkRecvTimeout() {
 }
 
 string Config::getNodeList() {
-	//todo should do something to judge weather instanceName is null
+	//should judge weather instanceName is empty
+	if (_instanceName.empty()) {
+		LOG(LOG_ERROR, "instance name is empty. using default_instance");
+		return LOCK_ROOT_DIR + SLASH + "default_instance" + SLASH + NODE_LIST;
+	}
 	return LOCK_ROOT_DIR + SLASH + _instanceName + SLASH + NODE_LIST;
 }
 
 string Config::getMonitorList() {
-	//todo
+	if (_instanceName.empty()) {
+		LOG(LOG_ERROR, "instance name is empty. using default_instance");
+		return LOCK_ROOT_DIR + SLASH + "default_instance" + SLASH + MONITOR_LIST;
+	}
 	return LOCK_ROOT_DIR + SLASH + _instanceName + SLASH + MONITOR_LIST;
 }
 

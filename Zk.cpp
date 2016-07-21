@@ -34,7 +34,7 @@ void Zk::processDeleteEvent(zhandle_t* zhandle, const string& path) {
 		zk->createZnode(path);
 	}
 	if (path == conf->getMonitorList()) {
-		LOG(LOG_INFO, "monitor dir %s is removed. Restart mail loop", path.c_str());
+		LOG(LOG_INFO, "monitor dir %s is removed. Restart main loop", path.c_str());
         _stop = true;
 	}
 }
@@ -50,7 +50,7 @@ void Zk::watcher(zhandle_t* zhandle, int type, int state, const char* node, void
 	switch (type) {
 		case SESSION_EVENT_DEF:
 			if (state == ZOO_EXPIRED_SESSION_STATE) {
-				LOG(LOG_DEBUG, "[session state: ZOO_EXPIRED_STATA: -112]");
+				LOG(LOG_DEBUG, "[session state: ZOO_EXPIRED_STATA: %d]", state);
 				//todo 是否需要watchSession？
 				LOG(LOG_INFO, "restart the main loop!");
 				//直接设置_stop其实是一样的效果
@@ -82,6 +82,14 @@ Zk::Zk():_zh(NULL), _recvTimeout(3000), _zkLogPath(""), _zkHost(""), _zkLogFile(
 	conf = Config::getInstance();
 }
 
+/*
+ * Initialize Zk api environment.
+ *
+ * zk_host       [in] zookeeper server host
+ * log_path      [in] zookeerp api log path
+ * recv_timeout  [in] receive timeout
+ *
+ */
 int Zk::initEnv(const string zkHost, const string zkLogPath, const int recvTimeout) {
 	if (zkLogPath.size() <= 0) {
 		return M_ERR;
@@ -94,11 +102,15 @@ int Zk::initEnv(const string zkHost, const string zkLogPath, const int recvTimeo
 	_zkLogPath = zkLogPath;
 	//set the log file stream of zookeeper
 	zoo_set_log_stream(_zkLogFile);
+	LOG(LOG_INFO, "zoo_set_log_stream path:%s", zkLogPath.c_str());
 
 	if (zkHost.size() <= 0) {
+		LOG(LOG_ERROR, "zkHost %s wrong!", zkHost.c_str());
 		return M_ERR;
 	}
 	_zkHost = zkHost;
+	_recvTimeout = recvTimeout > 1000 ? recvTimeout : _recvTimeout;
+	//init zookeeper handler
 	_zh = zookeeper_init(zkHost.c_str(), watcher, _recvTimeout, NULL, NULL, 0);
 	if (!_zh) {
 		LOG(LOG_ERROR, "zookeeper_init failed. Check whether zk_host(%s) is correct or not", zkHost.c_str());
@@ -110,7 +122,16 @@ int Zk::initEnv(const string zkHost, const string zkLogPath, const int recvTimeo
 
 void Zk::destroyEnv() {
 	if (_zh) {
+		LOG(LOG_DEBUG, "zookeeper close ...");
 		zookeeper_close(_zh);
+		_zh = NULL;
+	}
+	if (_zkLogFile) {
+		// set the zookeeper log stream to be default stderr
+		zoo_set_log_stream(NULL);
+		LOG(LOG_DEBUG, "zkLog close ...");
+		fclose(_zkLogFile);
+		_zkLogFile = NULL;
 	}
 	zk = NULL;
 }
@@ -126,7 +147,7 @@ void Zk::zErrorHandler(const int& ret) {
         ret == ZINVALIDSTATE)     /*!< Invliad zhandle state */
     {   
         LOG(LOG_ERROR, "API return: %s. Reinitialize zookeeper handle.", zerror(ret));
-        //todo 现在的系统健壮性不强，到时候这边应该加上对应的补救措施
+        //todo maybe could add some code to make it robuster
     	//destoryEnv();
       	//initEnv(_zkHost, _zkLogPath, _recvTimeout);
     }
@@ -142,6 +163,7 @@ void Zk::zErrorHandler(const int& ret) {
 
 bool Zk::znodeExist(const string& path) {
 	if (!_zh) {
+		LOG(LOG_ERROR, "_zh is NULL!");
 		return false;
 	}
 	struct Stat stat;
@@ -156,7 +178,6 @@ bool Zk::znodeExist(const string& path) {
 	}
 	else {
 		LOG(LOG_ERROR, "zoo_exist failed. error: %s. node: %s", zerror(ret), path.c_str());
-		//todo
 		zErrorHandler(ret);
 		return false;
 	}
@@ -173,9 +194,6 @@ int Zk::createZnode(string path) {
 		int ret = zoo_create(_zh, node.c_str(), NULL, 0, &ZOO_OPEN_ACL_UNSAFE, 0, NULL, 0);
 		if (ret == ZOK) {
 			LOG(LOG_INFO, "Create node succeeded. node: %s", node.c_str());
-			//add the watcher
-			struct Stat stat;
-			zoo_exists(_zh, node.c_str(), 1, &stat);
 		}
 		else if (ret == ZNODEEXISTS) {
 			LOG(LOG_INFO, "Create node .Node exists. node: %s", node.c_str());
@@ -187,6 +205,9 @@ int Zk::createZnode(string path) {
             return M_ERR;
 		}
 	}
+	//add the watcher
+	struct Stat stat;
+	zoo_exists(_zh, node.c_str(), 1, &stat);
 	return M_OK;
 }
 
@@ -205,7 +226,14 @@ int Zk::checkAndCreateZnode(string path) {
 		return M_OK;
 	}
 	else {
-		return createZnode(path);
+		if (createZnode(path) == M_OK) {
+			LOG(LOG_INFO, "create znode succeeded, path:%s", path.c_str());
+			return M_OK;
+		}
+		else {
+			LOG(LOG_ERROR, "create znode failed, path:%s", path.c_str());
+			return M_ERR;
+		}
 	}
 }
 
@@ -237,8 +265,12 @@ int Zk::registerMonitor(string path) {
 }
 
 int Zk::setZnode(string node, string data) {
-	//todo,现在写的非常简单，几乎没有任何异常判断
-	int ver = -1;
+	int ver = -1; //will not check the version of node
+	if (!_zh) {
+		LOG(LOG_FATAL_ERROR, "_zh is NULL. restart the main loop!");
+		_stop = true;
+		return -1;
+	}
 	int status = zoo_set(_zh, node.c_str(), data.c_str(), data.length(), ver);
 	if (status == ZOK) {
 		return 0;
