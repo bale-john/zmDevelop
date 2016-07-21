@@ -109,7 +109,7 @@ int main(int argc, char** argv){
 		if (_zk->registerMonitor(conf->getMonitorList() + "/monitor_") == M_OK) {
 			LOG(LOG_INFO, "Monitor register success");
 			//wait other monitor to register
-			sleep(3);
+			//sleep(3);
 		}
 		else {
 			LOG(LOG_ERROR, "Monitor register failed");
