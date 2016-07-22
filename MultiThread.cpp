@@ -336,8 +336,14 @@ int MultiThread::tryConnect(string curServiceFather) {
 	map<string, ServiceItem> serviceMap = conf->getServiceMap();
 	unordered_map<string, unordered_set<string>> serviceFatherToIp = sl->getServiceFatherToIp();
 	unordered_set<string> ip = serviceFatherToIp[curServiceFather];
+    int retryCount = conf->getConnRetryCount();
 #ifdef DEBUGM
 	for (auto it = ip.begin(); it != ip.end(); ++it) {
+        /*
+        if (it->empty()) {
+            break;
+        }
+        */
 		string ipPort = curServiceFather + "/" + (*it);
 		ServiceItem item = serviceMap[ipPort];
 		int oldStatus = item.getStatus();
@@ -347,10 +353,16 @@ int MultiThread::tryConnect(string curServiceFather) {
 		}
 		struct in_addr addr;
         item.getAddr(&addr);
+        int curTryTimes = 1;
 		int timeout = item.getConnectTimeout() > 0 ? item.getConnectTimeout() : 3;
 		int res = isServiceExist(&addr, (char*)item.getHost().c_str(), item.getPort(), timeout, item.getStatus());
         //todo if status is down. I should retry 
         int status = (res)? 0 : 2;
+        while (curTryTimes <= retryCount && status == STATUS_DOWN) {
+            LOG(LOG_ERROR, "can not connect to service:%s, current try times:%d, max try times:%d", ipPort.c_str(), curTryTimes, retryCount);
+            res = isServiceExist(&addr, (char*)item.getHost().c_str(), item.getPort(), timeout, item.getStatus());
+            ++curTryTimes;
+        }
 		cout << "sssssssssssssssssssssssssssss" << endl;
 		cout << "ipPort: " << ipPort << " status: " << status << " oldstatus: " << oldStatus << endl;
 		LOG(LOG_INFO, "|checkService| service:%s, old status:%d, new status:%d", ipPort.c_str(), oldStatus, status);
