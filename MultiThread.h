@@ -45,8 +45,6 @@ private:
 
 public:
 	~MultiThread();
-	//overload
-	static MultiThread* getInstance(Zk*);
     static MultiThread* getInstance();
     
 	int runMainThread();

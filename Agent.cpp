@@ -188,7 +188,7 @@ int main(int argc, char** argv){
 			sl->loadAllService();
 
 	     	//multiThread module
-	     	MultiThread* ml = MultiThread::getInstance(_zk);
+	     	MultiThread* ml = MultiThread::getInstance();
 	        ml->runMainThread();
 
 	        //It's important !! Remember to close it always

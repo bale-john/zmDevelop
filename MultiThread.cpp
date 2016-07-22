@@ -42,23 +42,20 @@ MultiThread* MultiThread::mlInstance = NULL;
 
 bool MultiThread::threadError = false;
 
-MultiThread* MultiThread::getInstance(Zk* zk_input) {
+MultiThread* MultiThread::getInstance() {
 	if (!mlInstance) {
-		mlInstance = new MultiThread(zk_input);
+		mlInstance = new MultiThread();
 	}
 	return mlInstance;
 }
 
-MultiThread* MultiThread::getInstance() {
-    return mlInstance;
-}
-
-MultiThread::MultiThread(Zk* zk_input) : zk(zk_input) {
+MultiThread::MultiThread() {
 	updateServiceLock = SPINLOCK_INITIALIZER;
 	waitingIndexLock = SPINLOCK_INITIALIZER;
 	hasThreadLock = SPINLOCK_INITIALIZER;
     threadPosLock = SPINLOCK_INITIALIZER;
 	conf = Config::getInstance();
+	zk = Zk::getInstance();
 	sl = ServiceListener::getInstance();
     lb = LoadBalance::getInstance();
     serviceFathers = lb->getMyServiceFather();
