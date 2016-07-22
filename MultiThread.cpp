@@ -152,8 +152,7 @@ void MultiThread::updateService() {
 		if (updateServiceInfo.empty()) {
 			priority.clear();
 			spinlock_unlock(&updateServiceLock);
-			//why sleep? No nessarity
-			//usleep(1000);
+			usleep(1000);
 			continue;
 		}
 		spinlock_unlock(&updateServiceLock);
@@ -226,8 +225,7 @@ void MultiThread::updateService() {
 		else {
 			LOG(LOG_INFO, "should not come here");
 		}
-		//why sleep? 
-		//usleep(1000);
+		usleep(1000);
 	}
 #ifdef DEBUGM
     cout << "out update service" << endl;
@@ -337,7 +335,6 @@ int MultiThread::tryConnect(string curServiceFather) {
 	unordered_map<string, unordered_set<string>> serviceFatherToIp = sl->getServiceFatherToIp();
 	unordered_set<string> ip = serviceFatherToIp[curServiceFather];
     int retryCount = conf->getConnRetryCount();
-#ifdef DEBUGM
 	for (auto it = ip.begin(); it != ip.end(); ++it) {
 		string ipPort = curServiceFather + "/" + (*it);
         /*
@@ -358,25 +355,25 @@ int MultiThread::tryConnect(string curServiceFather) {
         int curTryTimes = 1;
 		int timeout = item.getConnectTimeout() > 0 ? item.getConnectTimeout() : 3;
 		int res = isServiceExist(&addr, (char*)item.getHost().c_str(), item.getPort(), timeout, item.getStatus());
-        //todo if status is down. I should retry 
         int status = (res)? 0 : 2;
+        //If status is down. I will retry.
         while (curTryTimes <= retryCount && status == STATUS_DOWN) {
             LOG(LOG_ERROR, "can not connect to service:%s, current try times:%d, max try times:%d", ipPort.c_str(), curTryTimes, retryCount);
             res = isServiceExist(&addr, (char*)item.getHost().c_str(), item.getPort(), timeout, item.getStatus());
             ++curTryTimes;
         }
+#ifdef DEBUGM
 		cout << "sssssssssssssssssssssssssssss" << endl;
 		cout << "ipPort: " << ipPort << " status: " << status << " oldstatus: " << oldStatus << endl;
+#endif
 		LOG(LOG_INFO, "|checkService| service:%s, old status:%d, new status:%d", ipPort.c_str(), oldStatus, status);
 		if (status != oldStatus) {
 			spinlock_lock(&updateServiceLock);
             priority.push_back(ipPort);
             updateServiceInfo[ipPort] = status;
             spinlock_unlock(&updateServiceLock);
-			LOG(LOG_INFO, "|checkService| service %s new status %d", ipPort.c_str(), status);
 		}
 	}
-#endif
     return 0;
 }
 
@@ -389,7 +386,6 @@ void MultiThread::checkService() {
         if (_stop || LoadBalance::getReBalance() || isThreadError()) {
             break;
         }
-		//string curServiceFather = (lb->getMyServiceFather())[pos];
         spinlock_lock(&serviceFathersLock);
 		string curServiceFather = serviceFathers[pos];
         spinlock_unlock(&serviceFathersLock);
@@ -405,7 +401,6 @@ void MultiThread::checkService() {
 		    setHasThread(pos, true);
         }
         sleep(2);
-		//if ()
 	}
     return;
 }
@@ -421,7 +416,7 @@ void* MultiThread::staticCheckService(void* args) {
 	ml->checkService();
     pthread_exit(0);
 }
-//TODO 主线程肯定是要考虑配置重载什么的这些事情的
+//TODO 完全没有考虑配置重载等为了运维方便的功能
 int MultiThread::runMainThread() {
 	//Are there any problem?
 	int res = pthread_create(&updateServiceThread, NULL, staticUpdateService, NULL);
@@ -429,7 +424,7 @@ int MultiThread::runMainThread() {
 		setThreadError();
 		LOG(LOG_ERROR, "create the update service thread error: %s", strerror(res));
 	}
-	//考虑如何分配检查线程，比如记录每个father有多少个服务，如果很多就分配两个线程等等。
+	//考虑如何分配检查线程，比如记录每个father有多少个服务，如果很多就分配两个线程？这个不好办
 	int oldThreadNum = 0;
 	int newThreadNum = 0;
 	//If the number of service father < MAX_THREAD_NUM, one service father one thread
