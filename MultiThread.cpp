@@ -80,7 +80,7 @@ void MultiThread::setThreadError() {
 void MultiThread::clearThreadError() {
 	threadError = false;
 }
-
+//travelsal all the service under the service father to judge weather it's only one service up
 bool MultiThread::isOnlyOneUp(string node) {
 	ServiceListener* sl = ServiceListener::getInstance();
 	bool ret = true;
@@ -105,7 +105,7 @@ bool MultiThread::isOnlyOneUp(string node) {
     }
 	return ret;
 }
-
+//judge with serviceFatherStatus
 bool MultiThread::isOnlyOneUp(string node, int val) {
 	ServiceListener* sl = ServiceListener::getInstance();
 	bool ret = true;
@@ -125,7 +125,7 @@ bool MultiThread::isOnlyOneUp(string node, int val) {
 	}
 	return ret;
 }
-//todo 
+
 int MultiThread::updateZk(string node, int val) {
 	string status = to_string(val);
 	return zk->setZnode(node, status);
@@ -142,6 +142,7 @@ void MultiThread::updateService() {
 #ifdef DEBUGM
     cout << "in update service thread" << endl;
 #endif
+    LOG(LOG_INFO, "in update service thread");
 	while (1) {
         if (_stop || LoadBalance::getReBalance() || isThreadError()) {
             break;
@@ -150,7 +151,7 @@ void MultiThread::updateService() {
 		if (updateServiceInfo.empty()) {
 			priority.clear();
 			spinlock_unlock(&updateServiceLock);
-			//why sleep? I think there is no nessarity
+			//why sleep? No nessarity
 			//usleep(1000);
 			continue;
 		}
@@ -230,6 +231,7 @@ void MultiThread::updateService() {
 #ifdef DEBUGM
     cout << "out update service" << endl;
 #endif
+    LOG(LOG_ERROR, "out update service");
     return;
 }
 
@@ -346,17 +348,17 @@ int MultiThread::tryConnect(string curServiceFather) {
         item.getAddr(&addr);
 		int timeout = item.getConnectTimeout() > 0 ? item.getConnectTimeout() : 3;
 		int res = isServiceExist(&addr, (char*)item.getHost().c_str(), item.getPort(), timeout, item.getStatus());
+        //todo if status is down. I should retry 
         int status = (res)? 0 : 2;
-		//todo 根据status进行分类。这里先打印出来
 		cout << "sssssssssssssssssssssssssssss" << endl;
 		cout << "ipPort: " << ipPort << " status: " << status << " oldstatus: " << oldStatus << endl;
+		LOG(LOG_INFO, "|checkService| service:%s, old status:%d, new status:%d", (*it).c_str(), oldStatus, status);
 		if (status != oldStatus) {
 			spinlock_lock(&updateServiceLock);
             priority.push_back(ipPort);
             updateServiceInfo[ipPort] = status;
-            cout << "priority size: " << priority.size() << " updateServiceInfo size: " << updateServiceInfo.size() << endl;
+            spinlock_unlock(&updateServiceLock);
 			LOG(LOG_INFO, "|checkService| service %s new status %d", ipPort.c_str(), status);
-			spinlock_unlock(&updateServiceLock);
 		}
 	}
 #endif
