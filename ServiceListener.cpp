@@ -294,6 +294,9 @@ void ServiceListener::watcher(zhandle_t* zhandle, int type, int state, const cha
 }
 
 int ServiceListener::addChildren(const string serviceFather, struct String_vector children) {
+    if (children.count == 0) {
+       addIpPort(serviceFather, ""); 
+    }
 	for (int i = 0; i < children.count; ++i) {
 		string ip(children.data[i]);
 		addIpPort(serviceFather, ip);
@@ -334,6 +337,7 @@ int ServiceListener::getAllIp() {
 		if (status != M_OK) {
 			LOG(LOG_ERROR, "get IP:Port failed. serviceFather:%s", (*it).c_str());
 			deallocate_String_vector(&children);
+            addIpPort(*it, "");
 			continue;
 		}
 		//add the serviceFather and ipPort to the map serviceFatherToIp

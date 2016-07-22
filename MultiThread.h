@@ -36,6 +36,7 @@ private:
 	int serviceFatherNum;
 	//copy of myServiceFather in loadBalance
 	vector<string> serviceFathers;
+    spinlock_t serviceFathersLock;
 	//标记某个service father是否有一个线程在检查它
 	vector<bool> hasThread;
 	spinlock_t hasThreadLock;

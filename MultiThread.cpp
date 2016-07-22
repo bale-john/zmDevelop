@@ -54,6 +54,7 @@ MultiThread::MultiThread() {
 	waitingIndexLock = SPINLOCK_INITIALIZER;
 	hasThreadLock = SPINLOCK_INITIALIZER;
     threadPosLock = SPINLOCK_INITIALIZER;
+    serviceFathersLock = SPINLOCK_INITIALIZER;
 	conf = Config::getInstance();
 	zk = Zk::getInstance();
 	sl = ServiceListener::getInstance();
@@ -352,7 +353,7 @@ int MultiThread::tryConnect(string curServiceFather) {
         int status = (res)? 0 : 2;
 		cout << "sssssssssssssssssssssssssssss" << endl;
 		cout << "ipPort: " << ipPort << " status: " << status << " oldstatus: " << oldStatus << endl;
-		LOG(LOG_INFO, "|checkService| service:%s, old status:%d, new status:%d", (*it).c_str(), oldStatus, status);
+		LOG(LOG_INFO, "|checkService| service:%s, old status:%d, new status:%d", ipPort.c_str(), oldStatus, status);
 		if (status != oldStatus) {
 			spinlock_lock(&updateServiceLock);
             priority.push_back(ipPort);
@@ -375,7 +376,9 @@ void MultiThread::checkService() {
             break;
         }
 		//string curServiceFather = (lb->getMyServiceFather())[pos];
+        spinlock_lock(&serviceFathersLock);
 		string curServiceFather = serviceFathers[pos];
+        spinlock_unlock(&serviceFathersLock);
 #ifdef DEBUGM
 		cout << "check service thread " << pthreadId << " pos: " << pos << " current service father: " << curServiceFather << endl;
 #endif

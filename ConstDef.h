@@ -51,7 +51,7 @@ const string NODE_LIST = "md5_list";
 
 //multi thread
 #ifdef DEBUGM
-constexpr int MAX_THREAD_NUM = 5;
+constexpr int MAX_THREAD_NUM = 128;
 #else
 constexpr int MAX_THREAD_NUM = 128;
 #endif
