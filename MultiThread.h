@@ -21,7 +21,7 @@
 using namespace std;
 class MultiThread {
 private:
-	MultiThread(Zk*);
+	MultiThread();
 	static bool threadError;
 	static MultiThread* mlInstance;
 	Config* conf;
