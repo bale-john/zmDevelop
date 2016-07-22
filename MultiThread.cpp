@@ -339,12 +339,14 @@ int MultiThread::tryConnect(string curServiceFather) {
     int retryCount = conf->getConnRetryCount();
 #ifdef DEBUGM
 	for (auto it = ip.begin(); it != ip.end(); ++it) {
-        /*
-        if (it->empty()) {
-            break;
-        }
-        */
 		string ipPort = curServiceFather + "/" + (*it);
+        /*
+        some service father don't have services and we add "" to serviceFatherToIp
+        so we need to judge weather It's a legal ipPort
+        */
+        if (serviceMap.find(ipPort) == serviceMap.end()) {
+            continue;
+        }
 		ServiceItem item = serviceMap[ipPort];
 		int oldStatus = item.getStatus();
 		//If the node is STATUS_UNKNOWN or STATUS_OFFLINE, we will ignore it
