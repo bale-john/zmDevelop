@@ -55,9 +55,10 @@ constexpr int MAX_THREAD_NUM = 128;
 #else
 constexpr int MAX_THREAD_NUM = 128;
 #endif
+/*
 constexpr int SCHEDULE = 1;
 constexpr int NOSCHEDULE = 0;
-
+*/
 //op of mpdify serviceFatherToIp
 const string DELETE = "delete";
 const string ADD = "add";

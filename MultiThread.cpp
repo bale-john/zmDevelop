@@ -409,7 +409,6 @@ void* MultiThread::staticCheckService(void* args) {
 }
 //TODO 主线程肯定是要考虑配置重载什么的这些事情的
 int MultiThread::runMainThread() {
-	int schedule = NOSCHEDULE;
 	//Are there any problem?
 	int res = pthread_create(&updateServiceThread, NULL, staticUpdateService, NULL);
 	if (res != 0) {
@@ -427,17 +426,12 @@ int MultiThread::runMainThread() {
             break;
         }
 		newThreadNum = serviceFatherToIp.size();
-		//线程需要开满，且需要调度.需要调度与否通过参数传一个flag进去
+		//线程需要开满，且需要调度.
 		if (newThreadNum > MAX_THREAD_NUM) {
 			newThreadNum = MAX_THREAD_NUM;
-			//todo 这个变量作为flag，只有主线程可以修改，但是所有的检查线程都要读它，这里是否需要加锁呢
-			//todo 我应该先改变schedule的值还是先创建新线程呢？
-			if (schedule == NOSCHEDULE) {
-				schedule = SCHEDULE;
-			}
 			for (; oldThreadNum < newThreadNum; ++oldThreadNum) {
                 spinlock_lock(&threadPosLock);
-				res = pthread_create(checkServiceThread + oldThreadNum, NULL, staticCheckService, &schedule);
+				res = pthread_create(checkServiceThread + oldThreadNum, NULL, staticCheckService, NULL);
 				if (res != 0) {
 					setThreadError();
 					LOG(LOG_ERROR, "create the check service thread error: %s", strerror(res));
@@ -449,16 +443,13 @@ int MultiThread::runMainThread() {
 		}
 		//线程不用开满，也不需要调度
 		else {
-			if (schedule == SCHEDULE) {
-				schedule = NOSCHEDULE;
-			}
 			if (newThreadNum <= oldThreadNum) {
 				//some thread may be left to be idle
 			}
 			else {
 				for (; oldThreadNum < newThreadNum; ++oldThreadNum) {
                     spinlock_lock(&threadPosLock);
-					res = pthread_create(checkServiceThread + oldThreadNum, NULL, staticCheckService, &schedule);
+					res = pthread_create(checkServiceThread + oldThreadNum, NULL, staticCheckService, NULL);
 					if (res != 0) {
 						setThreadError();
 						LOG(LOG_ERROR, "create the check service thread error: %s", strerror(res));
