@@ -366,7 +366,7 @@ int MultiThread::tryConnect(string curServiceFather) {
 		cout << "sssssssssssssssssssssssssssss" << endl;
 		cout << "ipPort: " << ipPort << " status: " << status << " oldstatus: " << oldStatus << endl;
 #endif
-		LOG(LOG_INFO, "|checkService| service:%s, old status:%d, new status:%d", ipPort.c_str(), oldStatus, status);
+        LOG(LOG_INFO, "|checkService| service:%s, old status:%d, new status:%d. Have tried times:%d, max try times:%d", ipPort.c_str(), oldStatus, status, curTryTimes, retryCount);
 		if (status != oldStatus) {
 			spinlock_lock(&updateServiceLock);
             priority.push_back(ipPort);
