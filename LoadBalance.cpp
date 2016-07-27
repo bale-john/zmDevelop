@@ -136,7 +136,7 @@ void LoadBalance::watcher(zhandle_t* zhandle, int type, int state, const char* p
         case CHANGED_EVENT_DEF:
             LOG(LOG_INFO, "zookeeper watcher [ change event ] path:%s", path);
             processChangedEvent(zhandle, string(path));
-            //todo 意味着md5对应的serviceFather改变了。这也太奇怪了，难道是serviceFather的名字改变了？
+            //todo 意味着md5对应的serviceFather改变了。相当于要检测一个新的serviceFather？但应该不怎么会发生吧，因为MD5就是根据serviceFather产生的啊
             break;
 	}
 }
