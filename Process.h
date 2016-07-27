@@ -10,6 +10,7 @@ class Process{
 private:
 	Process();
 	~Process();
+    static bool stop;
 
 public:
 	static bool isProcessRunning(const string& processName);
@@ -18,5 +19,8 @@ public:
 	static void sigForward(const int sig);
 	static void sigHandler(const int sig);
 	static int processFileMsg(const string cmdFile);
+    static bool getStop();
+    static void setStop();
+    static void clearStop();
 };
 #endif

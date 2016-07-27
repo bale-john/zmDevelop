@@ -18,6 +18,20 @@ using namespace std;
 //weather process is stopped
 bool _stop = false;
 
+bool Process::stop = false;
+
+bool Process::getStop() {
+    return stop;
+}
+
+void Process::setStop() {
+    stop = true;
+}
+
+void Process::clearStop() {
+    stop = false;
+}
+
 bool Process::isProcessRunning(const string& processName) {
 	FILE* ptr = NULL;
 	char ps[128] = {0};
