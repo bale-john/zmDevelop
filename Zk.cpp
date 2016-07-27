@@ -54,7 +54,6 @@ void Zk::watcher(zhandle_t* zhandle, int type, int state, const char* node, void
 				LOG(LOG_DEBUG, "[session state: ZOO_EXPIRED_STATA: %d]", state);
 				//todo 是否需要watchSession？
 				LOG(LOG_INFO, "restart the main loop!");
-				//直接设置_stop其实是一样的效果
 				kill(getpid(), SIGUSR2);
 			}
 			else {
@@ -168,7 +167,7 @@ bool Zk::znodeExist(const string& path) {
 		return false;
 	}
 	struct Stat stat;
-	int ret = zoo_exists(_zh, path.c_str(), 0, &stat);
+	int ret = zoo_exists(_zh, path.c_str(), 1, &stat);
 	if (ret == ZOK) {
 		LOG(LOG_INFO, "node exist. node: %s", path.c_str());
 		return true;
