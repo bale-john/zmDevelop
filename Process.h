@@ -19,7 +19,7 @@ public:
 	static void sigForward(const int sig);
 	static void sigHandler(const int sig);
 	static int processFileMsg(const string cmdFile);
-    static bool getStop();
+    static bool isStop();
     static void setStop();
     static void clearStop();
 };

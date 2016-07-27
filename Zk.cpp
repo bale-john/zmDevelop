@@ -9,6 +9,7 @@
 #include "ConstDef.h"
 #include "Config.h"
 #include "Util.h"
+#include "Process.h"
 #include "Log.h"
 #include "Zk.h"
 using namespace std;
@@ -35,7 +36,7 @@ void Zk::processDeleteEvent(zhandle_t* zhandle, const string& path) {
 	}
 	if (path == conf->getMonitorList()) {
 		LOG(LOG_INFO, "monitor dir %s is removed. Restart main loop", path.c_str());
-        _stop = true;
+        Process::setStop();
 	}
 }
 
@@ -279,7 +280,7 @@ int Zk::setZnode(string node, string data) {
 	int ver = -1; //will not check the version of node
 	if (!_zh) {
 		LOG(LOG_FATAL_ERROR, "_zh is NULL. restart the main loop!");
-		_stop = true;
+        Process::setStop();
 		return -1;
 	}
 	int status = zoo_set(_zh, node.c_str(), data.c_str(), data.length(), ver);

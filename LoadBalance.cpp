@@ -10,6 +10,7 @@
 #include "ConstDef.h"
 #include "Util.h"
 #include "Log.h"
+#include "Process.h"
 #include "LoadBalance.h"
 #include "Config.h"
 #include "x86_spinlocks.h"
@@ -275,7 +276,7 @@ int LoadBalance::balance(bool flag /*=false*/) {
 	}
     if (rank == sequence.size()) {
         LOG(LOG_INFO, "I'm connect to zk. But the monitor registed is removed. Restart main loop");
-        _stop = true;
+        Process::setStop();
         return M_ERR;
     }
 	for (size_t i = rank; i < md5Node.size(); i += monitors.size()) {

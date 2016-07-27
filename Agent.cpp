@@ -54,7 +54,7 @@ int main(int argc, char** argv){
 	while (1) {
         cout << "mainloop start" << endl;
 		LOG(LOG_INFO, " main loop start -> !!!!!!");
-		_stop = false;
+        Process::clearStop();
 		conf->clearServiceMap();
         if (!_zk) {
             dp();
@@ -195,7 +195,7 @@ int main(int argc, char** argv){
 			delete lb;
 			delete sl;
 			delete ml;
-            if (_stop || MultiThread::isThreadError()) {
+            if (Process::isStop() || MultiThread::isThreadError()) {
                 break;
             }
 		}

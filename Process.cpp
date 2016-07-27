@@ -20,7 +20,7 @@ bool _stop = false;
 
 bool Process::stop = false;
 
-bool Process::getStop() {
+bool Process::isStop() {
     return stop;
 }
 
@@ -153,11 +153,11 @@ void Process::sigHandler(const int sig) {
     switch (sig) {
         case SIGTERM:
             LOG(LOG_INFO, "Receive signal SIGTERM");
-            _stop = true;
+            setStop();
             break;
         case SIGKILL:
             LOG(LOG_INFO, "Receive signal SIGKILL");
-            _stop = true;
+            setStop();
             break;
         case SIGINT:
             LOG(LOG_INFO, "Receive signal SIGINT");
@@ -168,7 +168,7 @@ void Process::sigHandler(const int sig) {
             break;
         case SIGUSR2:
             LOG(LOG_INFO, "Receive signal SIGUSR2");
-            _stop = true;
+            setStop();
             break;
         default:
             break;
