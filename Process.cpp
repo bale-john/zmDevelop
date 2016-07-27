@@ -48,7 +48,7 @@ int Process::daemonize() {
     signal(SIGHUP, SIG_IGN);
 
 #ifdef REALSE
-    int fd, dtablesize;
+    int fd;
 #endif
     pid_t pid;
     //already a daemon
@@ -82,14 +82,24 @@ int Process::daemonize() {
     }*/
     //here close all the file description and redirect stand IO
 #ifdef REALSE
+    //make clear how to close file description
     fd = open("/dev/null", O_RDWR, 0);
     dup2(fd, STDIN_FILENO);
     dup2(fd, STDOUT_FILENO);
     dup2(fd, STDERR_FILENO);
+    if (fd >= 3) {
+        close(fd);
+    }
+    for (fd = sysconf(_SC_OPEN_MAX); fd >= 3; --fd) {
+        close(fd);
+    }
+    /*
+    int dtablesize;
     dtablesize = getdtablesize();
     for (fd = 3; fd < dtablesize; ++fd) {
     	close(fd);
     }
+    */
 #endif
     umask(0);
     return 0;
