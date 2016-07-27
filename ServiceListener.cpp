@@ -228,11 +228,15 @@ void ServiceListener::processChangedEvent(zhandle_t* zhandle, const string& path
 	//ServiceListener* sl = ServiceListener::getInstance();
 	Config* conf = Config::getInstance();
 	//int oldStatus = (conf->getServiceItem(path)).getStatus();
-
+    time_t curTime;
+    time(&curTime);
+    struct tm* realTime = localtime(&curTime);
+    cout << "ccccc1: " << path << " " << realTime->tm_min << " " << realTime->tm_sec << endl;
 	int newStatus = STATUS_UNKNOWN;
 	char data[16] = {0};
 	int dataLen = 16;
 	int ret = zoo_get(zhandle, path.c_str(), 1, data, &dataLen, NULL);
+    cout << "ccccc2: " << path << " " << realTime->tm_min << " " << realTime->tm_sec << endl;
     if (ret == ZOK) {
         LOG(LOG_INFO, "get node:%s success", __FUNCTION__, path.c_str());
     }
@@ -258,6 +262,9 @@ void ServiceListener::processChangedEvent(zhandle_t* zhandle, const string& path
     */
 	//update serviceMap
     conf->setServiceMap(path, newStatus);
+    cout << "ccccc3: " << path << " " << realTime->tm_min << " " << realTime->tm_sec << endl;
+    cout << "ccccc4: new status: " << newStatus << endl;
+    cout << "ccccc4: status: " << (conf->getServiceItem(path)).getStatus() << endl;
 }
 
 void ServiceListener::watcher(zhandle_t* zhandle, int type, int state, const char* path, void* context) {
@@ -287,6 +294,7 @@ void ServiceListener::watcher(zhandle_t* zhandle, int type, int state, const cha
             processChildEvent(zhandle, string(path));
             break;
         case CHANGED_EVENT_DEF:
+            cout << "change event" << endl;
             LOG(LOG_INFO, "zookeeper watcher [ change event ] path:%s", path);
             processChangedEvent(zhandle, string(path));
             break;
