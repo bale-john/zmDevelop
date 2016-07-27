@@ -23,7 +23,7 @@ extern bool _stop;
 int main(int argc, char** argv){
 	Config* conf = Config::getInstance();
 	Util::printConfig();
-#ifdef REALSE
+#ifdef RELEASE
 	if (Process::isProcessRunning(MONITOR_PROCESS_NAME)) {
 		LOG(LOG_ERROR, "Monitor is already running.");
 		return -1;

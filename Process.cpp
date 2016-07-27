@@ -47,7 +47,7 @@ int Process::daemonize() {
     signal(SIGTSTP, SIG_IGN);
     signal(SIGHUP, SIG_IGN);
 
-#ifdef REALSE
+#ifdef CLOSEFD
     int fd;
 #endif
     pid_t pid;
@@ -81,7 +81,7 @@ int Process::daemonize() {
     	exit(EXIT_FAILURE);
     }*/
     //here close all the file description and redirect stand IO
-#ifdef REALSE
+#ifdef CLOSEFD
     //make clear how to close file description
     fd = open("/dev/null", O_RDWR, 0);
     dup2(fd, STDIN_FILENO);
