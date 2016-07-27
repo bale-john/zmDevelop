@@ -1,7 +1,7 @@
 # qconf-monitor make file
 
 # PARAMS
-#CC 		= g++ -std=c++11 -D DEBUGL
+#CC 		= g++ -std=c++11
 CC 		= g++ -std=c++11 -D DEBUGSSS -D DEBUGSS -D DEBUGS -D DEBUG -D DEBUGL -D DEBUGM
 CCFLAGS = -c -Wall -I /usr/local/include/zookeeper 
 ZOO_LIB = /usr/local/lib/libzookeeper_mt.a
