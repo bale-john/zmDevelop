@@ -124,6 +124,9 @@ int main(int argc, char** argv){
 		If rebalance is needed, the loop will be reiterate
 		*/
 		while (1) {
+            if (Process::isStop() || MultiThread::isThreadError()) {
+                break;
+            }
 			LOG(LOG_INFO, " second loop start -> !!!!!!");
 			LoadBalance::clearReBalance();
 			//load balance
