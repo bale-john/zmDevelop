@@ -146,7 +146,7 @@ void MultiThread::updateService() {
 #endif
     LOG(LOG_INFO, "in update service thread");
 	while (1) {
-        if (_stop || LoadBalance::getReBalance() || isThreadError()) {
+        if (Process::isStop() || LoadBalance::getReBalance() || isThreadError()) {
             break;
         }
 		spinlock_lock(&updateServiceLock);
@@ -416,7 +416,7 @@ void MultiThread::checkService() {
         if (pos == 0) {
             cout << "ttttt1: " << pos << " " << realTime->tm_min << " " << realTime->tm_sec << endl;
         }
-        if (_stop || LoadBalance::getReBalance() || isThreadError()) {
+        if (Process::isStop() || LoadBalance::getReBalance() || isThreadError()) {
             break;
         }
         spinlock_lock(&serviceFathersLock);
@@ -474,7 +474,7 @@ int MultiThread::runMainThread() {
 	//todo. Better way to reuse thread
 	while (1) {
 		unordered_map<string, unordered_set<string>> serviceFatherToIp = sl->getServiceFatherToIp();
-        if (_stop || LoadBalance::getReBalance() || isThreadError()) {
+        if (Process::isStop() || LoadBalance::getReBalance() || isThreadError()) {
             break;
         }
 		newThreadNum = serviceFatherToIp.size();
