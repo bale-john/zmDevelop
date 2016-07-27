@@ -241,7 +241,7 @@ int Process::processKeepalive(int& childExitStatus, const string pidFile) {
             else if (WIFSIGNALED(exitStatus)) {
                 LOG(LOG_INFO, "worker process PID = %d died on signal = %d (it used %ld kBytes max) ",
                     childPid, WTERMSIG(exitStatus), resourceUsage.ru_maxrss / 1024);
-                int timeToWait = 2;
+                int timeToWait = 16;
                 while (timeToWait > 0) {
                     timeToWait = sleep(timeToWait);
                 }
@@ -255,13 +255,13 @@ int Process::processKeepalive(int& childExitStatus, const string pidFile) {
                 LOG(LOG_INFO, "child process is stopped and should restart later");
                 --processNum;
                 childPid = -1;
-                sleep(2);
+                sleep(16);
             }
             else {
                 LOG(LOG_ERROR, "Can't get here!");
                 --processNum;
                 childPid = -1;
-                sleep(2);
+                sleep(16);
             }
         }
         else if (exitPid == -1) {
