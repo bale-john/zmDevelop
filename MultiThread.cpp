@@ -340,6 +340,9 @@ int MultiThread::tryConnect(string curServiceFather) {
     time(&curTime);
     struct tm* realTime = localtime(&curTime);
 	for (auto it = ip.begin(); it != ip.end(); ++it) {
+        if (Process::isStop() || LoadBalance::getReBalance() || isThreadError()) {
+            break;
+        } 
         //及时更新这个servicemap很重要，这样在zk那边主动操作之后，watcher将状态更新到config里，检查线程才能快速发现
         serviceMap = conf->getServiceMap();
 		string ipPort = curServiceFather + "/" + (*it);
