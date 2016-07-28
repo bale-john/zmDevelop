@@ -1,6 +1,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
@@ -12,7 +13,11 @@
 #include <fcntl.h>
 #include "Process.h"
 #include "Log.h"
+#include "ConstDef.h"
 #include "Util.h"
+#include "ServiceItem.h"
+#include "Config.h"
+#include "ServiceListener.h"
 
 using namespace std;
 //weather process is stopped
@@ -134,7 +139,7 @@ void Process::processParam(const string& op) {
     int status;
     int upCount = 0;
     int offlineCount = 0;
-    int downCount = 0
+    int downCount = 0;
     int unknownCount = 0;
     int allCount = 0;
     ServiceItem item;
@@ -143,7 +148,7 @@ void Process::processParam(const string& op) {
 
     //list node
     if (op != UP && op != DOWN && op != OFFLINE && op != ALL) {
-        unordered_set<string> ips = (ServiceListener::getInstance()->getServiceFatherToIp).[op];
+        unordered_set<string> ips = (ServiceListener::getInstance()->getServiceFatherToIp())[op];
         if (ips.empty()) {
             LOG(LOG_ERROR, "node: %s doesn't exist.", op.c_str());
             return;
@@ -163,7 +168,7 @@ void Process::processParam(const string& op) {
             else if (status == STATUS_DOWN) {
                 ++downCount;
             }
-            else if (status == OFFLINE) {
+            else if (status == STATUS_OFFLINE) {
                 ++offlineCount;
             }
             else {
@@ -176,11 +181,6 @@ void Process::processParam(const string& op) {
     }
     fout << "---------------------------------------------------------" << endl;
     fout << setw(10) << "status" << setw(20) << "service" << "node" << endl;
-    vector<ServiceItem&> upService;
-    vector<ServiceItem&> downService;
-    vector<ServiceItem&> unknownService;
-    vector<ServiceItem&> offlineService;
-    vector<ServiceItem&> allService;
     allCount = serviceMap.size();
     for (auto it = serviceMap.begin(); it != serviceMap.end(); ++it) {
         if ((it->second).getStatus() == STATUS_UP) {
@@ -189,10 +189,8 @@ void Process::processParam(const string& op) {
             node = item.getServiceFather();
             if (op == UP || op == ALL) {
                 fout << "---------------------------------------------------------" << endl;
-                fout << setw(10) << status << setw(20) << item->getHost() << node << endl;
+                fout << setw(10) << status << setw(20) << item.getHost() << node << endl;
             }
-            upService.push_back(it->second);
-            allService.push_back(it->second);
             ++upCount;
         }
         else if ((it->second).getStatus() == STATUS_DOWN) {
@@ -201,10 +199,8 @@ void Process::processParam(const string& op) {
             node = item.getServiceFather();
             if (op == DOWN || op == ALL) {
                 fout << "---------------------------------------------------------" << endl;
-                fout << setw(10) << status << setw(20) << item->getHost() << node << endl;
+                fout << setw(10) << status << setw(20) << item.getHost() << node << endl;
             }
-            downService.push_back(it->second);
-            allService.push_back(it->second);
             ++downCount;
         }
         else if ((it->second).getStatus() == STATUS_OFFLINE) {
@@ -213,10 +209,8 @@ void Process::processParam(const string& op) {
             node = item.getServiceFather();
             if (op == OFFLINE || op == ALL) {
                 fout << "---------------------------------------------------------" << endl;
-                fout << setw(10) << status << setw(20) << item->getHost() << node << endl;
+                fout << setw(10) << status << setw(20) << item.getHost() << node << endl;
             }
-            offlineService.push_back(it->second);
-            allService.push_back(it->second);
             ++offlineCount;
         }
         else {
@@ -225,10 +219,8 @@ void Process::processParam(const string& op) {
             node = item.getServiceFather();
             if (op == ALL) {
                 fout << "---------------------------------------------------------" << endl;
-                fout << setw(10) << status << setw(20) << item->getHost() << node << endl;
+                fout << setw(10) << status << setw(20) << item.getHost() << node << endl;
             }
-            unknownService.push_back(it->second);
-            allService.push_back(it->second);
             ++unknownCount;
         }
     }
@@ -259,7 +251,7 @@ void Process::handleCmd(const vector<string>& cmd) {
     }
     else if (cmd[0] == CMD_LIST) {
         if (cmd.size() == 1) {
-            cmd.push_back(ALL);
+            processParam(ALL);
         }
         processParam(cmd[1]);
     }

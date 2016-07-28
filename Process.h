@@ -3,6 +3,7 @@
 #include <string>
 #include <iostream>
 #include <cstdio>
+#include <vector>
 #include "ConstDef.h"
 using namespace std;
 
