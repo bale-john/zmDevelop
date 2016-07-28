@@ -124,6 +124,150 @@ void Process::sigForward(const int sig) {
     kill(0, sig);
 }
 
+void Process::processParam(const string& op) {
+    ofstream fout;
+    fout.open(STATUS_LIST_FILE, ofstream::out);
+    if (!fout.good()) {
+        LOG(LOG_ERROR, "file open failed, path: %s", STATUS_LIST_FILE.c_str());
+        return;
+    }
+    int status;
+    int upCount = 0;
+    int offlineCount = 0;
+    int downCount = 0
+    int unknownCount = 0;
+    int allCount = 0;
+    ServiceItem item;
+    string node;
+    map<string, ServiceItem> serviceMap = Config::getInstance()->getServiceMap();
+
+    //list node
+    if (op != UP && op != DOWN && op != OFFLINE && op != ALL) {
+        unordered_set<string> ips = (ServiceListener::getInstance()->getServiceFatherToIp).[op];
+        if (ips.empty()) {
+            LOG(LOG_ERROR, "node: %s doesn't exist.", op.c_str());
+            return;
+        }
+        //find and output
+        allCount = ips.size();
+        fout << "---------------------------------------------------------" << endl;
+        fout << setw(10) << "status" << setw(20) << "service" << "node" << endl;
+        for (auto it = ips.begin(); it != ips.end(); ++it) {
+            string ipPort = op + (*it);
+            item = serviceMap[ipPort];
+            node = item.getServiceFather();
+            status = item.getStatus();
+            if (status == STATUS_UP) {
+                ++upCount;
+            }
+            else if (status == STATUS_DOWN) {
+                ++downCount;
+            }
+            else if (status == OFFLINE) {
+                ++offlineCount;
+            }
+            else {
+                ++unknownCount;
+            }
+            fout << "---------------------------------------------------------" << endl;
+            fout << setw(10) << status << setw(20) << (*it) << node << endl;
+        }
+        return;
+    }
+    fout << "---------------------------------------------------------" << endl;
+    fout << setw(10) << "status" << setw(20) << "service" << "node" << endl;
+    vector<ServiceItem&> upService;
+    vector<ServiceItem&> downService;
+    vector<ServiceItem&> unknownService;
+    vector<ServiceItem&> offlineService;
+    vector<ServiceItem&> allService;
+    allCount = serviceMap.size();
+    for (auto it = serviceMap.begin(); it != serviceMap.end(); ++it) {
+        if ((it->second).getStatus() == STATUS_UP) {
+            item = it->second;
+            status = item.getStatus();
+            node = item.getServiceFather();
+            if (op == UP || op == ALL) {
+                fout << "---------------------------------------------------------" << endl;
+                fout << setw(10) << status << setw(20) << item->getHost() << node << endl;
+            }
+            upService.push_back(it->second);
+            allService.push_back(it->second);
+            ++upCount;
+        }
+        else if ((it->second).getStatus() == STATUS_DOWN) {
+            item = it->second;
+            status = item.getStatus();
+            node = item.getServiceFather();
+            if (op == DOWN || op == ALL) {
+                fout << "---------------------------------------------------------" << endl;
+                fout << setw(10) << status << setw(20) << item->getHost() << node << endl;
+            }
+            downService.push_back(it->second);
+            allService.push_back(it->second);
+            ++downCount;
+        }
+        else if ((it->second).getStatus() == STATUS_OFFLINE) {
+            item = it->second;
+            status = item.getStatus();
+            node = item.getServiceFather();
+            if (op == OFFLINE || op == ALL) {
+                fout << "---------------------------------------------------------" << endl;
+                fout << setw(10) << status << setw(20) << item->getHost() << node << endl;
+            }
+            offlineService.push_back(it->second);
+            allService.push_back(it->second);
+            ++offlineCount;
+        }
+        else {
+            item = it->second;
+            status = item.getStatus();
+            node = item.getServiceFather();
+            if (op == ALL) {
+                fout << "---------------------------------------------------------" << endl;
+                fout << setw(10) << status << setw(20) << item->getHost() << node << endl;
+            }
+            unknownService.push_back(it->second);
+            allService.push_back(it->second);
+            ++unknownCount;
+        }
+    }
+    if (op == UP) {
+        fout << "---------------------------------------------------------" << endl;
+        fout <<"UP Service:" << upCount << endl;
+    }
+    if (op == DOWN) {
+        fout << "---------------------------------------------------------" << endl;
+        fout <<"Down Service:" << downCount << endl;
+    }
+    if (op == OFFLINE) {
+        fout << "---------------------------------------------------------" << endl;
+        fout <<"Offline Service:" << offlineCount << endl;
+    }
+    if (op == ALL) {
+        fout << "---------------------------------------------------------" << endl;
+        fout <<"Up Service:" << upCount << " Offline Service:" << offlineCount << " Down Service:" \
+        << downCount << "Unknown Service:" << unknownCount << " Total Service:" << allCount << endl;       
+    }
+    fout.close();
+    return;
+}
+
+void Process::handleCmd(const vector<string>& cmd) {
+    if (cmd[0] == CMD_RELOAD) {
+        //handle reload
+    }
+    else if (cmd[0] == CMD_LIST) {
+        if (cmd.size() == 1) {
+            cmd.push_back(ALL);
+        }
+        processParam(cmd[1]);
+    }
+    else {
+        LOG(LOG_ERROR, "handleCmd error: unknown cmd(%s)", cmd[0].c_str());
+    }
+}
+
 int Process::processFileMsg(const string cmdFile) {
     LOG(LOG_TRACE, "processFileMsg...in...");
     ifstream file;
@@ -133,12 +277,11 @@ int Process::processFileMsg(const string cmdFile) {
         while (!file.eof()) {
             getline(file, line);
             Util::trim(line);
-            //根据脚本发现它使用冒号进行分隔的
             vector<string> cmdExplain = Util::split(line, ':');
             if (cmdExplain.size() <= 0 || cmdExplain.size() > 2) {
                 continue;
             }
-            //todo process the cmd
+            handleCmd(cmdExplain);
         }
     }
     else {

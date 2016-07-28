@@ -64,4 +64,13 @@ const string DELETE = "delete";
 const string ADD = "add";
 const string CLEAR = "clear";
 
+//command to process
+const string CMD_RELOAD = "reload";
+const string CMD_LIST = "list";
+const string STATUS_LIST_FILE = "tmp/list";
+const string ALL = "all";
+const string UP = "up";
+const string DOWN = "down";
+const string OFFLINE = "offline";
+
 #endif
