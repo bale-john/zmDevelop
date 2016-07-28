@@ -158,7 +158,7 @@ void Process::processParam(const string& op) {
         //find and output
         allCount = ips.size();
         fout << "------------------------------------------------------------------------------" << endl;
-        fout << setiosflags(ios::left) << setw(10) << "status" << setiosflags(ios::left) << setw(20) << "service" << setiosflags(ios::left) << "node" << endl;
+        fout << setiosflags(ios::left) << setw(10) << "status" << setiosflags(ios::left) << setw(30) << "service" << setiosflags(ios::left) << "node" << endl;
         for (auto it = ips.begin(); it != ips.end(); ++it) {
             string ipPort = op + (*it);
             item = serviceMap[ipPort];
@@ -181,15 +181,15 @@ void Process::processParam(const string& op) {
                 stat = "unknown";
             }
             fout << "------------------------------------------------------------------------------" << endl;
-            fout << setw(10) << stat << setw(20) << (*it) << op <<  endl;
+            fout << setw(10) << stat << setw(30) << (*it) << op <<  endl;
         }
         return;
     }
     fout << "------------------------------------------------------------------------------" << endl;
-    fout << setiosflags(ios::left) << setw(10) << "status" << setiosflags(ios::left) << setw(20) << "service" << setiosflags(ios::left) << "node" << endl;
+    fout << setiosflags(ios::left) << setw(10) << "status" << setiosflags(ios::left) << setw(30) << "service" << setiosflags(ios::left) << "node" << endl;
     allCount = serviceMap.size();
     for (auto it = serviceMap.begin(); it != serviceMap.end(); ++it) {
-        service = item.getHost() + to_string(item.getPort());
+        service = item.getHost() + ":" + to_string(item.getPort());
         if ((it->second).getStatus() == STATUS_UP) {
             item = it->second;
             stat = "up";
@@ -197,7 +197,7 @@ void Process::processParam(const string& op) {
             node = item.getServiceFather();
             if (op == UP || op == ALL) {
                 fout << "------------------------------------------------------------------------------" << endl;
-                fout << setw(10) << stat << setw(20) << service << node << endl;
+                fout << setw(10) << stat << setw(30) << service << node << endl;
             }
             ++upCount;
         }
@@ -208,7 +208,7 @@ void Process::processParam(const string& op) {
             node = item.getServiceFather();
             if (op == DOWN || op == ALL) {
                 fout << "------------------------------------------------------------------------------" << endl;
-                fout << setw(10) << stat << setw(20) << service << node << endl;
+                fout << setw(10) << stat << setw(30) << service << node << endl;
             }
             ++downCount;
         }
@@ -219,7 +219,7 @@ void Process::processParam(const string& op) {
             node = item.getServiceFather();
             if (op == OFFLINE || op == ALL) {
                 fout << "------------------------------------------------------------------------------" << endl;
-                fout << setw(10) << stat << setw(20) << service << node << endl;
+                fout << setw(10) << stat << setw(30) << service << node << endl;
             }
             ++offlineCount;
         }
@@ -230,7 +230,7 @@ void Process::processParam(const string& op) {
             node = item.getServiceFather();
             if (op == ALL) {
                 fout << "------------------------------------------------------------------------------" << endl;
-                fout << setw(10) << stat << setw(20) << service << node << endl;
+                fout << setw(10) << stat << setw(30) << service << node << endl;
             }
             ++unknownCount;
         }
@@ -249,20 +249,20 @@ void Process::processParam(const string& op) {
     }
     if (op == ALL) {
         fout << "------------------------------------------------------------------------------" << endl;
-        fout <<"Up:" << upCount << " Offline:" << offlineCount << " Down:" \
-        << downCount << "Unknown:" << unknownCount << " Total:" << allCount << endl;       
+        fout <<"Up:" << upCount << "    Offline:" << offlineCount << "    Down:" \
+        << downCount << "    Unknown:" << unknownCount << "    Total:" << allCount << endl;       
     }
     fout.close();
     return;
 }
 
-void Process::handleCmd(const vector<string>& cmd) {
+void Process::handleCmd(vector<string>& cmd) {
     if (cmd[0] == CMD_RELOAD) {
         //handle reload
     }
     else if (cmd[0] == CMD_LIST) {
         if (cmd.size() == 1) {
-            processParam(ALL);
+            cmd.push_back("all");
         }
         processParam(cmd[1]);
     }

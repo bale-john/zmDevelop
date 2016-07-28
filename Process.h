@@ -12,7 +12,7 @@ private:
 	Process();
 	~Process();
     static bool stop;
-    static void handleCmd(const vector<string>& cmd);
+    static void handleCmd(vector<string>& cmd);
 
 public:
 	static bool isProcessRunning(const string& processName);
