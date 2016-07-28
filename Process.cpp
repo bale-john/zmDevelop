@@ -183,15 +183,18 @@ void Process::processParam(const string& op) {
             fout << "------------------------------------------------------------------------------" << endl;
             fout << setw(10) << stat << setw(30) << (*it) << op <<  endl;
         }
+        fout << "------------------------------------------------------------------------------" << endl;
+        fout <<"Up:" << upCount << "    Offline:" << offlineCount << "    Down:" \
+        << downCount << "    Unknown:" << unknownCount << "    Total:" << allCount << endl;
         return;
     }
     fout << "------------------------------------------------------------------------------" << endl;
     fout << setiosflags(ios::left) << setw(10) << "status" << setiosflags(ios::left) << setw(30) << "service" << setiosflags(ios::left) << "node" << endl;
     allCount = serviceMap.size();
     for (auto it = serviceMap.begin(); it != serviceMap.end(); ++it) {
+        item = it->second;
         service = item.getHost() + ":" + to_string(item.getPort());
         if ((it->second).getStatus() == STATUS_UP) {
-            item = it->second;
             stat = "up";
             status = item.getStatus();
             node = item.getServiceFather();
