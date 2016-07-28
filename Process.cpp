@@ -142,6 +142,8 @@ void Process::processParam(const string& op) {
     int downCount = 0;
     int unknownCount = 0;
     int allCount = 0;
+    string service;
+    string stat;
     ServiceItem item;
     string node;
     map<string, ServiceItem> serviceMap = Config::getInstance()->getServiceMap();
@@ -155,8 +157,8 @@ void Process::processParam(const string& op) {
         }
         //find and output
         allCount = ips.size();
-        fout << "---------------------------------------------------------" << endl;
-        fout << setw(10) << "status" << setw(20) << "service" << "node" << endl;
+        fout << "------------------------------------------------------------------------------" << endl;
+        fout << setiosflags(ios::left) << setw(10) << "status" << setiosflags(ios::left) << setw(20) << "service" << setiosflags(ios::left) << "node" << endl;
         for (auto it = ips.begin(); it != ips.end(); ++it) {
             string ipPort = op + (*it);
             item = serviceMap[ipPort];
@@ -164,82 +166,91 @@ void Process::processParam(const string& op) {
             status = item.getStatus();
             if (status == STATUS_UP) {
                 ++upCount;
+                stat = "up";
             }
             else if (status == STATUS_DOWN) {
                 ++downCount;
+                stat = "down";
             }
             else if (status == STATUS_OFFLINE) {
                 ++offlineCount;
+                stat = "offline";
             }
             else {
                 ++unknownCount;
+                stat = "unknown";
             }
-            fout << "---------------------------------------------------------" << endl;
-            fout << setw(10) << status << setw(20) << (*it) << node << endl;
+            fout << "------------------------------------------------------------------------------" << endl;
+            fout << setw(10) << stat << setw(20) << (*it) << op <<  endl;
         }
         return;
     }
-    fout << "---------------------------------------------------------" << endl;
-    fout << setw(10) << "status" << setw(20) << "service" << "node" << endl;
+    fout << "------------------------------------------------------------------------------" << endl;
+    fout << setiosflags(ios::left) << setw(10) << "status" << setiosflags(ios::left) << setw(20) << "service" << setiosflags(ios::left) << "node" << endl;
     allCount = serviceMap.size();
     for (auto it = serviceMap.begin(); it != serviceMap.end(); ++it) {
+        service = item.getHost() + to_string(item.getPort());
         if ((it->second).getStatus() == STATUS_UP) {
             item = it->second;
+            stat = "up";
             status = item.getStatus();
             node = item.getServiceFather();
             if (op == UP || op == ALL) {
-                fout << "---------------------------------------------------------" << endl;
-                fout << setw(10) << status << setw(20) << item.getHost() << node << endl;
+                fout << "------------------------------------------------------------------------------" << endl;
+                fout << setw(10) << stat << setw(20) << service << node << endl;
             }
             ++upCount;
         }
         else if ((it->second).getStatus() == STATUS_DOWN) {
             item = it->second;
+            stat = "down";
             status = item.getStatus();
             node = item.getServiceFather();
             if (op == DOWN || op == ALL) {
-                fout << "---------------------------------------------------------" << endl;
-                fout << setw(10) << status << setw(20) << item.getHost() << node << endl;
+                fout << "------------------------------------------------------------------------------" << endl;
+                fout << setw(10) << stat << setw(20) << service << node << endl;
             }
             ++downCount;
         }
         else if ((it->second).getStatus() == STATUS_OFFLINE) {
             item = it->second;
+            stat = "offline";
             status = item.getStatus();
             node = item.getServiceFather();
             if (op == OFFLINE || op == ALL) {
-                fout << "---------------------------------------------------------" << endl;
-                fout << setw(10) << status << setw(20) << item.getHost() << node << endl;
+                fout << "------------------------------------------------------------------------------" << endl;
+                fout << setw(10) << stat << setw(20) << service << node << endl;
             }
             ++offlineCount;
         }
         else {
             item = it->second;
+            stat = "unknown";
             status = item.getStatus();
             node = item.getServiceFather();
             if (op == ALL) {
-                fout << "---------------------------------------------------------" << endl;
-                fout << setw(10) << status << setw(20) << item.getHost() << node << endl;
+                fout << "------------------------------------------------------------------------------" << endl;
+                fout << setw(10) << stat << setw(20) << service << node << endl;
             }
             ++unknownCount;
         }
     }
     if (op == UP) {
-        fout << "---------------------------------------------------------" << endl;
-        fout <<"UP Service:" << upCount << endl;
+        fout << "------------------------------------------------------------------------------" << endl;
+        fout <<"Up Service:" << upCount << endl;
     }
     if (op == DOWN) {
-        fout << "---------------------------------------------------------" << endl;
+        fout << "------------------------------------------------------------------------------" << endl;
         fout <<"Down Service:" << downCount << endl;
     }
     if (op == OFFLINE) {
-        fout << "---------------------------------------------------------" << endl;
+        fout << "------------------------------------------------------------------------------" << endl;
         fout <<"Offline Service:" << offlineCount << endl;
     }
     if (op == ALL) {
-        fout << "---------------------------------------------------------" << endl;
-        fout <<"Up Service:" << upCount << " Offline Service:" << offlineCount << " Down Service:" \
-        << downCount << "Unknown Service:" << unknownCount << " Total Service:" << allCount << endl;       
+        fout << "------------------------------------------------------------------------------" << endl;
+        fout <<"Up:" << upCount << " Offline:" << offlineCount << " Down:" \
+        << downCount << "Unknown:" << unknownCount << " Total:" << allCount << endl;       
     }
     fout.close();
     return;
