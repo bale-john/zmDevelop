@@ -72,5 +72,6 @@ const string ALL = "all";
 const string UP = "up";
 const string DOWN = "down";
 const string OFFLINE = "offline";
+const int LINE_LENGTH = 100;
 
 #endif
