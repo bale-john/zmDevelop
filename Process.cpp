@@ -20,8 +20,6 @@
 #include "ServiceListener.h"
 
 using namespace std;
-//weather process is stopped
-bool _stop = false;
 
 bool Process::stop = false;
 

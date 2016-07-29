@@ -11,6 +11,7 @@ class Process{
 private:
 	Process();
 	~Process();
+	//if _zk disconnect with server. _stop will be true and main loop will be reiterate
     static bool stop;
     static void handleCmd(vector<string>& cmd);
 

@@ -17,8 +17,6 @@
 #include "MultiThread.h"
 using namespace std;
 static Zk* _zk = NULL;
-//if _zk disconnect with server. _stop will be true and main loop will be reiterate
-extern bool _stop;
 
 int main(int argc, char** argv){
 	Config* conf = Config::getInstance();

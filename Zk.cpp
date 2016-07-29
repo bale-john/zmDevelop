@@ -14,7 +14,6 @@
 #include "Zk.h"
 using namespace std;
 
-extern bool _stop;
 //临时解决方案，把_zkLockBuf作为非静态全局变量，使得它对所有文件可见,这里面保存的是注册的monitor的名字
 char _zkLockBuf[512] = {0};
 

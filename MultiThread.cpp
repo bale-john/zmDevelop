@@ -34,7 +34,6 @@
 #include "MultiThread.h"
 using namespace std;
 
-extern bool _stop;
 static pthread_t updateServiceThread;
 static pthread_t checkServiceThread[MAX_THREAD_NUM];
 static spinlock_t updateServiceLock;

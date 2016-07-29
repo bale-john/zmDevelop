@@ -17,7 +17,6 @@
 #include "Zk.h"
 
 using namespace std;
-extern bool _stop;
 extern char _zkLockBuf[512];
 
 bool LoadBalance::reBalance = false;
