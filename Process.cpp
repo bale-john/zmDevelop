@@ -162,7 +162,13 @@ void Process::processParam(const string& op) {
         fout << setiosflags(ios::left) << setw(10) << "status" << setiosflags(ios::left) \
         << setw(30) << "service" << setiosflags(ios::left) << "node" << endl;
         for (auto it = ips.begin(); it != ips.end(); ++it) {
-            string ipPort = op + (*it);
+            string ipPort;
+            if (op.back() == '/') {
+                ipPort = op + (*it);
+            }
+            else {
+                ipPort = op + "/" + (*it);
+            }
             item = serviceMap[ipPort];
             status = item.getStatus();
             if (status == STATUS_UP) {
