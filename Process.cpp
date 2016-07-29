@@ -159,11 +159,11 @@ void Process::processParam(const string& op) {
             fout << "-";
         }
         fout << endl;
-        fout << setiosflags(ios::left) << setw(10) << "status" << setiosflags(ios::left) << setw(30) << "service" << setiosflags(ios::left) << "node" << endl;
+        fout << setiosflags(ios::left) << setw(10) << "status" << setiosflags(ios::left) \
+        << setw(30) << "service" << setiosflags(ios::left) << "node" << endl;
         for (auto it = ips.begin(); it != ips.end(); ++it) {
             string ipPort = op + (*it);
             item = serviceMap[ipPort];
-            node = item.getServiceFather();
             status = item.getStatus();
             if (status == STATUS_UP) {
                 ++upCount;
@@ -199,15 +199,16 @@ void Process::processParam(const string& op) {
         fout << "-";
     }
     fout << endl;
-    fout << setiosflags(ios::left) << setw(10) << "status" << setiosflags(ios::left) << setw(30) << "service" << setiosflags(ios::left) << "node" << endl;
+    fout << setiosflags(ios::left) << setw(10) << "status" << setiosflags(ios::left) \
+    << setw(30) << "service" << setiosflags(ios::left) << "node" << endl;
     allCount = serviceMap.size();
     for (auto it = serviceMap.begin(); it != serviceMap.end(); ++it) {
         item = it->second;
+        status = item.getStatus();
+        node = item.getServiceFather();
         service = item.getHost() + ":" + to_string(item.getPort());
-        if ((it->second).getStatus() == STATUS_UP) {
+        if (status == STATUS_UP) {
             stat = "up";
-            status = item.getStatus();
-            node = item.getServiceFather();
             if (op == UP || op == ALL) {
                 for (int i = 0; i < LINE_LENGTH; ++i) {
                     fout << "-";
@@ -217,11 +218,8 @@ void Process::processParam(const string& op) {
             }
             ++upCount;
         }
-        else if ((it->second).getStatus() == STATUS_DOWN) {
-            item = it->second;
+        else if (status == STATUS_DOWN) {
             stat = "down";
-            status = item.getStatus();
-            node = item.getServiceFather();
             if (op == DOWN || op == ALL) {
                 for (int i = 0; i < LINE_LENGTH; ++i) {
                     fout << "-";
@@ -231,11 +229,8 @@ void Process::processParam(const string& op) {
             }
             ++downCount;
         }
-        else if ((it->second).getStatus() == STATUS_OFFLINE) {
-            item = it->second;
+        else if (status == STATUS_OFFLINE) {
             stat = "offline";
-            status = item.getStatus();
-            node = item.getServiceFather();
             if (op == OFFLINE || op == ALL) {
                 for (int i = 0; i < LINE_LENGTH; ++i) {
                     fout << "-";
@@ -246,10 +241,7 @@ void Process::processParam(const string& op) {
             ++offlineCount;
         }
         else {
-            item = it->second;
             stat = "unknown";
-            status = item.getStatus();
-            node = item.getServiceFather();
             if (op == ALL) {
                 for (int i = 0; i < LINE_LENGTH; ++i) {
                     fout << "-";
