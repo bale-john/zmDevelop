@@ -54,13 +54,12 @@ int main(int argc, char** argv){
 		LOG(LOG_INFO, " main loop start -> !!!!!!");
         Process::clearStop();
 		conf->clearServiceMap();
-        if (!_zk) {
+        if (_zk) {
             dp();
             delete _zk;
         }
 		_zk = Zk::getInstance();
-		//choose a zk machine random
-		string zkHost = Util::chooseZkHostRandom();
+		string zkHost = conf->getZkHost();
 		string zkLogPath = conf->getZkLogPath();
 		int recvTimeout = conf->getZkRecvTimeout();
 

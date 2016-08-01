@@ -461,7 +461,7 @@ void* MultiThread::staticCheckService(void* args) {
 	ml->checkService();
     pthread_exit(0);
 }
-//TODO 完全没有考虑配置重载等为了运维方便的功能
+
 int MultiThread::runMainThread() {
 	//Are there any problem?
 	int res = pthread_create(&updateServiceThread, NULL, staticUpdateService, NULL);
@@ -469,7 +469,6 @@ int MultiThread::runMainThread() {
 		setThreadError();
 		LOG(LOG_ERROR, "create the update service thread error: %s", strerror(res));
 	}
-	//考虑如何分配检查线程，比如记录每个father有多少个服务，如果很多就分配两个线程？这个不好办
 	int oldThreadNum = 0;
 	int newThreadNum = 0;
 	//If the number of service father < MAX_THREAD_NUM, one service father one thread
