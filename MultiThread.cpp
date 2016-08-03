@@ -57,7 +57,8 @@ MultiThread::MultiThread() {
 	hasThreadLock = SPINLOCK_INITIALIZER;
     //threadPosLock = SPINLOCK_INITIALIZER;
     pthread_mutex_init(&threadPosLock, NULL);
-    serviceFathersLock = SPINLOCK_INITIALIZER;
+    //serviceFathersLock = SPINLOCK_INITIALIZER;
+	pthread_mutex_init(&serviceFathersLock, NULL);
 	conf = Config::getInstance();
 	zk = Zk::getInstance();
 	sl = ServiceListener::getInstance();
@@ -424,9 +425,9 @@ void MultiThread::checkService() {
         if (Process::isStop() || LoadBalance::getReBalance() || isThreadError()) {
             break;
         }
-        spinlock_lock(&serviceFathersLock);
+        pthread_mutex_lock(&serviceFathersLock);
 		string curServiceFather = serviceFathers[pos];
-        spinlock_unlock(&serviceFathersLock);
+        pthread_mutex_unlock(&serviceFathersLock);
 #ifdef DEBUGM
         if (pos == 0)
 		cout << "check service thread " << pthreadId << " pos: " << pos << " current service father: " << curServiceFather << endl;
