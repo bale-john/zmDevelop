@@ -77,15 +77,14 @@ int Util::writeToFile(const string content, const string fileName) {
 }
 
 int Util::printConfig(){
-	cout << "daemonMode: " << (Config::getInstance())->isDaemonMode() << endl; 
-	cout << "autoStart: " << (Config::getInstance())->isAutoStart() << endl; 
-	cout << "logLevel: " << (Config::getInstance())->getLogLevel() << endl; 
-	cout << "connRetryCount: " << (Config::getInstance())->getConnRetryCount() << endl; 
-	cout << "scanInterval: " << (Config::getInstance())->getScanInterval() << endl; 
-	cout << "instanceName: " << (Config::getInstance())->getInstanceName() << endl; 
-	cout << "zkHost: " << (Config::getInstance())->getZkHost() << endl; 
-	cout << "zkLogPath: " << (Config::getInstance())->getZkLogPath() << endl; 
-	cout << "instance: " << (Config::getInstance())->getInstance() << endl; 
+	LOG(LOG_INFO, "daemonMode: %d", Config::getInstance()->isDaemonMode());
+	LOG(LOG_INFO, "autoStart: %d", Config::getInstance()->isAutoStart());
+	LOG(LOG_INFO, "logLevel: %d", Config::getInstance()->getLogLevel());
+	LOG(LOG_INFO, "connRetryCount: %d", Config::getInstance()->getConnRetryCount());
+	LOG(LOG_INFO, "scanInterval: %d", Config::getInstance()->getScanInterval());
+	LOG(LOG_INFO, "instanceName: %s", (Config::getInstance()->getInstanceName()).c_str());
+	LOG(LOG_INFO, "zkHost: %s", (Config::getInstance()->getZkHost()).c_str());
+	LOG(LOG_INFO, "zkLogPath: %s", (Config::getInstance()->getZkLogPath()).c_str());
 	return 0;
 }
 
