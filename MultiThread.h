@@ -18,7 +18,6 @@
 #include "Zk.h"
 #include "LoadBalance.h"
 #include "ServiceListener.h"
-#include "x86_spinlocks.h"
 using namespace std;
 class MultiThread {
 private:

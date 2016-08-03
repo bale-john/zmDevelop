@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <pthread.h>
 #include <zookeeper.h>
 #include <zk_adaptor.h>
 #include "Config.h"
@@ -41,7 +42,8 @@ public:
     int zkGetChildren(const string path, struct String_vector* children);
     size_t getIpNum(const string& serviceFather);
 
-    spinlock_t serviceFatherToIpLock;
+    //spinlock_t serviceFatherToIpLock;
+    pthread_t serviceFatherToIpLock;
     spinlock_t serviceFatherStatusLock;
     spinlock_t watchFlagLock;
     

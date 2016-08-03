@@ -48,7 +48,8 @@ int ServiceListener::initEnv() {
 }
 
 ServiceListener::ServiceListener() : zh(NULL) {
-	serviceFatherToIpLock = SPINLOCK_INITIALIZER;
+	//serviceFatherToIpLock = SPINLOCK_INITIALIZER;
+	pthread_mutex_init(&serviceFatherToIpLock);
 	serviceFatherStatusLock = SPINLOCK_INITIALIZER;
     watchFlagLock = SPINLOCK_INITIALIZER;
 	conf = Config::getInstance();
@@ -65,9 +66,9 @@ ServiceListener::~ServiceListener() {
 //path is the path of ipPort
 void ServiceListener::modifyServiceFatherToIp(const string op, const string& path) {
 	if (op == CLEAR) {
-		spinlock_lock(&serviceFatherToIpLock);
+		pthread_mutex_lock(&serviceFatherToIpLock);
 		serviceFatherToIp.clear();
-		spinlock_unlock(&serviceFatherToIpLock);
+		pthread_mutex_unlock(&serviceFatherToIpLock);
 	}
 	size_t pos = path.rfind('/');
 	string serviceFather = path.substr(0, pos);
@@ -433,20 +434,20 @@ int ServiceListener::loadService(string path, string serviceFather, string ipPor
 
 int ServiceListener::loadAllService() {
 	//here we need locks. Maybe we can remove it
-	spinlock_lock(&serviceFatherToIpLock);
+	pthread_mutex_lock(&serviceFatherToIpLock);
 	for (auto it1 = serviceFatherToIp.begin(); it1 != serviceFatherToIp.end(); ++it1) {
 		string serviceFather = it1->first;
 		unordered_set<string> ips = it1->second;
-		spinlock_unlock(&serviceFatherToIpLock);
+		pthread_mutex_unlock(&serviceFatherToIpLock);
 		vector<int> status(4, 0);
 		for (auto it2 = ips.begin(); it2 != ips.end(); ++it2) {
 			string path = serviceFather + "/" + (*it2);
 			loadService(path, serviceFather, *it2, status);
 		}
 		modifyServiceFatherStatus(serviceFather, status);
-		spinlock_lock(&serviceFatherToIpLock);
+		pthread_mutex_lock(&serviceFatherToIpLock);
 	}
-	spinlock_unlock(&serviceFatherToIpLock);
+	pthread_mutex_unlock(&serviceFatherToIpLock);
 #ifdef DEBUGSS
 	cout << 444444444 << endl;
 	for (auto it = serviceFatherStatus.begin(); it != serviceFatherStatus.end(); ++it) {
@@ -492,53 +493,53 @@ int ServiceListener::modifyServiceFatherStatus(const string& serviceFather, vect
 
 unordered_map<string, unordered_set<string>> ServiceListener::getServiceFatherToIp() {
 	unordered_map<string, unordered_set<string>> ret;
-	spinlock_lock(&serviceFatherToIpLock);
+	pthread_mutex_lock(&serviceFatherToIpLock);
 	ret = serviceFatherToIp;
-	spinlock_unlock(&serviceFatherToIpLock);
+	pthread_mutex_unlock(&serviceFatherToIpLock);
 	return ret;
 }
 
 size_t ServiceListener::getIpNum(const string& serviceFather) {
 	size_t ret = 0;
-	spinlock_lock(&serviceFatherToIpLock);
+	pthread_mutex_lock(&serviceFatherToIpLock);
 	if (serviceFatherToIp.find(serviceFather) != serviceFatherToIp.end()) {
         ret = serviceFatherToIp[serviceFather].size();
     }
-	spinlock_unlock(&serviceFatherToIpLock);
+	pthread_mutex_unlock(&serviceFatherToIpLock);
 	return ret;
 }
 
 bool ServiceListener::ipExist(const string& serviceFather, const string& ipPort) {
 	bool ret = true;
-	spinlock_lock(&serviceFatherToIpLock);
+	pthread_mutex_lock(&serviceFatherToIpLock);
 	if (serviceFatherToIp[serviceFather].find(ipPort) == serviceFatherToIp[serviceFather].end()) {
 		ret = false;
 	}
-	spinlock_unlock(&serviceFatherToIpLock);
+	pthread_mutex_unlock(&serviceFatherToIpLock);
 	return ret;
 }
 
 bool ServiceListener::serviceFatherExist(const string& serviceFather) {
 	bool ret = true;
-	spinlock_lock(&serviceFatherToIpLock);
+	pthread_mutex_lock(&serviceFatherToIpLock);
 	if (serviceFatherToIp.find(serviceFather) == serviceFatherToIp.end()) {
 		ret = false;
 	}
-	spinlock_unlock(&serviceFatherToIpLock);
+	pthread_mutex_unlock(&serviceFatherToIpLock);
 	return ret;
 }
 
 //要增加健壮性也应该在这里增加
 void ServiceListener::addIpPort(const string& serviceFather, const string& ipPort) {
-	spinlock_lock(&serviceFatherToIpLock);
+	pthread_mutex_lock(&serviceFatherToIpLock);
 	serviceFatherToIp[serviceFather].insert(ipPort);
-	spinlock_unlock(&serviceFatherToIpLock);
+	pthread_mutex_unlock(&serviceFatherToIpLock);
 }
 
 void ServiceListener::deleteIpPort(const string& serviceFather, const string& ipPort) {
-	spinlock_lock(&serviceFatherToIpLock);
+	pthread_mutex_lock(&serviceFatherToIpLock);
 	serviceFatherToIp[serviceFather].erase(ipPort);
-	spinlock_unlock(&serviceFatherToIpLock);
+	pthread_mutex_unlock(&serviceFatherToIpLock);
 }
 
 
