@@ -30,7 +30,6 @@
 #include "Zk.h"
 #include "LoadBalance.h"
 #include "ServiceListener.h"
-#include "x86_spinlocks.h"
 #include "MultiThread.h"
 using namespace std;
 
@@ -53,7 +52,8 @@ MultiThread* MultiThread::getInstance() {
 MultiThread::MultiThread() {
 	//updateServiceLock = SPINLOCK_INITIALIZER;
 	pthread_mutex_init(&updateServiceLock, NULL);
-	waitingIndexLock = SPINLOCK_INITIALIZER;
+	//waitingIndexLock = SPINLOCK_INITIALIZER;
+	pthread_mutex_init(&waitingIndexLock, NULL);
 	//hasThreadLock = SPINLOCK_INITIALIZER;
     pthread_mutex_init(&hasThreadLock, NULL);
     //threadPosLock = SPINLOCK_INITIALIZER;
@@ -550,15 +550,15 @@ int MultiThread::runMainThread() {
 }
 
 void MultiThread::setWaitingIndex(int val) {
-	spinlock_lock(&waitingIndexLock);
+	pthread_mutex_lock(&waitingIndexLock);
 	waitingIndex = val;
-	spinlock_unlock(&waitingIndexLock);
+	pthread_mutex_unlock(&waitingIndexLock);
 	return;
 }
 
 int MultiThread::getAndAddWaitingIndex() {
 	int ret;
-	spinlock_lock(&waitingIndexLock);
+	pthread_mutex_lock(&waitingIndexLock);
 	ret = waitingIndex;
 	waitingIndex = (waitingIndex+1) % serviceFatherNum;
 	pthread_mutex_lock(&hasThreadLock);
@@ -566,7 +566,7 @@ int MultiThread::getAndAddWaitingIndex() {
 		waitingIndex = (waitingIndex+1) % serviceFatherNum;
 	}
 	pthread_mutex_unlock(&hasThreadLock);
-	spinlock_unlock(&waitingIndexLock);
+	pthread_mutex_unlock(&waitingIndexLock);
 	return ret;
 }
 

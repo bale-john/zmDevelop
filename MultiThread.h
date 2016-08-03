@@ -46,7 +46,8 @@ private:
 	pthread_mutex_t hasThreadLock;
 	//标记下一个等待被检查的service father
 	int waitingIndex;
-	spinlock_t waitingIndexLock;
+	//spinlock_t waitingIndexLock;
+	pthread_mutex_t waitingIndexLock;
 
 public:
 	~MultiThread();
