@@ -9,6 +9,7 @@
 #include <string>
 #include <fstream>
 #include <list>
+#include <pthread.h>
 #include "Util.h"
 #include "Config.h"
 #include "ConstDef.h"
@@ -31,7 +32,8 @@ private:
 	list<string> priority;
 	//每个检查线程的pthread_t和该检车线程在线程池中的下标的对应关系
 	map<pthread_t, size_t> threadPos;
-    spinlock_t threadPosLock;
+    //spinlock_t threadPosLock;
+	pthread_mutex_t threadPosLock;
 	Zk* zk;
 	int serviceFatherNum;
 	//copy of myServiceFather in loadBalance

@@ -53,7 +53,8 @@ MultiThread::MultiThread() {
 	updateServiceLock = SPINLOCK_INITIALIZER;
 	waitingIndexLock = SPINLOCK_INITIALIZER;
 	hasThreadLock = SPINLOCK_INITIALIZER;
-    threadPosLock = SPINLOCK_INITIALIZER;
+    //threadPosLock = SPINLOCK_INITIALIZER;
+    pthread_mutex_init(&threadPosLock, NULL);
     serviceFathersLock = SPINLOCK_INITIALIZER;
 	conf = Config::getInstance();
 	zk = Zk::getInstance();
@@ -408,9 +409,9 @@ int MultiThread::tryConnect(string curServiceFather) {
 
 void MultiThread::checkService() {
 	pthread_t pthreadId = pthread_self();
-    spinlock_lock(&threadPosLock);
+    pthread_mutex_lock(&threadPosLock);
 	size_t pos = threadPos[pthreadId];
-    spinlock_unlock(&threadPosLock);
+    pthread_mutex_unlock(&threadPosLock);
     time_t curTime;
     time(&curTime);
     struct tm* realTime = localtime(&curTime);
@@ -483,7 +484,7 @@ int MultiThread::runMainThread() {
 		if (newThreadNum > MAX_THREAD_NUM) {
 			newThreadNum = MAX_THREAD_NUM;
 			for (; oldThreadNum < newThreadNum; ++oldThreadNum) {
-                spinlock_lock(&threadPosLock);
+                pthread_mutex_lock(&threadPosLock);
 				res = pthread_create(checkServiceThread + oldThreadNum, NULL, staticCheckService, NULL);
 				if (res != 0) {
 					setThreadError();
@@ -491,7 +492,7 @@ int MultiThread::runMainThread() {
 					break;
 				}
 				threadPos[checkServiceThread[oldThreadNum]] = oldThreadNum;
-                spinlock_unlock(&threadPosLock);
+                pthread_mutex_unlock(&threadPosLock);
 			}
 		}
 		//线程不用开满，也不需要调度
@@ -501,7 +502,7 @@ int MultiThread::runMainThread() {
 			}
 			else {
 				for (; oldThreadNum < newThreadNum; ++oldThreadNum) {
-                    spinlock_lock(&threadPosLock);
+                    pthread_mutex_lock(&threadPosLock);
 					res = pthread_create(checkServiceThread + oldThreadNum, NULL, staticCheckService, NULL);
 					if (res != 0) {
 						setThreadError();
@@ -509,7 +510,7 @@ int MultiThread::runMainThread() {
 						break;
 					}
 					threadPos[checkServiceThread[oldThreadNum]] = oldThreadNum;
-                    spinlock_unlock(&threadPosLock);
+                    pthread_mutex_unlock(&threadPosLock);
 #ifdef DEBUGM
                     cout << "checkServiceThread[" << oldThreadNum << "] " << checkServiceThread[oldThreadNum] << endl;
 #endif
