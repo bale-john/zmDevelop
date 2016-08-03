@@ -13,7 +13,6 @@
 #include "Log.h"
 #include "ConstDef.h"
 #include "Util.h"
-#include "x86_spinlocks.h"
 using namespace std;
 
 ServiceListener* ServiceListener::slInstance = NULL;

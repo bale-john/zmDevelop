@@ -13,7 +13,6 @@
 #include "Config.h"
 #include "ServiceItem.h"
 #include "LoadBalance.h"
-#include "x86_spinlocks.h"
 using namespace std;
 
 class ServiceListener {
