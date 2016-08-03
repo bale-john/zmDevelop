@@ -50,8 +50,10 @@ int ServiceListener::initEnv() {
 ServiceListener::ServiceListener() : zh(NULL) {
 	//serviceFatherToIpLock = SPINLOCK_INITIALIZER;
 	pthread_mutex_init(&serviceFatherToIpLock, NULL);
-	serviceFatherStatusLock = SPINLOCK_INITIALIZER;
-    watchFlagLock = SPINLOCK_INITIALIZER;
+	//serviceFatherStatusLock = SPINLOCK_INITIALIZER;
+    pthread_mutex_init(&serviceFatherStatusLock, NULL);
+    //watchFlagLock = SPINLOCK_INITIALIZER;
+    pthread_mutex_init(&watchFlagLock, NULL);
 	conf = Config::getInstance();
 	lb = LoadBalance::getInstance();
 	//It makes sense. Make all locks occur in one function
@@ -470,24 +472,24 @@ int ServiceListener::loadAllService() {
 
 //pay attention to locks
 int ServiceListener::modifyServiceFatherStatus(const string& serviceFather, int status, int op) {
-	spinlock_lock(&serviceFatherStatusLock);
+	pthread_mutex_lock(&serviceFatherStatusLock);
 	serviceFatherStatus[serviceFather][status + 1] += op;
-	spinlock_unlock(&serviceFatherStatusLock);
+	pthread_mutex_unlock(&serviceFatherStatusLock);
 	return 0;
 }
 
 int ServiceListener::getServiceFatherStatus(const string& serviceFather, int status) {
 	int ret;
-	spinlock_lock(&serviceFatherStatusLock);
+	pthread_mutex_lock(&serviceFatherStatusLock);
 	ret = serviceFatherStatus[serviceFather][status + 1];
-	spinlock_unlock(&serviceFatherStatusLock);
+	pthread_mutex_unlock(&serviceFatherStatusLock);
 	return ret;
 }
 
 int ServiceListener::modifyServiceFatherStatus(const string& serviceFather, vector<int>& statusv) {
-	spinlock_lock(&serviceFatherStatusLock);
+	pthread_mutex_lock(&serviceFatherStatusLock);
 	serviceFatherStatus[serviceFather] = statusv;
-	spinlock_unlock(&serviceFatherStatusLock);
+	pthread_mutex_unlock(&serviceFatherStatusLock);
 	return 0;
 }
 
@@ -547,21 +549,21 @@ void ServiceListener::deleteIpPort(const string& serviceFather, const string& ip
 //是为了使用serviceFatherStatus来判断是否仅剩一个up的服务节点的
 //最后发现这样还是不可行，因为网络的原因等，还是无法确认每次设置了标记位之后就清楚，在设置，暂时无用
 void ServiceListener::setWatchFlag() {
-    spinlock_lock(&watchFlagLock);
+    pthread_mutex_lock(&watchFlagLock);
     watchFlag = true;
-    spinlock_unlock(&watchFlagLock);
+    pthread_mutex_unlock(&watchFlagLock);
 }
 
 void ServiceListener::clearWatchFlag() {
-    spinlock_lock(&watchFlagLock);
+    pthread_mutex_lock(&watchFlagLock);
     watchFlag = true;
-    spinlock_unlock(&watchFlagLock);
+    pthread_mutex_unlock(&watchFlagLock);
 }
 
 bool ServiceListener::getWatchFlag(){
     bool ret;
-    spinlock_lock(&watchFlagLock);
+    pthread_mutex_lock(&watchFlagLock);
     ret = watchFlag;
-    spinlock_unlock(&watchFlagLock);
+    pthread_mutex_unlock(&watchFlagLock);
     return ret;
 }
