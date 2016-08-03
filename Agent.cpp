@@ -77,7 +77,8 @@ int main(int argc, char** argv){
 		}
 
 		//check qconf_monitor_lock_node/default_instance/md5_list
-		if(_zk->checkAndCreateZnode(conf->getNodeList()) == M_OK) {
+		//if(_zk->checkAndCreateZnode(conf->getNodeList()) == M_OK) {
+		if (_zk->createZnode2(conf->getNodeList()) == M_OK) {
 			LOG(LOG_INFO, "check znode %s done. node exist", (conf->getNodeList()).c_str());
 		}
 		else {
@@ -90,7 +91,8 @@ int main(int argc, char** argv){
 		}
 
 		//check qconf_monitor_lock_node/default_instance/monitor_list
-		if(_zk->checkAndCreateZnode(conf->getMonitorList()) == M_OK) {
+		//if(_zk->checkAndCreateZnode(conf->getMonitorList()) == M_OK) {
+		if (_zk->createZnode2(conf->getMonitorList()) == M_OK) {
 			LOG(LOG_INFO, "check znode %s done. node exist", (conf->getMonitorList()).c_str());
 		}
 		else {

@@ -29,6 +29,7 @@ public:
 
 	int checkAndCreateZnode(string path);
 	int createZnode(string path);
+	int createZnode2(string path);
 	int setZnode(string node, string data);
 	int registerMonitor(string path);
 	bool znodeExist(const string& path);

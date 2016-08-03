@@ -210,6 +210,54 @@ int Zk::createZnode(string path) {
 	return M_OK;
 }
 
+int Zk::createZnode2(string path) {
+	if (path.size() <= 0) {
+		LOG(LOG_ERROR, "parameter error, path is empty");
+		return M_ERR;
+	}
+	if (path[0] != '/') {
+		path = '/' + path;
+	}
+	if (path.back() == '/') {
+		path.pop_back();
+	}
+	string node = path;
+	while (1) {
+		int ret = zoo_create(_zh, node.c_str(), NULL, 0, &ZOO_OPEN_ACL_UNSAFE, 0, NULL, 0);
+		if (ret == ZOK) {
+			LOG(LOG_INFO, "Create node succeeded. node: %s", path.c_str());
+			if (node == path) {
+				break;
+			}
+			else {
+				node = path;
+			}
+		}
+		else if (ret == ZNODEEXISTS) {
+			LOG(LOG_INFO, "Create node .Node exists. node: %s", path.c_str());
+			if (node == path) {
+				break;
+			}
+			else {
+				node = path;
+			}
+		}
+		else if (ret == ZNONODE) {
+			size_t pos = node.rfind('/');
+			node = node.substr(0, pos);
+		}
+		else {
+			LOG(LOG_ERROR, "create node failed. error: %s. node: %s ", zerror(ret), node.c_str());
+            zErrorHandler(ret);
+            return M_ERR;
+		}
+	}
+	//add the watcher
+	struct Stat stat;
+	zoo_exists(_zh, node.c_str(), 1, &stat);
+	return M_OK;
+}
+
 int Zk::checkAndCreateZnode(string path) {
 	if (path.size() <= 0) {
 		return M_ERR;
