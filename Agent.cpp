@@ -13,7 +13,6 @@
 #include "Zk.h"
 #include "LoadBalance.h"
 #include "ServiceListener.h"
-#include "x86_spinlocks.h"
 #include "MultiThread.h"
 using namespace std;
 static Zk* _zk = NULL;

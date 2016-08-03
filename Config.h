@@ -5,15 +5,16 @@
 #include <map>
 #include <vector>
 #include <unordered_map>
+#include <pthread.h>
 #include "ServiceItem.h"
-#include "x86_spinlocks.h"
 using namespace std;
 
 class Config {
 private:
 	static Config* _instance;
 
-	spinlock_t serviceMapLock;
+	//spinlock_t serviceMapLock;
+	pthread_mutex_t serviceMapLock;
 
 	int _daemonMode;
 	string _monitorHostname;
