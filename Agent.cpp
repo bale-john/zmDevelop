@@ -15,7 +15,6 @@
 #include "ServiceListener.h"
 #include "MultiThread.h"
 using namespace std;
-static Zk* _zk = NULL;
 
 int main(int argc, char** argv){
 	Config* conf = Config::getInstance();
@@ -53,11 +52,7 @@ int main(int argc, char** argv){
 		LOG(LOG_INFO, " main loop start -> !!!!!!");
         Process::clearStop();
 		conf->clearServiceMap();
-        if (_zk) {
-            dp();
-            delete _zk;
-        }
-		_zk = Zk::getInstance();
+		Zk* _zk = Zk::getInstance();
 		string zkHost = conf->getZkHost();
 		string zkLogPath = conf->getZkLogPath();
 		int recvTimeout = conf->getZkRecvTimeout();
