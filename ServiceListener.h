@@ -43,7 +43,7 @@ public:
     size_t getIpNum(const string& serviceFather);
 
     //spinlock_t serviceFatherToIpLock;
-    pthread_t serviceFatherToIpLock;
+    pthread_mutex_t serviceFatherToIpLock;
     spinlock_t serviceFatherStatusLock;
     spinlock_t watchFlagLock;
     

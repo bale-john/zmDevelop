@@ -49,7 +49,7 @@ int ServiceListener::initEnv() {
 
 ServiceListener::ServiceListener() : zh(NULL) {
 	//serviceFatherToIpLock = SPINLOCK_INITIALIZER;
-	pthread_mutex_init(&serviceFatherToIpLock);
+	pthread_mutex_init(&serviceFatherToIpLock, NULL);
 	serviceFatherStatusLock = SPINLOCK_INITIALIZER;
     watchFlagLock = SPINLOCK_INITIALIZER;
 	conf = Config::getInstance();
