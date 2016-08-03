@@ -7,13 +7,13 @@
 #include <sys/types.h>
 #include <iostream>
 #include <errno.h>
+#include <pthread.h>
 #include "ConstDef.h"
 #include "Util.h"
 #include "Log.h"
 #include "Process.h"
 #include "LoadBalance.h"
 #include "Config.h"
-#include "x86_spinlocks.h"
 #include "Zk.h"
 
 using namespace std;
@@ -45,7 +45,8 @@ int LoadBalance::destroyEnv() {
 }
 
 LoadBalance::LoadBalance() : zh(NULL) {
-	md5ToServiceFatherLock = SPINLOCK_INITIALIZER;
+	//md5ToServiceFatherLock = SPINLOCK_INITIALIZER;
+	pthread_mutex_init(&md5ToServiceFatherLock, NULL);
 	conf = Config::getInstance();
 	md5ToServiceFather.clear();
 	monitors.clear();
@@ -232,11 +233,11 @@ int LoadBalance::getMonitors(bool flag /*=false*/) {
 
 int LoadBalance::balance(bool flag /*=false*/) {
 	vector<string> md5Node;
-	spinlock_lock(&md5ToServiceFatherLock);
+	pthread_mutex_lock(&md5ToServiceFatherLock);
 	for (auto it = md5ToServiceFather.begin(); it != md5ToServiceFather.end(); ++it) {
 		md5Node.push_back(it->first);
 	}
-	spinlock_unlock(&md5ToServiceFatherLock);
+	pthread_mutex_unlock(&md5ToServiceFatherLock);
 #ifdef DEBUG
 	cout << "LLL11111111111" << endl;
     cout << "md5 node value:" << endl;
@@ -280,9 +281,9 @@ int LoadBalance::balance(bool flag /*=false*/) {
     }
 	for (size_t i = rank; i < md5Node.size(); i += monitors.size()) {
 		//maybe this lock is useless
-		spinlock_lock(&md5ToServiceFatherLock);
+		pthread_mutex_lock(&md5ToServiceFatherLock);
 		myServiceFather.push_back(md5ToServiceFather[md5Node[i]]);
-		spinlock_unlock(&md5ToServiceFatherLock);
+		pthread_mutex_unlock(&md5ToServiceFatherLock);
 		LOG(LOG_INFO, "my service father:%s", myServiceFather.back().c_str());
 	}
 #ifdef DEBUG
@@ -315,7 +316,7 @@ void LoadBalance::updateMd5ToServiceFather(const string& md5Path, const string& 
     if (serviceFather.size() <= 0) {
         return;
     }
-	spinlock_lock(&md5ToServiceFatherLock);
+	pthread_mutex_lock(&md5ToServiceFatherLock);
 	md5ToServiceFather[md5Path] = serviceFather;
-	spinlock_unlock(&md5ToServiceFatherLock);
+	pthread_mutex_unlock(&md5ToServiceFatherLock);
 }

@@ -7,10 +7,10 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <pthread.h>
 #include <zookeeper.h>
 #include <zk_adaptor.h>
 #include "Config.h"
-#include "x86_spinlocks.h"
 using namespace std;
 
 class LoadBalance {
@@ -20,7 +20,8 @@ public:
 	static LoadBalance* lbInstance;
 	Config* conf;
 
-	spinlock_t md5ToServiceFatherLock;
+	//spinlock_t md5ToServiceFatherLock;
+	pthread_mutex_t md5ToServiceFatherLock;
 
     //use map but not unordered_map so it can be sorted autonatically
     //key is md5 and value is serviceFather
