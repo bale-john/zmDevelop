@@ -36,7 +36,8 @@ using namespace std;
 
 static pthread_t updateServiceThread;
 static pthread_t checkServiceThread[MAX_THREAD_NUM];
-static spinlock_t updateServiceLock;
+//static spinlock_t updateServiceLock;
+static pthread_mutex_t updateServiceLock;
 
 MultiThread* MultiThread::mlInstance = NULL;
 
@@ -50,7 +51,8 @@ MultiThread* MultiThread::getInstance() {
 }
 
 MultiThread::MultiThread() {
-	updateServiceLock = SPINLOCK_INITIALIZER;
+	//updateServiceLock = SPINLOCK_INITIALIZER;
+	pthread_mutex_init(&updateServiceLock, NULL);
 	waitingIndexLock = SPINLOCK_INITIALIZER;
 	hasThreadLock = SPINLOCK_INITIALIZER;
     //threadPosLock = SPINLOCK_INITIALIZER;
@@ -113,17 +115,17 @@ bool MultiThread::isOnlyOneUp(string node, int val) {
 	bool ret = true;
 	size_t pos = node.rfind('/');
 	string serviceFather = node.substr(0, pos);
-	spinlock_lock(&updateServiceLock);
+	pthread_mutex_lock(&updateServiceLock);
 	if (sl->getServiceFatherStatus(serviceFather, STATUS_UP) > 1) {
 		//在锁内部直接把serviceFatherStatus改变了，up的-1，down的+1；
         sl->setWatchFlag();
 		sl->modifyServiceFatherStatus(serviceFather, STATUS_UP, -1);
 		sl->modifyServiceFatherStatus(serviceFather, STATUS_DOWN, 1);
-		spinlock_unlock(&updateServiceLock);
+		pthread_mutex_unlock(&updateServiceLock);
 		ret = false;
 	}
 	else {
-		spinlock_unlock(&updateServiceLock);
+		pthread_mutex_unlock(&updateServiceLock);
 	}
 	return ret;
 }
@@ -149,29 +151,29 @@ void MultiThread::updateService() {
         if (Process::isStop() || LoadBalance::getReBalance() || isThreadError()) {
             break;
         }
-		spinlock_lock(&updateServiceLock);
+		pthread_mutex_lock(&updateServiceLock);
 		if (updateServiceInfo.empty()) {
 			priority.clear();
-			spinlock_unlock(&updateServiceLock);
+			pthread_mutex_unlock(&updateServiceLock);
 			usleep(1000);
 			continue;
 		}
-		spinlock_unlock(&updateServiceLock);
+		pthread_mutex_unlock(&updateServiceLock);
 		string key = priority.front();
 		//这需要加锁吗？如果一个线程只会操作list的头部，而另一个只会操作尾部?不确定
-		//spinlock_lock(&updateServiceLock);
+		pthread_mutex_lock(&updateServiceLock);
 		priority.pop_front();
-		//spinlock_unlock(&updateServiceLock);
+		pthread_mutex_unlock(&updateServiceLock);
 		//是有可能在优先级队列中存在，但是在字典中不存在的，比如一个节点连续被检测到两次改变，则在优先级队列中就会出现2次，但是在map中只会有一次
-		spinlock_lock(&updateServiceLock);
+		pthread_mutex_lock(&updateServiceLock);
 		if (updateServiceInfo.find(key) == updateServiceInfo.end()) {
-			spinlock_unlock(&updateServiceLock);
+			pthread_mutex_unlock(&updateServiceLock);
 			//usleep(1000);
 			continue;
 		}
 		int val = updateServiceInfo[key];
 		updateServiceInfo.erase(key);
-		spinlock_unlock(&updateServiceLock);
+		pthread_mutex_unlock(&updateServiceLock);
 		int oldStatus = (conf->getServiceItem(key)).getStatus();
         //cout << "in update service. key: " << key << " val: " << val << endl;
 
@@ -392,10 +394,10 @@ int MultiThread::tryConnect(string curServiceFather) {
 #endif
         LOG(LOG_INFO, "|checkService| service:%s, old status:%d, new status:%d. Have tried times:%d, max try times:%d", ipPort.c_str(), oldStatus, status, curTryTimes, retryCount);
 		if (status != oldStatus) {
-			spinlock_lock(&updateServiceLock);
+			pthread_mutex_lock(&updateServiceLock);
             priority.push_back(ipPort);
             updateServiceInfo[ipPort] = status;
-            spinlock_unlock(&updateServiceLock);
+            pthread_mutex_unlock(&updateServiceLock);
 		}
         if (curServiceFather == "/qconf/demo/test/hosts/host2") {
             cout << "ttttt9: " << ipPort << " " << realTime->tm_min << " " << realTime->tm_sec << endl;
