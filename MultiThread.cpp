@@ -144,9 +144,6 @@ int MultiThread::updateConf(string node, int val) {
 
 //update service thread. comes first update first
 void MultiThread::updateService() {
-#ifdef DEBUGM
-    cout << "in update service thread" << endl;
-#endif
     LOG(LOG_INFO, "in update service thread");
 	while (1) {
         if (Process::isStop() || LoadBalance::getReBalance() || isThreadError()) {
@@ -228,9 +225,6 @@ void MultiThread::updateService() {
 		}
 		usleep(1000);
 	}
-#ifdef DEBUGM
-    cout << "out update service" << endl;
-#endif
     LOG(LOG_ERROR, "out update service");
     return;
 }
@@ -344,9 +338,6 @@ int MultiThread::tryConnect(string curServiceFather) {
         //It's important to get serviceMap in the loop to find zk's change in real time
         serviceMap = conf->getServiceMap();
 		string ipPort = curServiceFather + "/" + (*it);
-        if (curServiceFather == "/qconf/demo/test/hosts/host2") {
-            cout << "ttttt5: " << ipPort << " " << realTime->tm_min << " " << realTime->tm_sec << endl;
-        }
         /*
         some service father don't have services and we add "" to serviceFatherToIp
         so we need to judge weather It's a legal ipPort
@@ -364,13 +355,7 @@ int MultiThread::tryConnect(string curServiceFather) {
         item.getAddr(&addr);
         int curTryTimes = (oldStatus == STATUS_UP) ? 1 : 3;
 		int timeout = item.getConnectTimeout() > 0 ? item.getConnectTimeout() : 3;
-        if (curServiceFather == "/qconf/demo/test/hosts/host2") {
-            cout << "ttttt6: " << ipPort << " " << realTime->tm_min << " " << realTime->tm_sec << endl;
-        }
 		int res = isServiceExist(&addr, (char*)item.getHost().c_str(), item.getPort(), timeout, item.getStatus());
-        if (curServiceFather == "/qconf/demo/test/hosts/host2") {
-            cout << "ttttt7: " << ipPort << " " << realTime->tm_min << " " << realTime->tm_sec << endl;
-        }
         int status = (res)? 0 : 2;
         //If status is down. I will retry.
         while (curTryTimes < retryCount && status == STATUS_DOWN) {
@@ -379,15 +364,6 @@ int MultiThread::tryConnect(string curServiceFather) {
             status = (res) ? 0 : 2;
             ++curTryTimes;
         }
-        if (curServiceFather == "/qconf/demo/test/hosts/host2") {
-            cout << "ttttt8: " << ipPort << " " << realTime->tm_min << " " << realTime->tm_sec << endl;
-        }
-#ifdef DEBUGM
-        if (curServiceFather == "/qconf/demo/test/hosts/host2") {
-		cout << "sssssssssssssssssssssssssssss" << endl;
-		cout << "ipPort: " << ipPort << " status: " << status << " oldstatus: " << oldStatus << endl;
-        }
-#endif
         LOG(LOG_INFO, "|checkService| service:%s, old status:%d, new status:%d. Have tried times:%d, max try times:%d", ipPort.c_str(), oldStatus, status, curTryTimes, retryCount);
 		if (status != oldStatus) {
 			pthread_mutex_lock(&updateServiceLock);
@@ -395,13 +371,7 @@ int MultiThread::tryConnect(string curServiceFather) {
             updateServiceInfo[ipPort] = status;
             pthread_mutex_unlock(&updateServiceLock);
 		}
-        if (curServiceFather == "/qconf/demo/test/hosts/host2") {
-            cout << "ttttt9: " << ipPort << " " << realTime->tm_min << " " << realTime->tm_sec << endl;
-        }
 	}
-    if (curServiceFather == "/qconf/demo/test/hosts/host2") {
-        cout << "ttttt10: " << curServiceFather << " " << realTime->tm_min << " " << realTime->tm_sec << endl;
-    }
     return 0;
 }
 
@@ -414,35 +384,19 @@ void MultiThread::checkService() {
     time(&curTime);
     struct tm* realTime = localtime(&curTime);
 	while (1) {
-        if (pos == 0) {
-            cout << "ttttt1: " << pos << " " << realTime->tm_min << " " << realTime->tm_sec << endl;
-        }
         if (Process::isStop() || LoadBalance::getReBalance() || isThreadError()) {
             break;
         }
         pthread_mutex_lock(&serviceFathersLock);
 		string curServiceFather = serviceFathers[pos];
         pthread_mutex_unlock(&serviceFathersLock);
-#ifdef DEBUGM
-        if (pos == 0)
-		cout << "check service thread " << pthreadId << " pos: " << pos << " current service father: " << curServiceFather << endl;
-#endif
 		LOG(LOG_INFO, "|checkService| pthread id %x, pthread pos %d, current service father %s", \
 			(unsigned int)pthreadId, (int)pos, curServiceFather.c_str());
-        if (pos == 0) {
-            cout << "ttttt2: " << pos << " " << realTime->tm_min << " " << realTime->tm_sec << endl;
-        }
 		tryConnect(curServiceFather);
-        if (pos == 0) {
-            cout << "ttttt3: " << pos << " " << realTime->tm_min << " " << realTime->tm_sec << endl;
-        }
         if (serviceFatherNum > MAX_THREAD_NUM) {
 		    setHasThread(pos, false);
 		    pos = getAndAddWaitingIndex();
 		    setHasThread(pos, true);
-        }
-        if (pos == 0) {
-            cout << "ttttt4: " << pos << " " << realTime->tm_min << " " << realTime->tm_sec << endl;
         }
         sleep(2);
 	}
@@ -505,9 +459,6 @@ int MultiThread::runMainThread() {
 					}
 					threadPos[checkServiceThread[oldThreadNum]] = oldThreadNum;
                     pthread_mutex_unlock(&threadPosLock);
-#ifdef DEBUGM
-                    cout << "checkServiceThread[" << oldThreadNum << "] " << checkServiceThread[oldThreadNum] << endl;
-#endif
 				}
 			}
 		}
@@ -523,15 +474,12 @@ int MultiThread::runMainThread() {
         	ret = -1;
         	continue;
         }
-        cout << "exit check " << i << endl;
     }
     res = pthread_join(updateServiceThread, &exitStatus);
     if (res != 0) {
     	LOG(LOG_ERROR, "join update service thread error: %s", strerror(res));
     	ret = -1;
     }
-    cout << "exit update " << endl;
-    cout << "fffffffff" << endl;
     clearThreadError();
     return ret;
 }

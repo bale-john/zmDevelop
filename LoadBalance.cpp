@@ -97,11 +97,6 @@ void LoadBalance::processChangedEvent(zhandle_t* zhandle, const string path) {
 	else {
 		LOG(LOG_ERROR, "parameter error. zhandle is NULL");
 	}
-#ifdef DEBUGL
-    for (auto it = (lb->md5ToServiceFather).begin(); it != (lb->md5ToServiceFather).end(); ++it) {
-        cout << it->first << " " << it->second << endl;
-    }
-#endif
 	return;
 }
 
@@ -201,11 +196,6 @@ int LoadBalance::getMd5ToServiceFather() {
 		LOG(LOG_INFO, "md5: %s, serviceFather: %s", md5Path.c_str(), serviceFather);
 	}
 	deallocate_String_vector(&md5Node);
-#ifdef DEBUGL
-    for (auto it = md5ToServiceFather.begin(); it != md5ToServiceFather.end(); ++it) {
-        cout << it->first << " " << it->second << endl;
-    }
-#endif
 	return M_OK;
 }
 
@@ -233,33 +223,12 @@ int LoadBalance::balance(bool flag /*=false*/) {
 		md5Node.push_back(it->first);
 	}
 	pthread_mutex_unlock(&md5ToServiceFatherLock);
-#ifdef DEBUG
-	cout << "LLL11111111111" << endl;
-    cout << "md5 node value:" << endl;
-	for (auto it = md5Node.begin(); it != md5Node.end(); ++it) {
-		cout << (*it) << endl;
-	}
-#endif
 	vector<unsigned int> sequence;
 	for (auto it = monitors.begin(); it != monitors.end(); ++it) {
 		unsigned int tmp = stoi((*it).substr((*it).size() - 10));
 		sequence.push_back(tmp);
 	}
-#ifdef DEBUG
-	cout << "LLL222222222222" << endl;
-    cout << "sequence number of monitors registed:" << endl;
-	for (auto it = sequence.begin(); it != sequence.end(); ++it) {
-		cout << (*it) << endl;
-	}
-#endif
 	sort(sequence.begin(), sequence.end());
-#ifdef DEBUG
-	cout << "LLL33333333333" << endl;
-    cout << "sorted sequence number of monitors registed:" << endl;
-	for (auto it = sequence.begin(); it != sequence.end(); ++it) {
-		cout << (*it) << endl;
-	}
-#endif
 	string monitor = string(_zkLockBuf);
 	unsigned int mySeq = stoi(monitor.substr(monitor.size() - 10));
     size_t rank = 0;
@@ -279,13 +248,6 @@ int LoadBalance::balance(bool flag /*=false*/) {
 		pthread_mutex_unlock(&md5ToServiceFatherLock);
 		LOG(LOG_INFO, "my service father:%s", myServiceFather.back().c_str());
 	}
-#ifdef DEBUG
-	cout << "LLL44444444444" << endl;
-    cout << "my service father:" << endl;
-	for (auto it = myServiceFather.begin(); it != myServiceFather.end(); ++it) {
-		cout << (*it) << endl;
-	}
-#endif
 	return M_OK;
 }
 

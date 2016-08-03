@@ -207,11 +207,6 @@ string Config::getMonitorList() {
 
 int Config::printMap() {
 	for (auto it = _serviceMap.begin(); it != _serviceMap.end(); ++it) {
-#ifdef DEBUGSSS
-		if ((it->second).getServiceFather() != "/qconf/demo/test/hosts") {
-			continue;
-		}
-#endif
 		LOG(LOG_INFO, "path: %s", (it->first).c_str());
 		LOG(LOG_INFO, "host: %s", (it->second).getHost().c_str());
 		LOG(LOG_INFO, "port: %d", (it->second).getPort());
