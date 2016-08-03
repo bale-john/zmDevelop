@@ -12,7 +12,8 @@ ServiceItem::ServiceItem():
     _host(""),
     _port(-1),
     _connRetry(0),
-    _connTimeout(3),// default 3 seconds
+    // default 3 seconds
+    _connTimeout(3),
     _serviceFather(""),
     _status(STATUS_DOWN) 
 {   

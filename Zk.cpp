@@ -14,7 +14,6 @@
 #include "Zk.h"
 using namespace std;
 
-//临时解决方案，把_zkLockBuf作为非静态全局变量，使得它对所有文件可见,这里面保存的是注册的monitor的名字
 char _zkLockBuf[512] = {0};
 
 Zk* Zk::zk = NULL;
@@ -51,7 +50,6 @@ void Zk::watcher(zhandle_t* zhandle, int type, int state, const char* node, void
 		case SESSION_EVENT_DEF:
 			if (state == ZOO_EXPIRED_SESSION_STATE) {
 				LOG(LOG_DEBUG, "[session state: ZOO_EXPIRED_STATA: %d]", state);
-				//todo 是否需要watchSession？
 				LOG(LOG_INFO, "restart the main loop!");
 				kill(getpid(), SIGUSR2);
 			}
@@ -146,17 +144,11 @@ void Zk::zErrorHandler(const int& ret) {
         ret == ZINVALIDSTATE)     /*!< Invliad zhandle state */
     {   
         LOG(LOG_ERROR, "API return: %s. Reinitialize zookeeper handle.", zerror(ret));
-        //todo maybe could add some code to make it robuster
-    	//destoryEnv();
-      	//initEnv(_zkHost, _zkLogPath, _recvTimeout);
     }
     else if (ret == ZCLOSING ||    /*!< ZooKeeper is closing */
             ret == ZCONNECTIONLOSS)  /*!< Connection to the server has been lost */
     {   
         LOG(LOG_FATAL_ERROR, "connect to zookeeper Failed!. API return : %s. Try to initialize zookeeper handle", zerror(ret));
-    	//todo
-    	//destoryEnv();
-    	//initEnv(_zkHost, _zkLogPath, _recvTimeout);
     }  
 }
 
@@ -199,7 +191,6 @@ int Zk::createZnode(string path) {
 		}
 		else {
 			LOG(LOG_ERROR, "create node failed. error: %s. node: %s ", zerror(ret), node.c_str());
-            //todo
             zErrorHandler(ret);
             return M_ERR;
 		}

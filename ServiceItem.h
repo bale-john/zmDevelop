@@ -4,7 +4,6 @@
 #include <cstdio>
 #include <string>
 #include <iostream>
-//support in_addr. It's a ip struct
 #include <netinet/in.h>
 using namespace std;
 

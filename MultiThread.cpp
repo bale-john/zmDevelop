@@ -100,7 +100,6 @@ bool MultiThread::isOnlyOneUp(string node) {
 		if (status == STATUS_UP) {
 			++alive;
 		}
-		//cout << "isonlyone: " << ipPath << " " << status << " " << alive << endl;
 		if (alive > 1) {
 			ret = false;
             break;
@@ -111,7 +110,8 @@ bool MultiThread::isOnlyOneUp(string node) {
     }
 	return ret;
 }
-//judge with serviceFatherStatus
+
+//judge with serviceFatherStatus. It was not used by current
 bool MultiThread::isOnlyOneUp(string node, int val) {
 	ServiceListener* sl = ServiceListener::getInstance();
 	bool ret = true;
@@ -119,7 +119,6 @@ bool MultiThread::isOnlyOneUp(string node, int val) {
 	string serviceFather = node.substr(0, pos);
 	pthread_mutex_lock(&updateServiceLock);
 	if (sl->getServiceFatherStatus(serviceFather, STATUS_UP) > 1) {
-		//在锁内部直接把serviceFatherStatus改变了，up的-1，down的+1；
         sl->setWatchFlag();
 		sl->modifyServiceFatherStatus(serviceFather, STATUS_UP, -1);
 		sl->modifyServiceFatherStatus(serviceFather, STATUS_DOWN, 1);
@@ -162,22 +161,19 @@ void MultiThread::updateService() {
 		}
 		pthread_mutex_unlock(&updateServiceLock);
 		string key = priority.front();
-		//这需要加锁吗？如果一个线程只会操作list的头部，而另一个只会操作尾部?不确定
 		pthread_mutex_lock(&updateServiceLock);
 		priority.pop_front();
 		pthread_mutex_unlock(&updateServiceLock);
-		//是有可能在优先级队列中存在，但是在字典中不存在的，比如一个节点连续被检测到两次改变，则在优先级队列中就会出现2次，但是在map中只会有一次
 		pthread_mutex_lock(&updateServiceLock);
 		if (updateServiceInfo.find(key) == updateServiceInfo.end()) {
 			pthread_mutex_unlock(&updateServiceLock);
-			//usleep(1000);
+			usleep(1000);
 			continue;
 		}
 		int val = updateServiceInfo[key];
 		updateServiceInfo.erase(key);
 		pthread_mutex_unlock(&updateServiceLock);
 		int oldStatus = (conf->getServiceItem(key)).getStatus();
-        //cout << "in update service. key: " << key << " val: " << val << endl;
 
 		//compare the new status and old status to decide weather to update status		
 		if (val == STATUS_DOWN) {
@@ -240,7 +236,6 @@ void MultiThread::updateService() {
 }
 
 int MultiThread::isServiceExist(struct in_addr *addr, char* host, int port, int timeout, int curStatus) {
-    //printf("%s\n", inet_ntoa(*addr));
 	bool exist = true;  
     int sock = -1, val = 1, ret = 0;
     //struct hostent *host;
@@ -253,7 +248,8 @@ int MultiThread::isServiceExist(struct in_addr *addr, char* host, int port, int 
                             
     if((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         LOG(LOG_ERROR, "socket failed. error:%s", strerror(errno));
-        return false;// return false is a good idea ?
+        // return false is a good idea ?
+        return false;
     }                           
 
     memset(&serv_addr, 0, sizeof(serv_addr));
@@ -292,7 +288,6 @@ int MultiThread::isServiceExist(struct in_addr *addr, char* host, int port, int 
     FD_ZERO(&errfds);
     FD_SET(sock, &errfds);
     ret = select(sock+1, &readfds, &writefds, &errfds, &conn_tv);
-    //cout << "select ret: " << ret << endl;
     if ( ret == 0 ){
         // connect timeout
         if (curStatus != STATUS_DOWN) {
@@ -333,9 +328,8 @@ int MultiThread::isServiceExist(struct in_addr *addr, char* host, int port, int 
 }
 
 
-//try to ping the ipPort to see weather it's connecteble
+//try to connect to the ipPort to see weather it's connecteble
 int MultiThread::tryConnect(string curServiceFather) {
-	//这里也好浪费，我只要知道一个serviceFather，结果全都拿过来了。先写着 todo
 	map<string, ServiceItem> serviceMap;
 	unordered_map<string, unordered_set<string>> serviceFatherToIp = sl->getServiceFatherToIp();
 	unordered_set<string> ip = serviceFatherToIp[curServiceFather];
@@ -347,7 +341,7 @@ int MultiThread::tryConnect(string curServiceFather) {
         if (Process::isStop() || LoadBalance::getReBalance() || isThreadError()) {
             break;
         } 
-        //及时更新这个servicemap很重要，这样在zk那边主动操作之后，watcher将状态更新到config里，检查线程才能快速发现
+        //It's important to get serviceMap in the loop to find zk's change in real time
         serviceMap = conf->getServiceMap();
 		string ipPort = curServiceFather + "/" + (*it);
         if (curServiceFather == "/qconf/demo/test/hosts/host2") {
@@ -468,7 +462,6 @@ void* MultiThread::staticCheckService(void* args) {
 }
 
 int MultiThread::runMainThread() {
-	//Are there any problem?
 	int res = pthread_create(&updateServiceThread, NULL, staticUpdateService, NULL);
 	if (res != 0) {
 		setThreadError();
@@ -477,14 +470,12 @@ int MultiThread::runMainThread() {
 	int oldThreadNum = 0;
 	int newThreadNum = 0;
 	//If the number of service father < MAX_THREAD_NUM, one service father one thread
-	//todo. Better way to reuse thread
 	while (1) {
 		unordered_map<string, unordered_set<string>> serviceFatherToIp = sl->getServiceFatherToIp();
         if (Process::isStop() || LoadBalance::getReBalance() || isThreadError()) {
             break;
         }
 		newThreadNum = serviceFatherToIp.size();
-		//线程需要开满，且需要调度.
 		if (newThreadNum > MAX_THREAD_NUM) {
 			newThreadNum = MAX_THREAD_NUM;
 			for (; oldThreadNum < newThreadNum; ++oldThreadNum) {
@@ -499,7 +490,6 @@ int MultiThread::runMainThread() {
                 pthread_mutex_unlock(&threadPosLock);
 			}
 		}
-		//线程不用开满，也不需要调度
 		else {
 			if (newThreadNum <= oldThreadNum) {
 				//some thread may be left to be idle
@@ -521,9 +511,6 @@ int MultiThread::runMainThread() {
 				}
 			}
 		}
-#ifdef DEBUGM
-    //cout << "finish one round" << endl;
-#endif
 		sleep(2);
 	}
 

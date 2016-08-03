@@ -107,7 +107,6 @@ int Config::setValueStr(const string& key, const string& value){
 	return 0;
 }
 
-//这里面的serviceItem是什么用的
 int Config::load(){
 	ifstream file;
 	file.open(confPath);
@@ -245,12 +244,12 @@ map<string, ServiceItem> Config::getServiceMap() {
 }
 
 int Config::setServiceMap(string node, int val) {
-	//todo 同样缺异常判断，比如找不到怎么办啊什么的
 	pthread_mutex_lock(&serviceMapLock);
 	_serviceMap[node].setStatus(val);
 	pthread_mutex_unlock(&serviceMapLock);
 	return 0;
 }
+
 //no necessity to add lock
 void Config::clearServiceMap() {
 	_serviceMap.clear();

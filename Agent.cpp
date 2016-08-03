@@ -45,10 +45,8 @@ int main(int argc, char** argv){
 			}
 		}
 	}
-    //maybe we need it to make the child process wait a while
-    //sleep(2);
+
 	while (1) {
-        cout << "mainloop start" << endl;
 		LOG(LOG_INFO, " main loop start -> !!!!!!");
         Process::clearStop();
 		conf->clearServiceMap();
@@ -101,8 +99,6 @@ int main(int argc, char** argv){
 		// monitor register, this function should in LoadBalance
 		if (_zk->registerMonitor(conf->getMonitorList() + "/monitor_") == M_OK) {
 			LOG(LOG_INFO, "Monitor register success");
-			//wait other monitor to register
-			//sleep(3);
 		}
 		else {
 			LOG(LOG_ERROR, "Monitor register failed");

@@ -2,7 +2,6 @@
 #define UTIL_H
 #include <string>
 #include <vector>
-//#include "Config.h"
 using namespace std;
 
 class Util{

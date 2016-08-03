@@ -77,14 +77,6 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
 	size_t pos2 = ipPort.rfind(':');
 	string ip = ipPort.substr(0, pos2);
 	string port = ipPort.substr(pos2 + 1);
-    //一个很诡异的错误，如果我把下面的代码放在这里，就会导致子进程不断死亡
-    /*
-    int status = STATUS_UNKNOWN;
-    char data[16] = {0};
-    int dataLen = 16;
-    int ret = zoo_get(zh, path.c_str(), 1, data, &dataLen, NULL);
-    status = atoi(data);
-    */
 	if (op == ADD) {
 		//If this ipPort has exist, no need to do anything
 		if (ipExist(serviceFather, ipPort)) {
@@ -106,7 +98,6 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
             return;
         }
         status = atoi(data);
-		//这里好像还少几个成员没有设置 connRetry和connTimeout
         ServiceItem item;
         item.setServiceFather(serviceFather);
         item.setStatus(status);
@@ -205,7 +196,6 @@ void ServiceListener::processChildEvent(zhandle_t* zhandle, const string& path) 
 			LOG(LOG_INFO, "actually It's a delete event");
 		}
 		else {
-			//感觉很低效，可是新建了一个节点，好像只能把所有子节点都获取来，重新加一遍
 			LOG(LOG_INFO, "add new service");
 			for (int i = 0; i < children.count; ++i) {
 				string ipPort = string(children.data[i]);
@@ -216,8 +206,6 @@ void ServiceListener::processChildEvent(zhandle_t* zhandle, const string& path) 
 	}
 	else if (ret == ZNONODE) {
 		LOG(LOG_TRACE, "%s...out...node:%s not exist.", __FUNCTION__, path.c_str());
-		//这个serviceFather不存在了，可能是删除了，这个事件由readBalance完成，也许这里也应该做点什么
-		//serviceFatherToIp.erase(path);
         return;
 	}
 	else {
@@ -530,7 +518,6 @@ bool ServiceListener::serviceFatherExist(const string& serviceFather) {
 	return ret;
 }
 
-//要增加健壮性也应该在这里增加
 void ServiceListener::addIpPort(const string& serviceFather, const string& ipPort) {
 	pthread_mutex_lock(&serviceFatherToIpLock);
 	serviceFatherToIp[serviceFather].insert(ipPort);
@@ -546,7 +533,7 @@ void ServiceListener::deleteIpPort(const string& serviceFather, const string& ip
 
 //这个标记一开始是用来区分zk节点的值是由monitor去改变的还是zk自己改变的
 //是为了使用serviceFatherStatus来判断是否仅剩一个up的服务节点的
-//最后发现这样还是不可行，因为网络的原因等，还是无法确认每次设置了标记位之后就清楚，在设置，暂时无用
+//最后发现这样还是不可行，因为网络的原因等，还是无法确认每次设置了标记位之后就清除，再设置，暂时无用
 void ServiceListener::setWatchFlag() {
     pthread_mutex_lock(&watchFlagLock);
     watchFlag = true;

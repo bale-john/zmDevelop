@@ -29,7 +29,7 @@ private:
     LoadBalance* lb;
 	unordered_map<string, int> updateServiceInfo;
 	list<string> priority;
-	//每个检查线程的pthread_t和该检车线程在线程池中的下标的对应关系
+	//key is the thread id of check thread. value is the index this thread in thread pool
 	map<pthread_t, size_t> threadPos;
     //spinlock_t threadPosLock;
 	pthread_mutex_t threadPosLock;
@@ -39,11 +39,11 @@ private:
 	vector<string> serviceFathers;
     //spinlock_t serviceFathersLock;
 	pthread_mutex_t serviceFathersLock;
-	//标记某个service father是否有一个线程在检查它
+	//marked weather there is a thread checking this service father
 	vector<bool> hasThread;
 	//spinlock_t hasThreadLock;
 	pthread_mutex_t hasThreadLock;
-	//标记下一个等待被检查的service father
+	//the next service father waiting for check
 	int waitingIndex;
 	//spinlock_t waitingIndexLock;
 	pthread_mutex_t waitingIndexLock;
