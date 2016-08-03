@@ -42,7 +42,8 @@ private:
 	pthread_mutex_t serviceFathersLock;
 	//标记某个service father是否有一个线程在检查它
 	vector<bool> hasThread;
-	spinlock_t hasThreadLock;
+	//spinlock_t hasThreadLock;
+	pthread_mutex_t hasThreadLock;
 	//标记下一个等待被检查的service father
 	int waitingIndex;
 	spinlock_t waitingIndexLock;

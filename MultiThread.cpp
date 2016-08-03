@@ -54,7 +54,8 @@ MultiThread::MultiThread() {
 	//updateServiceLock = SPINLOCK_INITIALIZER;
 	pthread_mutex_init(&updateServiceLock, NULL);
 	waitingIndexLock = SPINLOCK_INITIALIZER;
-	hasThreadLock = SPINLOCK_INITIALIZER;
+	//hasThreadLock = SPINLOCK_INITIALIZER;
+    pthread_mutex_init(&hasThreadLock, NULL);
     //threadPosLock = SPINLOCK_INITIALIZER;
     pthread_mutex_init(&threadPosLock, NULL);
     //serviceFathersLock = SPINLOCK_INITIALIZER;
@@ -560,33 +561,33 @@ int MultiThread::getAndAddWaitingIndex() {
 	spinlock_lock(&waitingIndexLock);
 	ret = waitingIndex;
 	waitingIndex = (waitingIndex+1) % serviceFatherNum;
-	spinlock_lock(&hasThreadLock);
+	pthread_mutex_lock(&hasThreadLock);
 	while (hasThread[waitingIndex]) {
 		waitingIndex = (waitingIndex+1) % serviceFatherNum;
 	}
-	spinlock_unlock(&hasThreadLock);
+	pthread_mutex_unlock(&hasThreadLock);
 	spinlock_unlock(&waitingIndexLock);
 	return ret;
 }
 
 void MultiThread::clearHasThread(int sz) {
-	spinlock_lock(&hasThreadLock);
+	pthread_mutex_lock(&hasThreadLock);
 	hasThread.resize(sz, false);
-	spinlock_unlock(&hasThreadLock);
+	pthread_mutex_unlock(&hasThreadLock);
 	return;
 }
 
 void MultiThread::setHasThread(int index, bool val) {
-	spinlock_lock(&hasThreadLock);
+	pthread_mutex_lock(&hasThreadLock);
 	hasThread[index] = val;
-	spinlock_unlock(&hasThreadLock);
+	pthread_mutex_unlock(&hasThreadLock);
 	return;
 }
 
 bool MultiThread::getHasThread(int index) {
 	bool ret = false;
-	spinlock_lock(&hasThreadLock);
+	pthread_mutex_lock(&hasThreadLock);
 	ret = hasThread[index];
-	spinlock_unlock(&hasThreadLock);
+	pthread_mutex_unlock(&hasThreadLock);
 	return ret;
 }
