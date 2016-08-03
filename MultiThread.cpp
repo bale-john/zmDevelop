@@ -450,7 +450,7 @@ void MultiThread::checkService() {
         if (pos == 0) {
             cout << "ttttt4: " << pos << " " << realTime->tm_min << " " << realTime->tm_sec << endl;
         }
-        sleep(1);
+        sleep(2);
 	}
     return;
 }

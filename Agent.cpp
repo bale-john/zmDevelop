@@ -67,7 +67,7 @@ int main(int argc, char** argv){
 				delete _zk;
 			}
 			sleep(2);
-			return;
+			return 0;
 		}
 
 		//check qconf_monitor_lock_node/default_instance/md5_list
@@ -81,7 +81,7 @@ int main(int argc, char** argv){
 				delete _zk;
 			}
 			sleep(2);
-			return;
+			return 0;
 		}
 
 		//check qconf_monitor_lock_node/default_instance/monitor_list
@@ -95,7 +95,7 @@ int main(int argc, char** argv){
 				delete _zk;
 			}
 			sleep(2);
-			return;
+			return 0;
 		}
 
 		// monitor register, this function should in LoadBalance
