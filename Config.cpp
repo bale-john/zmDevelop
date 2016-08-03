@@ -212,11 +212,11 @@ int Config::printMap() {
 			continue;
 		}
 #endif
-		cout << it->first << endl;
-		cout << "host: " << (it->second).getHost() << endl;
-		cout << "port: " << (it->second).getPort() << endl;
-		cout << "service father: " << (it->second).getServiceFather() << endl;
-		cout << "status: " << (it->second).getStatus() << endl;
+		LOG(LOG_INFO, "path: %s", (it->first).c_str());
+		LOG(LOG_INFO, "host: %s", (it->second).getHost().c_str());
+		LOG(LOG_INFO, "port: %d", (it->second).getPort());
+		LOG(LOG_INFO, "service father: %s", (it->second).getServiceFather().c_str());
+		LOG(LOG_INFO, "status: %d", (it->second).getStatus());
 	}
     return 0;
 }
