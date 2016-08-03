@@ -64,7 +64,7 @@ int Process::daemonize() {
     signal(SIGTSTP, SIG_IGN);
     signal(SIGHUP, SIG_IGN);
 
-    int fd;
+    //int fd;
     pid_t pid;
     //already a daemon
     if (getppid() == 1) {
@@ -96,6 +96,7 @@ int Process::daemonize() {
     	exit(EXIT_FAILURE);
     }*/
     //here close all the file description and redirect stand IO
+    /*
     fd = open("/dev/null", O_RDWR, 0);
     dup2(fd, STDIN_FILENO);
     dup2(fd, STDOUT_FILENO);
@@ -106,6 +107,7 @@ int Process::daemonize() {
     for (fd = sysconf(_SC_OPEN_MAX); fd >= 3; --fd) {
         close(fd);
     }
+    */
     umask(0);
     return 0;
 }

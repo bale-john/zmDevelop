@@ -328,9 +328,6 @@ int MultiThread::tryConnect(string curServiceFather) {
 	unordered_map<string, unordered_set<string>> serviceFatherToIp = sl->getServiceFatherToIp();
 	unordered_set<string> ip = serviceFatherToIp[curServiceFather];
     int retryCount = conf->getConnRetryCount();
-    time_t curTime;
-    time(&curTime);
-    struct tm* realTime = localtime(&curTime);
 	for (auto it = ip.begin(); it != ip.end(); ++it) {
         if (Process::isStop() || LoadBalance::getReBalance() || isThreadError()) {
             break;
@@ -380,9 +377,6 @@ void MultiThread::checkService() {
     pthread_mutex_lock(&threadPosLock);
 	size_t pos = threadPos[pthreadId];
     pthread_mutex_unlock(&threadPosLock);
-    time_t curTime;
-    time(&curTime);
-    struct tm* realTime = localtime(&curTime);
 	while (1) {
         if (Process::isStop() || LoadBalance::getReBalance() || isThreadError()) {
             break;

@@ -188,9 +188,6 @@ void ServiceListener::processChangedEvent(zhandle_t* zhandle, const string& path
 	//ServiceListener* sl = ServiceListener::getInstance();
 	Config* conf = Config::getInstance();
 	//int oldStatus = (conf->getServiceItem(path)).getStatus();
-    time_t curTime;
-    time(&curTime);
-    struct tm* realTime = localtime(&curTime);
 	int newStatus = STATUS_UNKNOWN;
 	char data[16] = {0};
 	int dataLen = 16;
