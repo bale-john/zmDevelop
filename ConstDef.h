@@ -52,7 +52,7 @@ const string NODE_LIST = "md5_list";
 #ifdef DEBUGT
 constexpr int MAX_THREAD_NUM = 1;
 #else
-constexpr int MAX_THREAD_NUM = 256;
+constexpr int MAX_THREAD_NUM = 64;
 #endif
 
 //op of mpdify serviceFatherToIp
