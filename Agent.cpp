@@ -49,6 +49,7 @@ int main(int argc, char** argv){
 	while (1) {
 		LOG(LOG_INFO, " main loop start -> !!!!!!");
         Process::clearStop();
+		MultiThread::clearThreadError();
 		conf->clearServiceMap();
 		Zk* _zk = Zk::getInstance();
 		string zkHost = conf->getZkHost();
