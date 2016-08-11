@@ -147,7 +147,7 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
 		conf->deleteService(path);
 	}
 #ifdef DEBUGS
-	cout << op << 666666666 << path << endl;
+    LOG(LOG_DEBUG, "op:%s, path:%s", op.c_str(), path.c_str());
     for (auto it1 = serviceFatherToIp.begin(); it1 != serviceFatherToIp.end(); ++it1) {
         if (it1->first != "/qconf/demo/test/hosts") {
             continue;
@@ -160,7 +160,7 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
     }
 #endif
 #ifdef DEBUGSS
-	cout << op << 77777777 << path << endl;
+    LOG(LOG_DEBUG, "op:%s, path:%s", op.c_str(), path.c_str());
 	for (auto it = serviceFatherStatus.begin(); it != serviceFatherStatus.end(); ++it) {
         if (it->first != "/qconf/demo/test/hosts") {
             continue;
@@ -173,7 +173,7 @@ void ServiceListener::modifyServiceFatherToIp(const string op, const string& pat
 	}
 #endif
 #ifdef DEBUGSSS
-	cout << op << 888888 << path << endl;
+    LOG(LOG_DEBUG, "op:%s, path:%s", op.c_str(), path.c_str());
 	Util::printServiceMap();
 #endif
 }
