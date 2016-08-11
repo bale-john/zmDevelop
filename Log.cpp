@@ -92,3 +92,11 @@ int Log::printLog(const char* fileName, const int line, const int level, const c
 	return 0;
 }
 
+void Log::closeLogFile() {
+    if (fp && fp != stderr) {
+        fclose(fp);
+        fp = NULL;
+        memset(curLogFileName, 0, 128);
+    }
+    return;
+}

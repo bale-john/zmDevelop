@@ -37,5 +37,6 @@ public:
 	//load the loglevel from config file
 	static int init(const int ll);
 	static string getLogLevelStr(int n);
+    static void closeLogFile();
 };
 #endif
