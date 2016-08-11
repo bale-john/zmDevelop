@@ -99,7 +99,6 @@ int Process::daemonize() {
     }*/
     //here close all the file description and redirect stand IO
 #ifdef CLOSEFD
-    //make clear how to close file description
     fd = open("/dev/null", O_RDWR, 0);
     dup2(fd, STDIN_FILENO);
     dup2(fd, STDOUT_FILENO);
@@ -357,7 +356,6 @@ int Process::processKeepalive(int& childExitStatus, const string pidFile) {
     while (1) {
         while (processNum < 1) {
             childPid = fork();
-            cout << "new child " << childPid << endl;
             if (childPid < 0) {
                 LOG(LOG_FATAL_ERROR, "fork excute failed");
                 return -1;
