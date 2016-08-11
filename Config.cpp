@@ -90,10 +90,10 @@ int Config::setValueStr(const string& key, const string& value){
 	//find the zk host this monitor should focus on. Their idc should be the same
 	else if (key.substr(0, zkHost.length()) == zkHost){
 		char hostname[128] = {0};
-		if (gethostname(hostname, sizeof(hostname)) != 0) {
-			LOG(LOG_ERROR, "get host name failed");
-			return -1;
-		}
+        if (gethostname(hostname, sizeof(hostname)) != 0) {
+            LOG(LOG_ERROR, "get host name failed");
+            exit(-1);
+        }
 		string idc = key.substr(zkHost.length());
 		vector<string> singleWord = Util::split(string(hostname), '.');
 		size_t i = 0;
