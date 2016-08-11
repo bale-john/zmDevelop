@@ -103,6 +103,7 @@ int Zk::initEnv(const string zkHost, const string zkLogPath, const int recvTimeo
 
 	if (zkHost.size() <= 0) {
 		LOG(LOG_ERROR, "zkHost %s wrong!", zkHost.c_str());
+        fclose(_zkLogFile);
 		return M_ERR;
 	}
 	_zkHost = zkHost;
@@ -111,9 +112,9 @@ int Zk::initEnv(const string zkHost, const string zkLogPath, const int recvTimeo
 	_zh = zookeeper_init(zkHost.c_str(), watcher, _recvTimeout, NULL, NULL, 0);
 	if (!_zh) {
 		LOG(LOG_ERROR, "zookeeper_init failed. Check whether zk_host(%s) is correct or not", zkHost.c_str());
+        fclose(_zkLogFile);
 		return M_ERR;
 	}
-	LOG(LOG_INFO, "zookeeper init success");
 	return M_OK;
 }
 
