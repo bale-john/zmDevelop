@@ -343,16 +343,12 @@ int ServiceListener::getAllIp() {
 		deallocate_String_vector(&children);
 	}
 #ifdef DEBUGS
-    cout << 55555555555 << endl;
     for (auto it1 = serviceFatherToIp.begin(); it1 != serviceFatherToIp.end(); ++it1) {
-        if (it1->first != "/qconf/demo/test/hosts") {
-            continue;
-        }
-        cout << it1->first << endl;
+        LOG(LOG_DEBUG, "service father: %s", (it1->first).c_str());
+        LOG(LOG_DEBUG, "IP:");
         for (auto it2 = (it1->second).begin(); it2 != (it1->second).end(); ++it2) {
-            cout << *it2 << " ";
+            LOG(LOG_DEBUG, "%s", (*it2).c_str());
         }
-        cout << endl;
     }
 #endif
 	return 0;
@@ -437,12 +433,10 @@ int ServiceListener::loadAllService() {
 		pthread_mutex_lock(&serviceFatherToIpLock);
 	}
 	pthread_mutex_unlock(&serviceFatherToIpLock);
+/*
+serviceFatherStatus is not used for now
 #ifdef DEBUGSS
-	cout << 444444444 << endl;
 	for (auto it = serviceFatherStatus.begin(); it != serviceFatherStatus.end(); ++it) {
-        if (it->first != "/qconf/demo/test/hosts") {
-            continue;
-        }
 		cout << it->first << endl;
 		for (auto it1 = (it->second).begin(); it1 != (it->second).end(); ++it1) {
 			cout << *it1 << " ";
@@ -450,8 +444,8 @@ int ServiceListener::loadAllService() {
 		cout << endl;
 	}
 #endif
+*/
 #ifdef DEBUGSSS
-	cout << 3333333333 << endl;
 	Util::printServiceMap();
 #endif
     return 0;

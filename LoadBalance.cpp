@@ -203,7 +203,7 @@ int LoadBalance::getMd5ToServiceFather() {
 	deallocate_String_vector(&md5Node);
 #ifdef DEBUGL
     for (auto it = md5ToServiceFather.begin(); it != md5ToServiceFather.end(); ++it) {
-        cout << it->first << " " << it->second << endl;
+        LOG(LOG_DEBUG, "md5:%s, service father:%s", (it->first).c_str(), (it->second).c_str());
     }
 #endif
 	return M_OK;
@@ -234,10 +234,9 @@ int LoadBalance::balance(bool flag /*=false*/) {
 	}
 	pthread_mutex_unlock(&md5ToServiceFatherLock);
 #ifdef DEBUG
-	cout << "LLL11111111111" << endl;
-    cout << "md5 node value:" << endl;
+    LOG(LOG_DEBUG, "md5 node value:");
 	for (auto it = md5Node.begin(); it != md5Node.end(); ++it) {
-		cout << (*it) << endl;
+        LOG(LOG_DEBUG, "%s", (*it).c_str());
 	}
 #endif
 	vector<unsigned int> sequence;
@@ -246,18 +245,16 @@ int LoadBalance::balance(bool flag /*=false*/) {
 		sequence.push_back(tmp);
 	}
 #ifdef DEBUG
-	cout << "LLL222222222222" << endl;
-    cout << "sequence number of monitors registed:" << endl;
+    LOG(LOG_DEBUG, "sequence number of monitors registed:");
 	for (auto it = sequence.begin(); it != sequence.end(); ++it) {
-		cout << (*it) << endl;
+		LOG(LOG_DEBUG, "%u", *it);
 	}
 #endif
 	sort(sequence.begin(), sequence.end());
 #ifdef DEBUG
-	cout << "LLL33333333333" << endl;
-    cout << "sorted sequence number of monitors registed:" << endl;
+    LOG(LOG_DEBUG, "sorted sequence number of monitors registed:");
 	for (auto it = sequence.begin(); it != sequence.end(); ++it) {
-		cout << (*it) << endl;
+		LOG(LOG_DEBUG, "%d", *it);
 	}
 #endif
 	string monitor = string(_zkLockBuf);
@@ -280,10 +277,9 @@ int LoadBalance::balance(bool flag /*=false*/) {
 		LOG(LOG_INFO, "my service father:%s", myServiceFather.back().c_str());
 	}
 #ifdef DEBUG
-	cout << "LLL44444444444" << endl;
-    cout << "my service father:" << endl;
+    LOG(LOG_DEBUG, "my service father:");
 	for (auto it = myServiceFather.begin(); it != myServiceFather.end(); ++it) {
-		cout << (*it) << endl;
+		LOG(LOG_DEBUG, "%s", (*it).c_str());
 	}
 #endif
 	return M_OK;
