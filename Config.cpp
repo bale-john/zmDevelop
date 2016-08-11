@@ -94,6 +94,7 @@ int Config::setValueStr(const string& key, const string& value){
             LOG(LOG_ERROR, "get host name failed");
             exit(-1);
         }
+        _monitorHostname = string(hostname);
 		string idc = key.substr(zkHost.length());
 		vector<string> singleWord = Util::split(string(hostname), '.');
 		size_t i = 0;
