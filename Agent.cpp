@@ -162,6 +162,7 @@ int main(int argc, char** argv){
 				continue;
 			}
 
+            Config::getInstance()->clearServiceMap();
 			//after load balance. Each monitor should load the service to Config
 			ServiceListener* sl = ServiceListener::getInstance();
 			if (sl->initEnv() == M_OK) {
