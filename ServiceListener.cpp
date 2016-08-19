@@ -192,6 +192,7 @@ void ServiceListener::processChildEvent(zhandle_t* zhandle, const string& path) 
 	int ret = zoo_get_children(zhandle, path.c_str(), 1, &children);
 	if (ret == ZOK) {
 		LOG(LOG_INFO, "get children success");
+        LOG(LOG_INFO, "old children num:%d", (int)sl->getIpNum(path));
 		if (children.count <= (int)sl->getIpNum(path)) {
 			LOG(LOG_INFO, "actually It's a delete event");
 		}
@@ -515,6 +516,9 @@ bool ServiceListener::serviceFatherExist(const string& serviceFather) {
 void ServiceListener::addIpPort(const string& serviceFather, const string& ipPort) {
 	pthread_mutex_lock(&serviceFatherToIpLock);
 	serviceFatherToIp[serviceFather].insert(ipPort);
+    if (ipPort.empty()) {
+        serviceFatherToIp[serviceFather].clear();
+    }
 	pthread_mutex_unlock(&serviceFatherToIpLock);
 }
 
